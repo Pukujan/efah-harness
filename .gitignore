@@ -12,3 +12,7 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+
+# Agent worktrees and local session state. Ephemeral by construction:
+# a worktree is created for isolation and removed when its agent finishes.
+.claude/

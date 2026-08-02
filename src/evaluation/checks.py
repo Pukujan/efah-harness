@@ -1506,10 +1506,22 @@ CHECKS: dict[tuple[str, str], Check] = {
 # was the only place a reader could see what is covered. Keeping the map here
 # and the checks next door preserves that one-screen view.
 from evaluation.checks_d1_03 import CHECKS_D1_03  # noqa: E402
+from evaluation.checks_d1_04 import CHECKS_D1_04  # noqa: E402
+from evaluation.checks_d1_05 import CHECKS_D1_05  # noqa: E402
+from evaluation.checks_d1_06 import CHECKS_D1_06  # noqa: E402
+from evaluation.checks_d2_11 import CHECKS_D2_11  # noqa: E402
 from evaluation.checks_d2_12 import CHECKS_D2_12  # noqa: E402
+from evaluation.checks_d2_21 import CHECKS_D2_21  # noqa: E402
+from evaluation.checks_d2_22 import CHECKS_D2_22  # noqa: E402
 
 CHECKS.update(CHECKS_D1_03)
+CHECKS.update(CHECKS_D1_04)
+CHECKS.update(CHECKS_D1_05)
+CHECKS.update(CHECKS_D1_06)
+CHECKS.update(CHECKS_D2_11)
 CHECKS.update(CHECKS_D2_12)
+CHECKS.update(CHECKS_D2_21)
+CHECKS.update(CHECKS_D2_22)
 
 
 #: Why an assertion has no check, so "not executable" is a statement with a

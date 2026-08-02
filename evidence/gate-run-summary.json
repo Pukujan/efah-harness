@@ -1,15 +1,15 @@
 {
   "body": {
-    "assertions_executed": 59,
+    "assertions_executed": 83,
     "assertions_total": 127,
-    "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+    "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
     "counts": {
-      "EXECUTED": 10,
+      "EXECUTED": 14,
       "FAIL": 0,
-      "NOT_YET_EXECUTABLE": 14,
-      "PARTIALLY_EXECUTABLE": 3,
-      "PASS": 7,
-      "UNVERIFIABLE": 20
+      "NOT_YET_EXECUTABLE": 8,
+      "PARTIALLY_EXECUTABLE": 5,
+      "PASS": 11,
+      "UNVERIFIABLE": 16
     },
     "gates": [
       {
@@ -58,7 +58,7 @@
         "assertions_executed": 0,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 1,
         "evidence_missing": [
@@ -133,28 +133,28 @@
         "assertions_executed": 4,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 1,
         "evidence_missing": [],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:2c6049458f96029fe40b5b3d55100ba0a977fc37703af9be1a2624afec8d9131",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:b2e5bec114bf432d879d8189d3a2c5b3651c8b0deaeec3d5a5455bcc3c14fc62",
             "gate_id": "GATE-D1-02",
             "name": "hash_recomputation_log",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:14f916547ac2e7e888d8b2a88b22cc32b1af99c011a79dcc5802228ef112c528",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:ec6e0c1ca067bc4de48fccd811d29431e655360de06aac471d1316f7877d6e8d",
             "gate_id": "GATE-D1-02",
             "name": "negative_control_transcript",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:9c5993df680bba35c9ae59fe7ca2b65f1cb5da0e95e21ccde32caa658a21aeb2",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:1b70348b5b65e2e6aaf4af7df2fc9956dc302a6b05b65f7ab068d53b54b824a5",
             "gate_id": "GATE-D1-02",
             "name": "schema_validation_report",
             "path": null
@@ -236,42 +236,42 @@
         "assertions_executed": 5,
         "assertions_total": 5,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 1,
         "evidence_missing": [],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:6aaac422aab1bab38c84e4dbe437a88646ff92a559598014e38f73fa458ed7f0",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:efb19fc805e1456dd4e19512c566008a2d686b35148bf24285b6f6c245de0d05",
             "gate_id": "GATE-D1-03",
             "name": "compiler_output_manifest",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:1673c565ac06d328c397bc9ae32f3b043580a61a99a70c5d55818889d8ece4ae",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:c18eefd6c8102f30e91375807a7246b030d90c448e35a50f7040f7319fc50f9b",
             "gate_id": "GATE-D1-03",
             "name": "critical_path_listing",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:282e0ef42aa9fde8d47ed460dcfdc320ea3aab71fba138786c7384da6d403902",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:2bac9a3fffc8918a90b32c44eadcce6e543958dc395594bb1b9d17167892712f",
             "gate_id": "GATE-D1-03",
             "name": "cycle_detection_report",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:6671c555897adc628b62069c1843913f2f45c20d00ad97a6b2e1182b7e7aafd1",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:e20095ff1ebb1aaebf0b4398a35b1ef08ee99878b61de0eb346534e4dacb07cc",
             "gate_id": "GATE-D1-03",
             "name": "graph_export_with_edge_types",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:111191f897154f86d72247afa292a4b5003f5f661a17c14769b82e8db5a40e0f",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:0d554b8662468909d5f1f6f562997f532faeb661881181a26e0fbb24ab7069e2",
             "gate_id": "GATE-D1-03",
             "name": "methodology_provenance_report",
             "path": null
@@ -307,8 +307,8 @@
             "findings": [],
             "id": "A1",
             "method": "kill_and_restart_probe",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "2 pinned probes pass: a SIGKILLed run resumes in a new process and the shipped task_graph resumes after a classified failure. The same resume command with no store refuses outright and executes nothing",
+            "status": "PASS"
           },
           {
             "claim": "Nodes that completed before the kill are not re-executed.",
@@ -317,8 +317,8 @@
             "findings": [],
             "id": "A2",
             "method": "node_execution_counter_compare",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "across a real SIGKILL, durable_branch executed exactly 1 time and its output 'probe.durable' still reached the resumed result; on the shipped task_graph the completed node ran once and the lease stayed at generation 1. A restart in place of a resume is counted as 1 rerun(s)",
+            "status": "PASS"
           },
           {
             "claim": "Every checkpoint references all twelve required fields.",
@@ -327,8 +327,8 @@
             "findings": [],
             "id": "A3",
             "method": "checkpoint_schema_assert",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "5 state-carrying checkpoints from a real task_graph run each reference all 12 Section 10.4 fields, and the adapter refuses a write with any one of them absent or null",
+            "status": "PASS"
           },
           {
             "claim": "Deleting the checkpoint store does not destroy project truth.",
@@ -347,23 +347,56 @@
             "findings": [],
             "id": "A5",
             "method": "import_boundary_test",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "175 files under src/ parsed and none imports the checkpointer; the exempt adapter is flagged by the same scanner (['langgraph.checkpoint.base', 'langgraph.checkpoint.base.BaseCheckpointSaver', 'langgraph.checkpoint.base.ChannelVersions', 'langgraph.checkpoint.base.Checkpoint', 'langgraph.checkpoint.base.CheckpointMetadata', 'langgraph.checkpoint.serde.jsonplus', 'langgraph.checkpoint.serde.jsonplus.JsonPlusSerializer', 'langgraph.checkpoint.sqlite.aio', 'langgraph.checkpoint.sqlite.aio.AsyncSqliteSaver']) when the exemption is lifted",
+            "status": "PASS"
           }
         ],
-        "assertions_executed": 0,
+        "assertions_executed": 4,
         "assertions_total": 5,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 1,
         "evidence_missing": [
-          "kill_restart_transcript",
-          "node_execution_counters",
-          "checkpoint_field_dump",
           "post_delete_terminusdb_query_result"
         ],
-        "evidence_produced": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:0e90aa82e28984595ace4823fc47429b98155e6aa97b36c7fe3d97bad2481cd5",
+            "gate_id": "GATE-D1-04",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:cd916871c4b0ade80496319ddea5bafb342b35cda76549059dac059332d0ea06",
+            "gate_id": "GATE-D1-04",
+            "name": "checkpoint_field_dump",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:ba96e476c8ced7c9d7aa0e4c0bd2b27be1bf332b350fd89932582354def73e94",
+            "gate_id": "GATE-D1-04",
+            "name": "import_boundary_report",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:4d19db235a11e5ff73bec19389d2f56fa0ab8de09fa3413f48d0c4c960991ee6",
+            "gate_id": "GATE-D1-04",
+            "name": "kill_restart_transcript",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:3e09d57d096aaa84d9315d3131abfeb91b04784eb8fe9cee6b4e4216dae50718",
+            "gate_id": "GATE-D1-04",
+            "name": "node_execution_counters",
+            "path": null
+          }
+        ],
         "evidence_required": [
           "kill_restart_transcript",
           "node_execution_counters",
@@ -371,7 +404,7 @@
           "post_delete_terminusdb_query_result"
         ],
         "evidence_tier": "DETERMINISTIC_ORACLE",
-        "executability": "NOT_YET_EXECUTABLE",
+        "executability": "PARTIALLY_EXECUTABLE",
         "gate_id": "GATE-D1-04",
         "gate_source_hash": "sha256:dde424a334d289a5eaba24de9b83c78c728e58c001c2f707d80a8dfca7efbe47",
         "load_error": null,
@@ -394,8 +427,8 @@
             "findings": [],
             "id": "A1",
             "method": "session_history_length_probe",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "two invocations of one task under one alias open distinct sessions, the second at prior_turn_count 0 with nothing the first said in its payload; the closed session refuses messages(), record_turn() and close(); the class exposes no resume path and no history parameter; and a pack disabling fresh sessions is refused",
+            "status": "PASS"
           },
           {
             "claim": "No model call bypasses the LiteLLM proxy.",
@@ -414,8 +447,8 @@
             "findings": [],
             "id": "A3",
             "method": "context_payload_audit",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "the payload reduces to nothing once the work unit's own fields are subtracted, and none of the 4 project-scope strings in play at build time appears in it; the same audit catches a session that prepends the previous transcript",
+            "status": "PASS"
           },
           {
             "claim": "Durable state survives the worker session ending.",
@@ -428,19 +461,39 @@
             "status": "NOT_IMPLEMENTED"
           }
         ],
-        "assertions_executed": 0,
+        "assertions_executed": 2,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 1,
         "evidence_missing": [
-          "session_initialization_logs",
           "litellm_request_log",
-          "context_payload_sample",
           "post_session_state_dump"
         ],
-        "evidence_produced": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:025141bfd95e791fa37e02d3c53e4efd45a3fe0946e59c0a1bd001069f88f1a7",
+            "gate_id": "GATE-D1-05",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:3d63fe34d0313a3a03f7d8d0ffcc61effe2eecdb43af2515d901f6462773f5da",
+            "gate_id": "GATE-D1-05",
+            "name": "context_payload_sample",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:bbc064a4a7c7ce91fe3537802ea58327ae9e76043c0ada9468239aa67f00d01c",
+            "gate_id": "GATE-D1-05",
+            "name": "session_initialization_logs",
+            "path": null
+          }
+        ],
         "evidence_required": [
           "session_initialization_logs",
           "litellm_request_log",
@@ -448,7 +501,7 @@
           "post_session_state_dump"
         ],
         "evidence_tier": "DETERMINISTIC_ORACLE",
-        "executability": "NOT_YET_EXECUTABLE",
+        "executability": "PARTIALLY_EXECUTABLE",
         "gate_id": "GATE-D1-05",
         "gate_source_hash": "sha256:80aec46ae79e0de1db329c387b3603a324e1ac3fea7e477a12f46867e8fff025",
         "load_error": null,
@@ -471,8 +524,8 @@
             "findings": [],
             "id": "A1",
             "method": "payload_scan_for_vendor_strings",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "zero vendor or model matches across 15 mapped roles' worker-facing payloads, while four injected leaks were each refused by the adapter's own gate",
+            "status": "PASS"
           },
           {
             "claim": "Task and audit records reference aliases, not real identities.",
@@ -481,8 +534,8 @@
             "findings": [],
             "id": "A2",
             "method": "record_field_scan",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "7 ledger events and one middleware-produced audit record reference aliases only, while four forged identities were each caught",
+            "status": "PASS"
           },
           {
             "claim": "Real identity mapping resides in the separate protected database.",
@@ -491,8 +544,8 @@
             "findings": [],
             "id": "A3",
             "method": "database_location_assert",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "the mapping lives in 'efah_protected' on an isolated instance while the main graph is 'efah' on a different endpoint, and environments.yaml declares the same separation; the main builder credential is refused there (HTTP 401)",
+            "status": "PASS"
           },
           {
             "claim": "The owner audit path can reveal the mapping with owner credentials.",
@@ -501,8 +554,8 @@
             "findings": [],
             "id": "A4",
             "method": "owner_reveal_probe",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "the owner audit path revealed the mapping (verified by hash against the pack, never recorded), the reveal left an audit record, and every unprivileged caller, malformed audit context and credential-less construction was refused",
+            "status": "PASS"
           },
           {
             "claim": "No agent receives another agent's prestige ranking or cost tier.",
@@ -511,29 +564,61 @@
             "findings": [],
             "id": "A5",
             "method": "payload_scan_for_ranking_fields",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "zero prestige, cost or ranking fields across 15 mapped roles' payloads -- structurally, since RoutingDecision declares none -- while each of the 27 injected field names was caught",
+            "status": "PASS"
           }
         ],
-        "assertions_executed": 0,
+        "assertions_executed": 5,
         "assertions_total": 5,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 1,
-        "evidence_missing": [
-          "payload_scan_report",
-          "protected_db_location_proof",
-          "owner_reveal_transcript_redacted"
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:03c8479b2a08ab958bcad2bf5fa3471200d33f75c4dcb0a4c201b588260f2154",
+            "gate_id": "GATE-D1-06",
+            "name": "owner_reveal_transcript_redacted",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:a0458464b7f7c3c1a19cb4ff85d0693f33829ff5f58f6989d63ce4ccd17e13ed",
+            "gate_id": "GATE-D1-06",
+            "name": "payload_scan_report",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:6472bff49a901a93e845a069dc9b72164d18de8b15fb6e84c237a4448ff60d33",
+            "gate_id": "GATE-D1-06",
+            "name": "protected_db_location_proof",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:9fcf85a084d3566e1e0eaaa8fc961fdc7fa56dd8f292dc871afcbae26bea2525",
+            "gate_id": "GATE-D1-06",
+            "name": "ranking_field_scan_report",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:dc1af2265669062d08c87fed3b4ac32d30e90acaa96839ee77c3327904f6fd1f",
+            "gate_id": "GATE-D1-06",
+            "name": "record_scan_report",
+            "path": null
+          }
         ],
-        "evidence_produced": [],
         "evidence_required": [
           "payload_scan_report",
           "protected_db_location_proof",
           "owner_reveal_transcript_redacted"
         ],
         "evidence_tier": "DETERMINISTIC_ORACLE",
-        "executability": "NOT_YET_EXECUTABLE",
+        "executability": "EXECUTED",
         "gate_id": "GATE-D1-06",
         "gate_source_hash": "sha256:a68c7dc7b99d811b092a67731b1a88f089fb997c3473c4dce7cb78ff0e3b202f",
         "load_error": null,
@@ -545,7 +630,7 @@
           "state": "FAILED_ASSURANCE"
         },
         "oracle_type": "static_ast_type_policy",
-        "verdict": "UNVERIFIABLE"
+        "verdict": "PASS"
       },
       {
         "assertions": [
@@ -603,35 +688,35 @@
         "assertions_executed": 5,
         "assertions_total": 5,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 1,
         "evidence_missing": [],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:0372ec2a8558193d885027d2150d9dbc4f979e3c2b71eb3ff809280ec9acbd50",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:d136c5466ebc38f95727e3396a765170250ac7fbbc77ad53cf222352bc10f582",
             "gate_id": "GATE-D1-07",
             "name": "adapter_removal_run_log",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:2827aede36f1ded4ba343f1e76597431e559fbc1d617dc0385b1e104f8cf2050",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:049183311b50956abe0164ac0e8937d049c8070e9eb93d3acf8ea9b9817d65de",
             "gate_id": "GATE-D1-07",
             "name": "ci_workflow_scan_output",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:bbceda3ece6f7ece19cde62946e34a2d8213adb187966c40c5c47b975172091c",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:8922073cb64c081ea72e45ac7df061f3bc891e200376fdad9ecc97fd98163796",
             "gate_id": "GATE-D1-07",
             "name": "credential_stripped_run_transcript",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:b3cee09682da32c9d6799f9d0a596f6fe2ebf616aa8c790fadbe136bf477e1eb",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:070cfa0bd8c5803a52de5882a3bfae65aa862e8a5d64b72d5cbad419938632be",
             "gate_id": "GATE-D1-07",
             "name": "import_graph_report",
             "path": null
@@ -677,7 +762,7 @@
             "findings": [],
             "id": "A2",
             "method": "static_scan",
-            "note": "302 files scanned; zero matches outside the declared sealed-repos block, and no sealed URL anywhere",
+            "note": "316 files scanned; zero matches outside the declared sealed-repos block, and no sealed URL anywhere",
             "status": "PASS"
           },
           {
@@ -724,7 +809,7 @@
         "assertions_executed": 4,
         "assertions_total": 6,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 1,
         "evidence_missing": [
@@ -732,29 +817,29 @@
         ],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:fa025049ef2ab2eb191bb2eaf84eef8fc2074aefb4265b396d15073c3c0bea80",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:fbe1097536a4b167139aa8e9dc9a2d6c629b448122079178d6ae2e7778410402",
             "gate_id": "GATE-D1-08",
             "name": "actor_identifiers",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:9cea09a754fa0db759c2a9eb5cf93cfeec80443ba18dc7141ae559ec31f55b61",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:d60af76597d84083d102fef54235f2a7bdd70833d93b12483d5694fc2782ad88",
             "gate_id": "GATE-D1-08",
             "name": "static_scan_report_with_content_hash",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:7c9f91c4e9cf51f21145fc33f93e5984f9580e38920483405df8c8d744caac08",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:fec289219e407d0a716618efc4d37384a23d217ba27ffe751ba9bf3ef1b73296",
             "gate_id": "GATE-D1-08",
             "name": "token_scope_dump_redacted",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:704c09a25968cdcbeb5b68d1ff3b0f10339918435546fe5f27de41e1b972e18f",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:85156480e596939e7ba690348a612d58d96db808ffa8dcdbea71a93e1d60721a",
             "gate_id": "GATE-D1-08",
             "name": "verdict_payload_sample_and_schema_result",
             "path": null
@@ -837,7 +922,7 @@
         "assertions_executed": 3,
         "assertions_total": 5,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 1,
         "evidence_missing": [
@@ -845,22 +930,22 @@
         ],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:fba4cced89f3f822e5387115f4591481d7d9613e6e35d90228bdbc26588028fb",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:e24645667f7a41e4eabfad47d2416446f6d8b9d0003c229c62443f72ce4d59f3",
             "gate_id": "GATE-D1-09",
             "name": "artifact_registry_dump",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:a093947f692b72888a6f33381c8d26efd96691bdea4de03eabe6434658f839cf",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:b9441b404bcb393c63e568348092943a7db05983d952ed4de1854aaebea4c568",
             "gate_id": "GATE-D1-09",
             "name": "negative_control_transcript",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:416ae643f6d7a062ca6ca30270c74f6f86ebfa2da027ddda9bc94442550866bd",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:1367fd9c0e555b2897e03a8c0091021cd464c996b1b52903fd19661983a116c7",
             "gate_id": "GATE-D1-09",
             "name": "test_record_sample",
             "path": null
@@ -993,7 +1078,7 @@
         "assertions_executed": 10,
         "assertions_total": 10,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.1",
         "day": 1,
         "evidence_missing": [
@@ -1004,8 +1089,8 @@
         ],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:610b6fd3a39da2a15d1827920491703315d0b401a0e973a670720b0ec7fdf74d",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:4b60dfc7ff037c56f089f11fd2aef71977e1f1d867c048cabedb6e408eb46d1f",
             "gate_id": "GATE-D1-10",
             "name": "credential_stripped_run_transcript",
             "path": null
@@ -1079,7 +1164,7 @@
         "assertions_executed": 0,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
         "evidence_missing": [
@@ -1117,8 +1202,8 @@
             "findings": [],
             "id": "A1",
             "method": "view_presence_check",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "all 13 Section 11.6 views are required fields and carry content from a seeded control plane, while a type-complete empty projection is reported unpopulated in every one of them",
+            "status": "PASS"
           },
           {
             "claim": "Plane cannot mutate authoritative state.",
@@ -1127,8 +1212,8 @@
             "findings": [],
             "id": "A2",
             "method": "write_attempt_probe",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "the projection reaches 8 read methods and none of 13 write names; a full pass published 20 objects to Plane and left the authoritative fingerprint unchanged, while the same fingerprint moved for a genuine write",
+            "status": "PASS"
           },
           {
             "claim": "No holdout assertion, private fixture, or mutant source appears in Plane.",
@@ -1137,8 +1222,8 @@
             "findings": [],
             "id": "A3",
             "method": "projection_content_scan",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "a 4-work-item payload and a 154-row projection both publish, while all 5 injected classes of protected content are refused -- the snapshot-level leak before any network call was made",
+            "status": "PASS"
           },
           {
             "claim": "Worklog durations derive from system events, not agent estimates.",
@@ -1147,29 +1232,47 @@
             "findings": [],
             "id": "A4",
             "method": "worklog_source_assert",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "TimingRecord carries 10 system-event timestamps and no estimate field the schema would accept; 6 durations recompute exactly from those timestamps, and a missing timestamp yields None rather than a number",
+            "status": "PASS"
           }
         ],
-        "assertions_executed": 0,
+        "assertions_executed": 4,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
-        "evidence_missing": [
-          "gate_execution_log",
-          "negative_control_transcript",
-          "artifact_hashes_and_commit_binding"
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:8f978e9762bd0a44b2e5926f72e3775bf6a59e08ac079291d9c7ab242e349951",
+            "gate_id": "GATE-D2-11",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:4eee8944a20e440dd1de6d785cfc91146bbe392a94e78a6ac1813cfa6015a3b5",
+            "gate_id": "GATE-D2-11",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:2a45fa226e890512ff73f2f8ebb8ed66f6b166bb679e626731b6d5b054a3fc35",
+            "gate_id": "GATE-D2-11",
+            "name": "negative_control_transcript",
+            "path": null
+          }
         ],
-        "evidence_produced": [],
         "evidence_required": [
           "gate_execution_log",
           "negative_control_transcript",
           "artifact_hashes_and_commit_binding"
         ],
         "evidence_tier": "DETERMINISTIC_ORACLE",
-        "executability": "NOT_YET_EXECUTABLE",
+        "executability": "EXECUTED",
         "gate_id": "GATE-D2-11",
         "gate_source_hash": "sha256:1f00f713c2dd98134bfc3dde270da81a568582d7f7a46593acad2a131138a97a",
         "load_error": null,
@@ -1181,7 +1284,7 @@
           "state": "FAILED_ASSURANCE"
         },
         "oracle_type": "deterministic_execution_or_state",
-        "verdict": "UNVERIFIABLE"
+        "verdict": "PASS"
       },
       {
         "assertions": [
@@ -1229,28 +1332,28 @@
         "assertions_executed": 4,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
         "evidence_missing": [],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:647dacf88f2dac5cf246ecaf1253acc8d8a4b3f95be419d9e3b4576b5efa1437",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:9401b7995ef95deb6c114fe8b907a4ba918570386ab20395cd982a1f4c354e82",
             "gate_id": "GATE-D2-12",
             "name": "artifact_hashes_and_commit_binding",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:8fcdd7c01d150fa02dd2f07b279cef695f6d8302ece11001f88b3ca4d93a7235",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:16150c91844fbc098d4dee4dbf68b75b11ca38478d8c4e8830bed5f13bc5149f",
             "gate_id": "GATE-D2-12",
             "name": "gate_execution_log",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:1c49e0fa58b595e96deedd2fbfd46890bdea6baf249d779a25707d72f753f195",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:ebc7f4979f9efa25da1142c5fae25133cf510af52a1d8ec12201bc109ebc59d8",
             "gate_id": "GATE-D2-12",
             "name": "negative_control_transcript",
             "path": null
@@ -1322,7 +1425,7 @@
         "assertions_executed": 0,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
         "evidence_missing": [
@@ -1397,7 +1500,7 @@
         "assertions_executed": 0,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
         "evidence_missing": [
@@ -1472,7 +1575,7 @@
         "assertions_executed": 0,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
         "evidence_missing": [
@@ -1547,7 +1650,7 @@
         "assertions_executed": 0,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
         "evidence_missing": [
@@ -1632,7 +1735,7 @@
         "assertions_executed": 0,
         "assertions_total": 5,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
         "evidence_missing": [
@@ -1707,28 +1810,28 @@
         "assertions_executed": 4,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
         "evidence_missing": [],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:95913ef4615ea8c5d1c39b0a8debc33bf2046918983e85d090daef9b181190f2",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:4cd2fc2155135245f09b31b8010c81799e2eb41b0d37197f18133bd76354f819",
             "gate_id": "GATE-D2-18",
             "name": "artifact_hashes_and_commit_binding",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:df1908ff57404ea2155a61af832778cd88453f76193a341effaee5d164161a88",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:6cc293cc03878694b64fc5dd6fcd24f3ac021336d85a7efbe49ca28a8cd4856e",
             "gate_id": "GATE-D2-18",
             "name": "gate_execution_log",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:c54acf7f8b9717fdde35f1f8f38e94213b14e9cd058b9d503bdeda4ecdead872",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:d9f4e11548b8a51e62af36a37878df8d867c1299b287906f5b871efafc64979c",
             "gate_id": "GATE-D2-18",
             "name": "negative_control_transcript",
             "path": null
@@ -1792,28 +1895,28 @@
         "assertions_executed": 3,
         "assertions_total": 3,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
         "evidence_missing": [],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:c63d88af0b65baffa710035a20b81c088f4cc65c95d047aea5902b8f5ae0047d",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:8b9a4495a8269e7523010d4e3f1f533dc836da0f4cc42b311a81894de0be4274",
             "gate_id": "GATE-D2-19",
             "name": "artifact_hashes_and_commit_binding",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:76a151bb77c4a8b1b41c0abca4d2238d46ab8b6ff2de9d6acedda40bceefbee6",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:ca6e037381f53e4ef53ff386dd631be63d7a3f3160655d2100de8d887dfcd4e9",
             "gate_id": "GATE-D2-19",
             "name": "gate_execution_log",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:93b2e928d8fc9c5bd169a11fde34fe2f5a046599ae0f2db8ab9d610f38da18e1",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:49dc8106b3b7aaf3db5001560c3067ddfac8f11750a905f272b1be558e3e8f3e",
             "gate_id": "GATE-D2-19",
             "name": "negative_control_transcript",
             "path": null
@@ -1905,28 +2008,28 @@
         "assertions_executed": 6,
         "assertions_total": 6,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
         "evidence_missing": [],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:e59a3ce9a63bce4595f5231d4ba444547d4e1fbd92816531edd3bef019ca8b0b",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:c763336ba9a0eb805738c4c8db26dddd86958130342ed4327a18833b8dcd0c61",
             "gate_id": "GATE-D2-20",
             "name": "artifact_hashes_and_commit_binding",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:d37ee563a8aae02fc59dcb4ca947d897c08da34e00768f1028bc3cbc1926e3ae",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:31ada0b29d7e5dd909086df7e315451ee753a73db9767b4bda3690231146faa4",
             "gate_id": "GATE-D2-20",
             "name": "gate_execution_log",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:3020d93dd4f88d944c1d88cac1b2d9ecd99ce934f5a84770f1fb1c4efff10819",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:0a1b3e56a31df7d184b3c6afc8606484f146a527e057e457836fdb2f6b3e10f8",
             "gate_id": "GATE-D2-20",
             "name": "negative_control_transcript",
             "path": null
@@ -1961,8 +2064,8 @@
             "findings": [],
             "id": "A1",
             "method": "negative_control_inject_unlinked_task",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "an injected task with no requirement ids and an injected task citing 'REQ-PHANTOM-D2-21-NEGATIVE-CONTROL' are both reported UNLINKED_TASK against TSK-001 and nothing else, while all 57 compiled tasks scan clean",
+            "status": "PASS"
           },
           {
             "claim": "An injected requirement weakening is detected and blocked.",
@@ -1971,8 +2074,8 @@
             "findings": [],
             "id": "A2",
             "method": "negative_control_weaken_requirement",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "GATE-D1-01 observed as non-blocking, with A4 removed, and absent altogether each produce a blocking REQUIREMENT_WEAKENING that drives the scan to FAILED_CONTRACT, while the unchanged gate set produces none",
+            "status": "PASS"
           },
           {
             "claim": "A change outside allowed paths is rejected.",
@@ -1981,8 +2084,8 @@
             "findings": [],
             "id": "A3",
             "method": "negative_control_write_outside_allowed_paths",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "3 paths ['.git/probe-d2-21.yaml', 'project-pack/acceptance/visible/probe-d2-21.yaml', '/etc/passwd'] are blocked as OUTSIDE_ALLOWED_PATHS against TSK-001 and drive the scan to FAILED_CONTRACT; the sealed paths among TSK-001's prohibitions are typed PROTECTED_ASSET_ACCESS instead, and a permitted change to src/probe-d2-21.yaml produces nothing",
+            "status": "PASS"
           },
           {
             "claim": "A security finding not mapped to an approved requirement becomes OUT_OF_SCOPE_OBSERVATION.",
@@ -1991,8 +2094,8 @@
             "findings": [],
             "id": "A4",
             "method": "security_finding_classification_probe",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "a security finding mapping to nothing, and one mapping to references the compiled contract does not contain, both become non-blocking OUT_OF_SCOPE_OBSERVATIONs that leave the project RUNNING, while the same finding mapped to an approved reference blocks and an observation proposing new work is refused as an expansion",
+            "status": "PASS"
           },
           {
             "claim": "A blocking security finding carries evidence or an executable probe and the smallest compliant remediation.",
@@ -2001,29 +2104,47 @@
             "findings": [],
             "id": "A5",
             "method": "blocking_finding_schema_assert",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "a finding mapped to an approved reference with evidence, an executable probe and a stated smallest remediation reports zero schema violations and is admitted to the blocking set; removing each of the 3 conditions in turn names exactly that condition and demotes the finding",
+            "status": "PASS"
           }
         ],
-        "assertions_executed": 0,
+        "assertions_executed": 5,
         "assertions_total": 5,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
-        "evidence_missing": [
-          "gate_execution_log",
-          "negative_control_transcript",
-          "artifact_hashes_and_commit_binding"
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:3ee4cfaaff9b8e436a0737876181fc0932780ef3fa767aa4ac92ea2fb6a8277d",
+            "gate_id": "GATE-D2-21",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:1fe94fadb40fe9948f8b88fcdf2eeeee58a86917702a4097629c96fe24149658",
+            "gate_id": "GATE-D2-21",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:89d29d709595f2a42c752137c2875a7b0ee14fbcacd4d83cd08a02fd35a5ecf3",
+            "gate_id": "GATE-D2-21",
+            "name": "negative_control_transcript",
+            "path": null
+          }
         ],
-        "evidence_produced": [],
         "evidence_required": [
           "gate_execution_log",
           "negative_control_transcript",
           "artifact_hashes_and_commit_binding"
         ],
         "evidence_tier": "DETERMINISTIC_ORACLE",
-        "executability": "NOT_YET_EXECUTABLE",
+        "executability": "EXECUTED",
         "gate_id": "GATE-D2-21",
         "gate_source_hash": "sha256:e05cdb54c3562262a1dc7ed350a736368d979440325ae6697b106f83c75a422f",
         "load_error": null,
@@ -2035,7 +2156,7 @@
           "state": "FAILED_ASSURANCE"
         },
         "oracle_type": "deterministic_execution_or_state",
-        "verdict": "UNVERIFIABLE"
+        "verdict": "PASS"
       },
       {
         "assertions": [
@@ -2046,8 +2167,8 @@
             "findings": [],
             "id": "A1",
             "method": "phase_counter_probe",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "a periodic review fires at material phases [3, 6] and at none of [1, 2, 4, 5, 7], on the interval of 3 the pack declares; non-material phases do not advance the counter, a pack declaring 5 moves the first fire to phase 5, and a scheduler that fires every phase is caught at phases [1, 2]",
+            "status": "PASS"
           },
           {
             "claim": "A review fires at an event trigger such as after_walking_skeleton.",
@@ -2056,8 +2177,8 @@
             "findings": [],
             "id": "A2",
             "method": "event_trigger_probe",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "all 13 pack-declared event triggers fire a typed event trigger, 6 undeclared near-miss events fire nothing, and the 'after_walking_skeleton' trigger carries through to a real ContractReview",
+            "status": "PASS"
           },
           {
             "claim": "An outcome other than CONTRACT_REAFFIRMED halts automatic advance.",
@@ -2066,8 +2187,8 @@
             "findings": [],
             "id": "A3",
             "method": "negative_control_inject_drift",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "injected drift yields DRIFT_DETECTED with advances_automatically False and remediation route 'scope_drift_remediation'; all 5 non-advancing outcomes halt and name a typed route while CONTRACT_REAFFIRMED still advances, and the real revalidation graph writes STALE_CONTRACT_VERSION on drift and nothing on reaffirmation. Honest limit: the halt is state, not a stopped edge -- contract_revalidation -> planning is unconditional",
+            "status": "PASS"
           },
           {
             "claim": "Review does not add optional improvements to scope.",
@@ -2076,29 +2197,47 @@
             "findings": [],
             "id": "A4",
             "method": "review_output_scope_diff",
-            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
-            "status": "NOT_IMPLEMENTED"
+            "note": "a conformance review over the project's 91 compiled requirements adds none and reaffirms, while appending one optional improvement forces DRIFT_DETECTED with UNAPPROVED_SCOPE_EXPANSION and no automatic advance",
+            "status": "PASS"
           }
         ],
-        "assertions_executed": 0,
+        "assertions_executed": 4,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 2,
-        "evidence_missing": [
-          "gate_execution_log",
-          "negative_control_transcript",
-          "artifact_hashes_and_commit_binding"
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:88c127ef87fad54cc9891a27c9f0d3212bd29a3f8f49e1991a24ceccdcfc16d1",
+            "gate_id": "GATE-D2-22",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:da5508a1e48cc54ed5550e2f55b96663d364759ba99c511f3f5ce204645797f2",
+            "gate_id": "GATE-D2-22",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:83576ce34a63e3da942bceb08df5b3aba6ab0f68794e54820df45d90d0808c90",
+            "gate_id": "GATE-D2-22",
+            "name": "negative_control_transcript",
+            "path": null
+          }
         ],
-        "evidence_produced": [],
         "evidence_required": [
           "gate_execution_log",
           "negative_control_transcript",
           "artifact_hashes_and_commit_binding"
         ],
         "evidence_tier": "DETERMINISTIC_ORACLE",
-        "executability": "NOT_YET_EXECUTABLE",
+        "executability": "EXECUTED",
         "gate_id": "GATE-D2-22",
         "gate_source_hash": "sha256:c3375a100b942dfda0a202270aca750dece82276da930fff1001873fb92a1793",
         "load_error": null,
@@ -2110,7 +2249,7 @@
           "state": "FAILED_ASSURANCE"
         },
         "oracle_type": "deterministic_execution_or_state",
-        "verdict": "UNVERIFIABLE"
+        "verdict": "PASS"
       },
       {
         "assertions": [
@@ -2158,7 +2297,7 @@
         "assertions_executed": 0,
         "assertions_total": 4,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 3,
         "evidence_missing": [
@@ -2243,28 +2382,28 @@
         "assertions_executed": 5,
         "assertions_total": 5,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 3,
         "evidence_missing": [],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:1a3ffa1368cf266704fa45fa4a1127ca8c562c551d315637d6b5f907a3958ddf",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:beb68f0e90a8001b35d59e61df3bffef5de3911a17573d7e76a74454b0f225ed",
             "gate_id": "GATE-D3-24",
             "name": "artifact_hashes_and_commit_binding",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:0a99e0a45f5b02cdb4ed9261d3425b3acdca2c2d39d0e97dfcd3c58707e9bb12",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:fbd9e6264ca612df0368b4fd0a00b8781cb21d062571ac8b62d859526158e6ce",
             "gate_id": "GATE-D3-24",
             "name": "gate_execution_log",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:e7510683bf5844323aa52c105fa059be6984f02ebf371fef3c37fd446a78e1ef",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:e1214ee9db79a7b873be5d550ebd33cc4d4b9443111340db026187d40e1e13d2",
             "gate_id": "GATE-D3-24",
             "name": "negative_control_transcript",
             "path": null
@@ -2346,7 +2485,7 @@
         "assertions_executed": 1,
         "assertions_total": 5,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 3,
         "evidence_missing": [
@@ -2354,15 +2493,15 @@
         ],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:30cc6a007bc72f0ac609025efeff3744d2b8e7dd093a88ad9d3152bf28f4456f",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:d124e7225f430287e105fb223bf05774c37048e68124a8d5244bc532520e94a8",
             "gate_id": "GATE-D3-25",
             "name": "artifact_hashes_and_commit_binding",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:c1c59b156add07c1796ab8fd67f3b06eb9e5f7114c76f56453fce26d1db66654",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:cbd7bce6a448879200f513bba276cdf815d60c42eaace6053ee7657375f405b9",
             "gate_id": "GATE-D3-25",
             "name": "gate_execution_log",
             "path": null
@@ -2427,11 +2566,11 @@
             "expected": "status == VERIFIED_COMPLETE",
             "failure_state_if_violated": "FAILED_CONTRACT",
             "findings": [
-              "the project has not claimed completion: the package reports 'FAILED_ASSURANCE', measured from the gate run rather than asserted. This assertion becomes executable when the run reaches a terminal state; reporting FAIL now would record FAILED_ASSURANCE for a project that is running with a typed blocker"
+              "the project has not claimed completion: the package reports 'RUNNING', measured from the gate run rather than asserted. This assertion becomes executable when the run reaches a terminal state; reporting FAIL now would record FAILED_ASSURANCE for a project that is running with a typed blocker"
             ],
             "id": "A4",
             "method": "status_field_assert",
-            "note": "the project has not claimed completion: the package reports 'FAILED_ASSURANCE', measured from the gate run rather than asserted. This assertion becomes executable when the run reaches a terminal state; reporting FAIL now would record FAILED_ASSURANCE for a project that is running with a typed blocker",
+            "note": "the project has not claimed completion: the package reports 'RUNNING', measured from the gate run rather than asserted. This assertion becomes executable when the run reaches a terminal state; reporting FAIL now would record FAILED_ASSURANCE for a project that is running with a typed blocker",
             "status": "UNVERIFIABLE"
           },
           {
@@ -2448,7 +2587,7 @@
         "assertions_executed": 5,
         "assertions_total": 5,
         "blocking": true,
-        "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
+        "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
         "contract_version": "1.0",
         "day": 3,
         "evidence_missing": [
@@ -2457,36 +2596,36 @@
         ],
         "evidence_produced": [
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:a941c1ef6dad8665dedbe2c107d41635411b1e18d261bba7b3c3d5eb54f17474",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:6486ecc99e152cda148618811b2ac18daad8b08fa498d07d0bdad21404b57a91",
             "gate_id": "GATE-D3-26",
             "name": "alias_and_audit_ref_check",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:b252bd588289c23f8d9e678e49c3ef74fae2c923fb9875be52741cc0f1dd4aea",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:17844848e877669885d42535696660879a41a18ed701c9ec3bd78a933fc638db",
             "gate_id": "GATE-D3-26",
             "name": "artifact_hashes_and_commit_binding",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:5fe53f9c988a26b3fc0b310652473a681545d90a7d123945e9b4102e429f019e",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:af644968139ffcd369a5127be2b682a4a2c9a7b9baac07e6e63f8fbdd1a0bdc7",
             "gate_id": "GATE-D3-26",
             "name": "coverage_cross_reference",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:a910d9865f4c671612e9c87c2e27f40db01bade0ceb05e1f015179bc4ee97b8f",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:bdaf717dc09e1c8342cfd5f7557feca56b61adc0a8ba272c3d878e5a714ffc24",
             "gate_id": "GATE-D3-26",
             "name": "debt_section_presence",
             "path": null
           },
           {
-            "candidate_commit": "336d4d8a61f3ea981bf8c98775fa52aa9c5d1553",
-            "content_hash": "sha256:c77f98aa3e46e02591794849a3ae338f9d63915a05f3afac22d1581d6149f3c3",
+            "candidate_commit": "32c342fab43f7fc9932a54cff8e72c53a8bb4e6d",
+            "content_hash": "sha256:fd74ceb4fb6f83f4de8bc9b78cdbad49cd595dda2e5b1d1c34a22a4d15e3132d",
             "gate_id": "GATE-D3-26",
             "name": "status_field_assert",
             "path": null
@@ -2662,10 +2801,10 @@
     "schema": "efah.gate_run_summary"
   },
   "envelope": {
-    "content_hash": "sha256:948f4585181c434a6718545f67e945b5c3005f75c6503ac0d032e14223cbb22d",
+    "content_hash": "sha256:5db7417391b79ea4329e8b3db100de8de08392211b9cf1faf9986403cde2b0f5",
     "contract_id": "EFAH-CONTRACT-001",
     "contract_version": "1.1",
-    "created_at": "2026-08-02T23:23:47.566418+00:00",
+    "created_at": "2026-08-02T23:50:58.963545+00:00",
     "created_by_alias": "release-v04",
     "methodology_version": "1.0.0",
     "schema_id": "efah.gate_run_summary",
