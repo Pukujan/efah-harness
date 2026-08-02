@@ -6,17 +6,16 @@ orchestrator.
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
+from governance.states import OwnerInterrupt, TaskState
 from owner_surface.app import create_app
-from owner_surface.domain import OpenBlocker, OwnerVerb, RejectionReason, WorkUnitView
+from owner_surface.domain import OpenBlocker, RejectionReason, WorkUnitView
 from owner_surface.gateway import TerminusControlPlaneGateway
 from owner_surface.router import create_owner_router
-from governance.states import OwnerInterrupt, TaskState
 
 
 @pytest.fixture
