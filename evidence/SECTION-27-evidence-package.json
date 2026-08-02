@@ -8,20 +8,19 @@
     "terminus_database": null,
     "terminus_branch": null,
     "terminus_commit": null,
-    "content_hash": "sha256:f51a22003e528be74805d7704eef3825450fa325b05f71ef04c61c3ef5b789e8",
+    "content_hash": "sha256:9ab37eb6ea7f2cd7ec3778c7dd7f203beda93c212c441ffeda54f78770172219",
     "created_by_alias": "release-v04",
-    "created_at": "2026-08-02T14:30:06.271995+00:00"
+    "created_at": "2026-08-02T14:33:52.731162+00:00"
   },
   "body": {
     "schema": "efah.evidence_package",
     "contract_ref": "contract.md#27",
     "gate_ref": "GATE-D3-26",
-    "built_at": "2026-08-02T14:30:06.271918+00:00",
+    "built_at": "2026-08-02T14:33:52.731099+00:00",
     "project_status": "FAILED_ASSURANCE",
     "fields_total": 22,
-    "fields_present": 20,
+    "fields_present": 21,
     "fields_missing": [
-      "visible_tests_result",
       "auto_merged_pr_reference"
     ],
     "package_complete": false,
@@ -93,7 +92,7 @@
         "value": {
           "repository": "git@github-efah:Pukujan/efah-harness.git",
           "branch": "feat/kernel-and-ci",
-          "commit": "a59be5ee241c7c70e03adeba77b7e31826e251f0",
+          "commit": "b42e59da8d18ea1342a26779c5b685c2dfced323",
           "working_tree_clean": false
         },
         "source": "git rev-parse HEAD / git status --porcelain",
@@ -149,11 +148,33 @@
         "key": "visible_tests_result",
         "contract_line": "Visible tests result",
         "label": "Visible tests result",
-        "value": "UNAVAILABLE",
-        "source": "the recorded run is bound to 96d5c244cc99, not HEAD a59be5ee241c",
-        "evidence_tier": "NOT_MEASURED",
-        "present": false,
-        "note": "a passing suite from another commit is not evidence about this one"
+        "value": {
+          "command": "/home/yoav/efah/.venv/bin/python -m pytest tests/ -q --tb=no",
+          "exit_status": 0,
+          "result": "PASS",
+          "summary": "1025 passed, 11 skipped, 1 warning in 145.91s (0:02:25)",
+          "started_at": "2026-08-02T14:31:25Z",
+          "duration_seconds": 147.0,
+          "candidate_commit": "b42e59da8d18ea1342a26779c5b685c2dfced323",
+          "source_tree_hash": "sha256:3bd36dd30e560d625b9c985906403bf4186708b7789a8bd2df16cb25842c11e0",
+          "raw_result_artifact": "evidence/visible-tests-raw.txt",
+          "raw_result_sha256": "sha256:fdd3b468e53a17dea057c4b5ad3d67f8eca47cf3fec925160dd63bafee350560",
+          "environment": {
+            "python": "3.12.3",
+            "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.39",
+            "credential_names_present": [
+              "LITELLM_EVAL_MASTER_KEY",
+              "LITELLM_MASTER_KEY",
+              "PLANE_API_KEY",
+              "TERMINUSDB_ADMIN_PASS",
+              "TERMINUSDB_PROTECTED_PASS"
+            ]
+          }
+        },
+        "source": "pytest, executed and recorded with its command, exit status and commit binding",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": ""
       },
       {
         "key": "integration_composition_result",
@@ -175,7 +196,7 @@
         "label": "Hidden holdout result",
         "value": {
           "lane": "hidden",
-          "candidate_commit": "a59be5ee241c7c70e03adeba77b7e31826e251f0",
+          "candidate_commit": "b42e59da8d18ea1342a26779c5b685c2dfced323",
           "verdict": "UNVERIFIABLE",
           "blocked_reason": "no protected-verifier endpoint is configured on the build side, and none may be; the sealed side is reached only through injected configuration held by the verifier service identity",
           "holdout_content_present_on_build_side": false,
@@ -183,7 +204,7 @@
             "check": "schema_assert_on_verdict_payload",
             "expected": "no_forbidden_field_present",
             "interface_version": "1.0.0",
-            "evaluation_request_id": "EVID-a59be5ee241c",
+            "evaluation_request_id": "EVID-b42e59da8d18",
             "state": "BLOCKED_EXTERNAL_ACCESS",
             "permitted_submission_fields": [
               "artifact_or_commit_identifier",
@@ -546,7 +567,7 @@
                   "expected": "FAIL/FAILED_PROVENANCE",
                   "observed": "FAIL/FAILED_PROVENANCE",
                   "ok": true,
-                  "detail": "R-001: content_hash sha256:55d365640b738c4cdd3724f9409ce922d70f76767f3101f9c4cd5260850e0296 does not match recomputed sha256:2beaf974ca00ce169816336572972339d36a029acec312ed0b268834256d636e"
+                  "detail": "R-001: content_hash sha256:70e4af58c479f8e5ccff87c04cf14a0373ecf7e2f1407115aa4a79f6b67d341f does not match recomputed sha256:82dafa70bea2dbe0f7a75bceafb028959fe2e9df227afd92f61dacafd9351691"
                 },
                 {
                   "fixture_id": "KB-003",
@@ -791,11 +812,11 @@
         "contract_line": "Timing breakdown",
         "label": "Timing breakdown",
         "value": {
-          "package_build_seconds": 0.273,
+          "package_build_seconds": 0.255,
           "stages": [
             {
               "stage": "terminusdb",
-              "seconds": 0.085
+              "seconds": 0.078
             },
             {
               "stage": "requirements",
@@ -807,19 +828,19 @@
             },
             {
               "stage": "composition",
-              "seconds": 0.007
+              "seconds": 0.005
             },
             {
               "stage": "hidden_holdout",
-              "seconds": 0.007
+              "seconds": 0.005
             },
             {
               "stage": "mutants",
-              "seconds": 0.093
+              "seconds": 0.087
             },
             {
               "stage": "oracles",
-              "seconds": 0.019
+              "seconds": 0.017
             },
             {
               "stage": "scope_drift",
@@ -835,7 +856,7 @@
             },
             {
               "stage": "aliases",
-              "seconds": 0.03
+              "seconds": 0.027
             }
           ],
           "host": {

@@ -56,6 +56,7 @@ from governance.envelope import (
 from governance.states import ProjectState, TaskState, Verdict
 from holdouts.suite import HoldoutLane
 from knowledge.tiers import (
+    CITATION_VERDICT_SUPPORTED,
     GOLD_PROMOTION_STEPS,
     PromotionRejected,
     Verification,
@@ -696,6 +697,11 @@ def _d2_18_a2(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOu
     same_family.verifications = [
         Verification("implementer-i12", "openai", "rerun", True),
     ]
+    # FINDING-007 added a citation gate above T2. This assertion is about family
+    # separation, so both arms satisfy the citation rule explicitly -- otherwise
+    # the negative control would pass for the wrong reason and A2 would stop
+    # measuring what it claims to.
+    same_family.citation_verdict = CITATION_VERDICT_SUPPORTED
     same = evaluate_promotion(same_family, KnowledgeTier.T5_INDEPENDENTLY_VERIFIED)
 
     cross = admit_agent_output(
@@ -706,6 +712,7 @@ def _d2_18_a2(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOu
     )
     cross.reproduction_runs = 2
     cross.verifications = [Verification("critic-c08", "xai", "independent rerun", True)]
+    cross.citation_verdict = CITATION_VERDICT_SUPPORTED
     crossed = evaluate_promotion(cross, KnowledgeTier.T5_INDEPENDENTLY_VERIFIED)
 
     evidence = {
@@ -728,6 +735,7 @@ def _d2_18_a3(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOu
     )
     item.reproduction_runs = 2
     item.verifications = [Verification("critic-c08", "xai", "independent rerun", True)]
+    item.citation_verdict = CITATION_VERDICT_SUPPORTED
     partial = evaluate_promotion(item, KnowledgeTier.T7_HARD_GOLD)
     item.gold_steps_recorded = set(GOLD_PROMOTION_STEPS)
     complete = evaluate_promotion(item, KnowledgeTier.T7_HARD_GOLD)

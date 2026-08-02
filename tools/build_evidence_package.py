@@ -34,7 +34,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from evidence.package import build, render_text, write  # noqa: E402
+from evidence.package import build, render_text, source_tree_hash, write  # noqa: E402
 
 
 def run_visible_tests(raw_out: Path) -> dict[str, Any]:
@@ -62,6 +62,9 @@ def run_visible_tests(raw_out: Path) -> dict[str, Any]:
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started)),
         "duration_seconds": round(finished - started, 1),
         "candidate_commit": commit,
+        # What the run is evidence *about*. The commit moves when this very
+        # result is recorded; the source tree does not.
+        "source_tree_hash": source_tree_hash(),
         "raw_result_artifact": str(raw_out.relative_to(REPO_ROOT)),
         "raw_result_sha256": "sha256:" + hashlib.sha256(raw_out.read_bytes()).hexdigest(),
         "environment": {

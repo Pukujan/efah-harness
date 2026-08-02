@@ -164,6 +164,34 @@ FIELD_KEYS: tuple[tuple[str, str], ...] = (
 )
 
 
+#: What a test run is evidence *about*. Deliberately excludes evidence/ and
+#: docs/: recording a test result changes those, and a run must not invalidate
+#: itself by being written down.
+SOURCE_TREE_PATHS: tuple[str, ...] = ("src", "tests", "project-pack", "pyproject.toml")
+
+
+def source_tree_hash() -> str | None:
+    """A digest over the tracked source the tests exercise.
+
+    Built from ``git ls-files`` so untracked scratch files cannot perturb it,
+    and from file *contents* so a change anywhere in the exercised source
+    invalidates a recorded run.
+    """
+    listing = _git("ls-files", "-z", *SOURCE_TREE_PATHS)
+    if listing is None:
+        return None
+    digest = hashlib.sha256()
+    for name in sorted(p for p in listing.split("\0") if p):
+        path = REPO_ROOT / name
+        try:
+            body = path.read_bytes()
+        except OSError:
+            continue
+        digest.update(name.encode())
+        digest.update(hashlib.sha256(body).digest())
+    return "sha256:" + digest.hexdigest()
+
+
 def _read_json(path: Path) -> Any | None:
     try:
         return json.loads(path.read_text())
@@ -462,16 +490,38 @@ def _tests(test_report: dict[str, Any] | None, commit: str | None) -> PackageFie
             note="run tools/build_evidence_package.py --run-tests to bind a run to HEAD",
         )
 
-    bound = report.get("candidate_commit")
-    if commit and bound and bound != commit:
+    # Bound to the *source tree*, not to HEAD. A test run is evidence about the
+    # code it exercised, and committing this very evidence file moves HEAD
+    # without touching a line of code — binding to the commit would make every
+    # package permanently one commit stale, chasing itself. The source hash
+    # covers src/, tests/, project-pack/ and pyproject.toml, so a real code
+    # change still invalidates the run while a docs or evidence commit does not.
+    recorded_tree = report.get("source_tree_hash")
+    current_tree = source_tree_hash()
+    if recorded_tree and current_tree and recorded_tree != current_tree:
         return PackageField(
             "visible_tests_result",
             "Visible tests result",
             UNAVAILABLE,
-            f"the recorded run is bound to {str(bound)[:12]}, not HEAD {commit[:12]}",
+            (
+                f"the recorded run exercised source tree {recorded_tree[7:19]}, "
+                f"the working tree is {current_tree[7:19]}"
+            ),
             Tier.NOT_MEASURED,
-            note="a passing suite from another commit is not evidence about this one",
+            note="a passing suite from different source is not evidence about this source",
         )
+    if not recorded_tree:
+        bound = report.get("candidate_commit")
+        if commit and bound and bound != commit:
+            return PackageField(
+                "visible_tests_result",
+                "Visible tests result",
+                UNAVAILABLE,
+                f"the recorded run is bound to {str(bound)[:12]}, not HEAD {commit[:12]}, "
+                "and predates source-tree binding",
+                Tier.NOT_MEASURED,
+                note="a passing suite from another commit is not evidence about this one",
+            )
     return PackageField(
         "visible_tests_result",
         "Visible tests result",
