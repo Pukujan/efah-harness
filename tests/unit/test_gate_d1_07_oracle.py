@@ -52,7 +52,7 @@ jobs:
 
 
 def test_step_invoking_claude_is_a_violation(tmp_path):
-    ok, findings = run_a4(tmp_path, """
+    ok, _ = run_a4(tmp_path, """
 jobs:
   g:
     steps:
