@@ -1,0 +1,73 @@
+# EFAH acceptance gates — contract EFAH-CONTRACT-001 v1.1 Section 21.1
+#
+# GATE-D1-07 A4: no step here may require Claude access. This workflow calls the
+# harness CLI and the GitHub App identity only. There is deliberately no
+# Anthropic action, no ANTHROPIC_API_KEY, and no Claude Code invocation.
+name: gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+concurrency:
+  group: gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-and-unit:
+    name: schema validation, static checks, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . pytest pytest-asyncio ruff
+      - name: Assertion-hash integrity (Section 14.3)
+        run: python tools/check_assertion_hashes.py
+      - name: Lint
+        run: ruff check src tests tools
+      - name: Unit and contract tests
+        run: pytest tests/unit tests/contract -q
+
+  architecture:
+    name: module boundaries and composition
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e . pytest
+      - name: Architecture tests (Section 5.1)
+        run: pytest tests/architecture -q
+
+  vendor-neutrality:
+    name: GATE-D1-07 vendor neutrality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e . pytest
+      - name: Import-graph scan and credential-stripped run
+        # Anthropic credentials are explicitly absent from this job's env.
+        env:
+          ANTHROPIC_API_KEY: ""
+          ANTHROPIC_BASE_URL: ""
+        run: python tools/gate_d1_07.py
