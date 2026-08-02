@@ -208,3 +208,75 @@ def test_standalone_app_serves_the_surface():
     with TestClient(create_app()) as c:
         assert c.get("/healthz").json()["contract_version"] == "1.1"
         assert c.get("/owner/", follow_redirects=True).status_code == 200
+
+
+# --- an accidental answer must not close a typed blocker -------------------
+#
+# Measured, not hypothetical: an OWNER_RISK_ACCEPTANCE blocker offering A/C/D
+# was closed by the word "Hello". Two defects combined — ANSWER_BLOCKER fell
+# back to blockers[0] when no target was named, and any text counted as an
+# answer. Closing a typed blocker is where guessing is least acceptable.
+
+def test_an_answer_that_selects_no_option_is_refused(client, gateway):
+    import asyncio
+
+    from governance.states import OwnerInterrupt
+    from owner_surface.domain import OpenBlocker
+
+    blocker = OpenBlocker(
+        blocker_id="BLK-RISK",
+        interrupt_type=OwnerInterrupt.OWNER_RISK_ACCEPTANCE,
+        question="pick one",
+        options=["A - do the expensive thing", "C - instrument it", "D - accept it",
+                 "RECOMMENDATION: A, with C regardless"],
+    )
+    asyncio.run(gateway.upsert_blocker(blocker))
+
+    response = client.post("/owner/command", json={
+        "text": "Hello", "verb": "ANSWER_BLOCKER", "target_id": "BLK-RISK", "contract_version": "1.1",
+    })
+    body = response.json()
+    assert body["accepted"] is False
+    assert body["rejection_reason"] == "UNKNOWN_TARGET"
+    assert "selects no option" in body["message"]
+
+
+def test_a_declared_option_is_accepted(client, gateway):
+    import asyncio
+
+    from governance.states import OwnerInterrupt
+    from owner_surface.domain import OpenBlocker
+
+    asyncio.run(gateway.upsert_blocker(OpenBlocker(
+        blocker_id="BLK-RISK2",
+        interrupt_type=OwnerInterrupt.OWNER_RISK_ACCEPTANCE,
+        question="pick one",
+        options=["A - one", "D - other"],
+    )))
+    body = client.post("/owner/command", json={
+        "text": "D", "verb": "ANSWER_BLOCKER", "target_id": "BLK-RISK2", "contract_version": "1.1",
+    }).json()
+    assert body["accepted"] is True
+
+
+def test_the_recommendation_block_is_not_a_selectable_option():
+    from governance.states import OwnerInterrupt
+    from owner_surface.domain import OpenBlocker
+
+    b = OpenBlocker(
+        blocker_id="B", interrupt_type=OwnerInterrupt.OWNER_RISK_ACCEPTANCE, question="q",
+        options=["A - one", "C - two", "RECOMMENDATION (confidence: high): pick A"],
+    )
+    assert b.option_keys() == ["A", "C"]
+    assert not b.accepts("RECOMMENDATION")
+
+
+def test_a_blocker_with_no_declared_options_takes_free_text():
+    """Some typed blockers want a value, not a choice — a credential, a path."""
+    from governance.states import OwnerInterrupt
+    from owner_surface.domain import OpenBlocker
+
+    b = OpenBlocker(blocker_id="B", interrupt_type=OwnerInterrupt.MISSING_REQUIRED_CREDENTIAL,
+                    question="which registry?", options=[])
+    assert b.accepts("ghcr.io")
+    assert not b.accepts("   ")

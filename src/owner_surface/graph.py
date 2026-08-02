@@ -148,7 +148,46 @@ def build_graph(gateway: ControlPlaneGateway):
                         command_hash=command.command_hash,
                     ),
                 }
-            target = next((b for b in blockers if b.blocker_id == command.target_id), blockers[0])
+            # No silent fallback to blockers[0]. That fallback let an
+            # untargeted command close an arbitrary open blocker, and it did:
+            # an OWNER_RISK_ACCEPTANCE question offering A/C/D was answered
+            # "Hello" and marked resolved. An unaddressed answer is not an
+            # answer, and closing a typed blocker is exactly where guessing the
+            # target is least acceptable.
+            target = next((b for b in blockers if b.blocker_id == command.target_id), None)
+            if target is None:
+                if command.target_id or len(blockers) != 1:
+                    return {
+                        **state,
+                        "outcome": CommandOutcome(
+                            accepted=False,
+                            verb=command.verb,
+                            message=(
+                                f"Name which blocker to answer: {', '.join(b.blocker_id for b in blockers)}."
+                            ),
+                            rejection_reason=RejectionReason.UNKNOWN_TARGET,
+                            command_hash=command.command_hash,
+                        ),
+                    }
+                # Exactly one open blocker and no target named: unambiguous.
+                target = blockers[0]
+
+            if not target.accepts(command.text):
+                keys = target.option_keys()
+                return {
+                    **state,
+                    "outcome": CommandOutcome(
+                        accepted=False,
+                        verb=command.verb,
+                        message=(
+                            f"{target.blocker_id} expects one of: {', '.join(keys)}. "
+                            f"Got {command.text.strip()[:40]!r}, which selects no option."
+                        ),
+                        rejection_reason=RejectionReason.UNKNOWN_TARGET,
+                        command_hash=command.command_hash,
+                    ),
+                }
+
             answered = target.model_copy(update={"answer": command.text, "answered_at": utc_now()})
             await gateway.upsert_blocker(answered)  # type: ignore[attr-defined]
             return {

@@ -125,6 +125,37 @@ class OpenBlocker(BaseModel):
     answered_at: str | None = None
     answer: str | None = None
 
+    def option_keys(self) -> list[str]:
+        """The selectable keys, parsed from the declared options.
+
+        An option reads ``"A - official credentials… CONSEQUENCE: …"``. The key
+        is the leading letter. Entries with no key — the RECOMMENDATION block —
+        are guidance, not choices, and are deliberately not selectable.
+        """
+        keys: list[str] = []
+        for option in self.options:
+            head = str(option).strip()
+            # Hyphen, en dash, em dash or space — options are written by hand
+            # and the separator varies. Escaped so the ambiguous-character lint
+            # does not have to guess what a bare dash is.
+            if len(head) >= 2 and head[0].isalnum() and head[1] in "-\u2013\u2014 .":
+                keys.append(head[0].upper())
+        return keys
+
+    def accepts(self, answer: str) -> bool:
+        """Whether ``answer`` selects one of this blocker's declared options.
+
+        A blocker that declares no options takes free text — some typed
+        blockers genuinely want a value rather than a choice. One that *does*
+        declare options must be answered with one of them: an
+        ``OWNER_RISK_ACCEPTANCE`` question offering A/C/D was once closed by the
+        word "Hello", which is how this method came to exist.
+        """
+        keys = self.option_keys()
+        if not keys:
+            return bool(answer.strip())
+        return answer.strip().upper().rstrip(".").split()[0] in keys if answer.strip() else False
+
 
 class WorkUnitView(BaseModel):
     """A read projection of a work unit. Read-only by construction (§5.1)."""

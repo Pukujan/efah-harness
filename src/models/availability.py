@@ -24,6 +24,7 @@ They are safe to show an agent.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
@@ -38,6 +39,13 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
     from models.gateway import LiteLLMGateway
 
 DEFAULT_REGISTRY_PATH = Path(".data") / "model-capabilities.json"
+
+#: Seconds between role probes, on top of the account-wide throttle. 1.5s is
+#: ~40 req/min, the rate the owner's own benchmark re-tested at after finding
+#: that faster pacing produced false failures. Deliberately not derived from
+#: the throttle: the throttle protects the account, this protects the
+#: measurement, and conflating them is what made the probe lie.
+PROBE_INTERVAL_SECONDS = 1.5
 
 #: A trivially checkable tool. If a model can emit one tool call it supports
 #: tool calling; if it cannot, that is a capability fact worth recording.
@@ -187,9 +195,30 @@ class AvailabilityProbe:
         )
 
     async def run(self, roles: Sequence[str] | None = None) -> list[ModelCapability]:
-        """Probe serially. Concurrency here is exactly the forbidden fan-out."""
+        """Probe serially, and slower than the account ceiling.
+
+        Serial is not enough. The global throttle's 0.9s floor is an
+        *account-wide* limit and correct at that scope, but a burst of role
+        probes at that rate makes upstreams return 503 and the probe records
+        them DOWN — the probe manufacturing the outage it reports.
+
+        Measured here first (FINDING-008: ``gpt-5.6-luna`` 12/12 at 15s spacing,
+        503 back to back) and then found already documented in the owner's own
+        study log, which says it plainly:
+
+            "Initial parallel testing triggered false failures when the
+            account-wide cap of 100 requests per minute was exceeded.
+            Researchers re-tested at ~40 req/min and found previously flagged
+            models reliably returned 3/3 successful responses."
+
+        So the probe paces itself at :data:`PROBE_INTERVAL_SECONDS` on top of the
+        global throttle. This costs wall-clock on a run that happens rarely, and
+        buys an availability record that means what it says.
+        """
         results = []
-        for role in self.roles_to_probe(roles):
+        for index, role in enumerate(self.roles_to_probe(roles)):
+            if index:
+                await asyncio.sleep(PROBE_INTERVAL_SECONDS)
             results.append(await self.probe_role(role))
         return results
 

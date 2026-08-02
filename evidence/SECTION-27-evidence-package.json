@@ -8,19 +8,20 @@
     "terminus_database": null,
     "terminus_branch": null,
     "terminus_commit": null,
-    "content_hash": "sha256:9ab37eb6ea7f2cd7ec3778c7dd7f203beda93c212c441ffeda54f78770172219",
+    "content_hash": "sha256:6b70c96ba3ca7d5ad4b9d44f35571e8b32da2c2e309a650103a97aa8e448315c",
     "created_by_alias": "release-v04",
-    "created_at": "2026-08-02T14:33:52.731162+00:00"
+    "created_at": "2026-08-02T17:12:27.538929+00:00"
   },
   "body": {
     "schema": "efah.evidence_package",
     "contract_ref": "contract.md#27",
     "gate_ref": "GATE-D3-26",
-    "built_at": "2026-08-02T14:33:52.731099+00:00",
+    "built_at": "2026-08-02T17:12:27.538850+00:00",
     "project_status": "FAILED_ASSURANCE",
     "fields_total": 22,
-    "fields_present": 21,
+    "fields_present": 20,
     "fields_missing": [
+      "visible_tests_result",
       "auto_merged_pr_reference"
     ],
     "package_complete": false,
@@ -39,7 +40,7 @@
         "source": "evaluation.gate_runner.GateRunSummary.project_state()",
         "evidence_tier": "DETERMINISTIC_ORACLE",
         "present": true,
-        "note": "PASS=4 FAIL=2 UNVERIFIABLE=21. Not VERIFIED_COMPLETE: at least one gate is UNVERIFIABLE. \u00a76.2 makes VERIFIED_COMPLETE the only success terminal, so this field reports the state rather than the goal."
+        "note": "PASS=5 FAIL=1 UNVERIFIABLE=21. Not VERIFIED_COMPLETE: at least one gate is UNVERIFIABLE. \u00a76.2 makes VERIFIED_COMPLETE the only success terminal, so this field reports the state rather than the goal."
       },
       {
         "key": "project_id_and_version",
@@ -92,7 +93,7 @@
         "value": {
           "repository": "git@github-efah:Pukujan/efah-harness.git",
           "branch": "feat/kernel-and-ci",
-          "commit": "b42e59da8d18ea1342a26779c5b685c2dfced323",
+          "commit": "4c45048676ff558917a438c3704770518d77798a",
           "working_tree_clean": false
         },
         "source": "git rev-parse HEAD / git status --porcelain",
@@ -148,33 +149,11 @@
         "key": "visible_tests_result",
         "contract_line": "Visible tests result",
         "label": "Visible tests result",
-        "value": {
-          "command": "/home/yoav/efah/.venv/bin/python -m pytest tests/ -q --tb=no",
-          "exit_status": 0,
-          "result": "PASS",
-          "summary": "1025 passed, 11 skipped, 1 warning in 145.91s (0:02:25)",
-          "started_at": "2026-08-02T14:31:25Z",
-          "duration_seconds": 147.0,
-          "candidate_commit": "b42e59da8d18ea1342a26779c5b685c2dfced323",
-          "source_tree_hash": "sha256:3bd36dd30e560d625b9c985906403bf4186708b7789a8bd2df16cb25842c11e0",
-          "raw_result_artifact": "evidence/visible-tests-raw.txt",
-          "raw_result_sha256": "sha256:fdd3b468e53a17dea057c4b5ad3d67f8eca47cf3fec925160dd63bafee350560",
-          "environment": {
-            "python": "3.12.3",
-            "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.39",
-            "credential_names_present": [
-              "LITELLM_EVAL_MASTER_KEY",
-              "LITELLM_MASTER_KEY",
-              "PLANE_API_KEY",
-              "TERMINUSDB_ADMIN_PASS",
-              "TERMINUSDB_PROTECTED_PASS"
-            ]
-          }
-        },
-        "source": "pytest, executed and recorded with its command, exit status and commit binding",
-        "evidence_tier": "DETERMINISTIC_ORACLE",
-        "present": true,
-        "note": ""
+        "value": "UNAVAILABLE",
+        "source": "the recorded run exercised source tree 3bd36dd30e56, the working tree is fa913be1d9ef",
+        "evidence_tier": "NOT_MEASURED",
+        "present": false,
+        "note": "a passing suite from different source is not evidence about this source"
       },
       {
         "key": "integration_composition_result",
@@ -196,7 +175,7 @@
         "label": "Hidden holdout result",
         "value": {
           "lane": "hidden",
-          "candidate_commit": "b42e59da8d18ea1342a26779c5b685c2dfced323",
+          "candidate_commit": "4c45048676ff558917a438c3704770518d77798a",
           "verdict": "UNVERIFIABLE",
           "blocked_reason": "no protected-verifier endpoint is configured on the build side, and none may be; the sealed side is reached only through injected configuration held by the verifier service identity",
           "holdout_content_present_on_build_side": false,
@@ -204,7 +183,7 @@
             "check": "schema_assert_on_verdict_payload",
             "expected": "no_forbidden_field_present",
             "interface_version": "1.0.0",
-            "evaluation_request_id": "EVID-b42e59da8d18",
+            "evaluation_request_id": "EVID-4c45048676ff",
             "state": "BLOCKED_EXTERNAL_ACCESS",
             "permitted_submission_fields": [
               "artifact_or_commit_identifier",
@@ -567,7 +546,7 @@
                   "expected": "FAIL/FAILED_PROVENANCE",
                   "observed": "FAIL/FAILED_PROVENANCE",
                   "ok": true,
-                  "detail": "R-001: content_hash sha256:70e4af58c479f8e5ccff87c04cf14a0373ecf7e2f1407115aa4a79f6b67d341f does not match recomputed sha256:82dafa70bea2dbe0f7a75bceafb028959fe2e9df227afd92f61dacafd9351691"
+                  "detail": "R-001: content_hash sha256:87134c03aa60027b37efa09445c00324460e31ba9c40086f43c2a4cd46d6b40f does not match recomputed sha256:04b391f3f53b807607c879cd186da3516a44e9fbc184e3165080d9226e3abde8"
                 },
                 {
                   "fixture_id": "KB-003",
@@ -687,10 +666,13 @@
         "value": {
           "context7_snapshots": [
             "C7-langgraph-1.2.10-296ef01c.json",
+            "C7-langgraph-chat-ui-threads-b28a3847.json",
+            "C7-librechat-custom-endpoints-03d45044.json",
+            "C7-openwebui-connections-e92742a3.json",
             "C7-plane-developers-2026-08-02-29aba5867455.json",
             "C7-terminusdb-main-bcc5b287.json"
           ],
-          "snapshot_count": 3,
+          "snapshot_count": 6,
           "honest_debt": [
             "C7-plane-developers-2026-08-02-29aba5867455: no stored body, so its hashes cannot be re-verified and it cannot participate in the \u00a716.2 version-diff loop"
           ]
@@ -812,11 +794,11 @@
         "contract_line": "Timing breakdown",
         "label": "Timing breakdown",
         "value": {
-          "package_build_seconds": 0.255,
+          "package_build_seconds": 0.265,
           "stages": [
             {
               "stage": "terminusdb",
-              "seconds": 0.078
+              "seconds": 0.082
             },
             {
               "stage": "requirements",
@@ -832,7 +814,7 @@
             },
             {
               "stage": "hidden_holdout",
-              "seconds": 0.005
+              "seconds": 0.007
             },
             {
               "stage": "mutants",
@@ -840,7 +822,7 @@
             },
             {
               "stage": "oracles",
-              "seconds": 0.017
+              "seconds": 0.018
             },
             {
               "stage": "scope_drift",
@@ -856,7 +838,7 @@
             },
             {
               "stage": "aliases",
-              "seconds": 0.027
+              "seconds": 0.028
             }
           ],
           "host": {
