@@ -1,0 +1,241 @@
+{
+  "body": {
+    "candidate_commit": "0f00a7a85932acd04cbd14bfa1525d98885ec907",
+    "checker_test_suite_result": "NOT_RUN_IN_THIS_PROCESS",
+    "content_hash": "sha256:4f19daf15466d47f0c6ca54e4330251410b7b1e219d7ecad0bd7f67d9e4d48a5",
+    "definition_path": "project-pack/acceptance/oracle-definitions/ORACLE-003-provenance-binding.yaml",
+    "fixture_suite": {
+      "failed": 0,
+      "oracle_id": "ORACLE-003",
+      "outcomes": [
+        {
+          "detail": "1 claimed results bind to contract, commit, and named evidence",
+          "expected": "PASS",
+          "fixture_id": "KG-001",
+          "kind": "known_good",
+          "observed": "PASS",
+          "ok": true
+        },
+        {
+          "detail": "R-001: claims success with no named evidence artifact",
+          "expected": "FAIL/FAILED_PROVENANCE",
+          "fixture_id": "KB-001",
+          "kind": "known_bad",
+          "observed": "FAIL/FAILED_PROVENANCE",
+          "ok": true
+        },
+        {
+          "detail": "R-001: content_hash sha256:9a9fee6a921841f4fabafb5fd5d21c8dea4a1aa72a13b2a35d200fff28e04c87 does not match recomputed sha256:1bdbcdb27fc5cb34d27cc1437664bf5e40ed76b8af5aaa674ceda8414b0fb953",
+          "expected": "FAIL/FAILED_PROVENANCE",
+          "fixture_id": "KB-002",
+          "kind": "known_bad",
+          "observed": "FAIL/FAILED_PROVENANCE",
+          "ok": true
+        },
+        {
+          "detail": "R-001: bound to contract version 0.2, current is 1.1",
+          "expected": "FAIL/STALE_CONTRACT_VERSION",
+          "fixture_id": "KB-003",
+          "kind": "known_bad",
+          "observed": "FAIL/STALE_CONTRACT_VERSION",
+          "ok": true
+        },
+        {
+          "detail": "R-001: test record missing ['command', 'exit_status', 'raw_result_artifact', 'commit_binding']",
+          "expected": "FAIL/FAILED_PROVENANCE",
+          "fixture_id": "KB-004",
+          "kind": "known_bad",
+          "observed": "FAIL/FAILED_PROVENANCE",
+          "ok": true
+        },
+        {
+          "detail": "R-001: evidence tier None is absent or outside the permitted five",
+          "expected": "FAIL/FAILED_PROVENANCE",
+          "fixture_id": "KB-005",
+          "kind": "known_bad",
+          "observed": "FAIL/FAILED_PROVENANCE",
+          "ok": true
+        },
+        {
+          "detail": "R-001: evidence artifact 'oracle_003_known_good_evidence' at /nonexistent/evidence.json is not present and readable",
+          "expected": "FAIL/FAILED_PROVENANCE",
+          "fixture_id": "GP-001",
+          "kind": "gaming_probe",
+          "observed": "FAIL/FAILED_PROVENANCE",
+          "ok": true
+        },
+        {
+          "detail": "R-001: evidence artifact 'oracle_003_known_good_evidence' hash sha256:e1441d1fe90bd97b6a34d8c8321efa2d23fd93a4e6f5e3ba0328fabdaeb88aa4 != recomputed sha256:fbfb8bfd9965c2d8d008e3ffbcbdfef4c645ae60a095412be4d723043ec69f46",
+          "expected": "FAIL/FAILED_PROVENANCE",
+          "fixture_id": "GP-002",
+          "kind": "gaming_probe",
+          "observed": "FAIL/FAILED_PROVENANCE",
+          "ok": true
+        },
+        {
+          "detail": "R-001: claims DETERMINISTIC_ORACLE tier but its verdict path is 'model_judge'",
+          "expected": "FAIL/FAILED_PROVENANCE",
+          "fixture_id": "GP-003",
+          "kind": "gaming_probe",
+          "observed": "FAIL/FAILED_PROVENANCE",
+          "ok": true
+        },
+        {
+          "detail": "R-001: repository_commit does not resolve to an existing commit",
+          "expected": "FAIL/FAILED_PROVENANCE",
+          "fixture_id": "GP-004",
+          "kind": "gaming_probe",
+          "observed": "FAIL/FAILED_PROVENANCE",
+          "ok": true
+        },
+        {
+          "detail": "R-001: evidence artifact 'summary.md' is unstructured prose, not a hashed artifact; R-001: evidence artifact 'summary.md' carries no hash",
+          "expected": "FAIL/FAILED_PROVENANCE",
+          "fixture_id": "GP-005",
+          "kind": "gaming_probe",
+          "observed": "FAIL/FAILED_PROVENANCE",
+          "ok": true
+        },
+        {
+          "detail": "terminus_commit_unreachable_due_to_service_outage",
+          "expected": "UNVERIFIABLE",
+          "fixture_id": "UP-terminus_commit_unreachable_due_to_service_outage",
+          "kind": "unverifiable_probe",
+          "observed": "UNVERIFIABLE",
+          "ok": true
+        },
+        {
+          "detail": "evidence_artifact_storage_unavailable",
+          "expected": "UNVERIFIABLE",
+          "fixture_id": "UP-evidence_artifact_storage_unavailable",
+          "kind": "unverifiable_probe",
+          "observed": "UNVERIFIABLE",
+          "ok": true
+        }
+      ],
+      "result": "PASS",
+      "total": 13
+    },
+    "fixture_suite_result": "PASS",
+    "last_audit_date": "2026-08-02",
+    "minted": true,
+    "mutants_killed": [
+      "skip_hash_recomputation",
+      "accept_missing_evidence_field",
+      "accept_any_string_as_evidence_tier",
+      "ignore_contract_version_staleness",
+      "resolve_commit_without_verifying_existence"
+    ],
+    "mutants_surviving": [],
+    "no_judge_proof": {
+      "check": "call_graph_analysis",
+      "entry_module": "oracles.oracle_003_provenance",
+      "expected": "zero_model_calls_in_verdict_path",
+      "first_party_model_roots_forbidden": [
+        "models",
+        "research",
+        "workers"
+      ],
+      "holds": true,
+      "modules_analysed": [
+        "governance.envelope",
+        "governance.states",
+        "oracles.base",
+        "oracles.oracle_003_provenance"
+      ],
+      "network_roots_forbidden": [
+        "aiohttp",
+        "anthropic",
+        "boto3",
+        "google",
+        "grpc",
+        "http",
+        "httpx",
+        "langchain",
+        "langchain_core",
+        "langgraph",
+        "litellm",
+        "openai",
+        "requests",
+        "socket",
+        "urllib",
+        "urllib3",
+        "websockets"
+      ],
+      "violations": []
+    },
+    "oracle_id": "ORACLE-003",
+    "oracle_version": "1.0.0",
+    "requirements": [
+      {
+        "detail": "definition declares deterministic_verdict_path=True, model_call_in_verdict_path=False",
+        "requirement": "deterministic_verdict_path_with_no_hidden_model_call",
+        "satisfied": true
+      },
+      {
+        "detail": "import closure of oracles.oracle_003_provenance covers 4 modules; violations=[]",
+        "requirement": "structural_proof_no_judge_participates",
+        "satisfied": true
+      },
+      {
+        "detail": "second checker: recompute_hashes_from_git_object_store_independently",
+        "requirement": "independent_second_checker_comparison_where_feasible",
+        "satisfied": true
+      },
+      {
+        "detail": "fixture kinds present: ['gaming_probe', 'known_bad', 'known_good', 'unverifiable_probe']; definition IDs with no fixture: []",
+        "requirement": "known_good_fixtures",
+        "satisfied": true
+      },
+      {
+        "detail": "known-bad fixtures implemented; missing declared IDs: []",
+        "requirement": "known_bad_fixtures",
+        "satisfied": true
+      },
+      {
+        "detail": "5 probes",
+        "requirement": "gaming_probes",
+        "satisfied": true
+      },
+      {
+        "detail": "declared=['skip_hash_recomputation', 'accept_missing_evidence_field', 'accept_any_string_as_evidence_tier', 'ignore_contract_version_staleness', 'resolve_commit_without_verifying_existence']; killed=['skip_hash_recomputation', 'accept_missing_evidence_field', 'accept_any_string_as_evidence_tier', 'ignore_contract_version_staleness', 'resolve_commit_without_verifying_existence']; survived=[]; declared-but-never-killed=[]",
+        "requirement": "mutants_that_it_kills",
+        "satisfied": true
+      },
+      {
+        "detail": "unverifiable_when=['terminus_commit_unreachable_due_to_service_outage', 'evidence_artifact_storage_unavailable']; probes exercised and matched=True",
+        "requirement": "honest_unverifiable_output",
+        "satisfied": true
+      },
+      {
+        "detail": "tests/contract/test_oracle_003_provenance.py exists",
+        "requirement": "pinned_checker_test_suite",
+        "satisfied": true
+      },
+      {
+        "detail": "version=1.0.0, content_hash=sha256:4f19daf15466d47f0c6ca54e4330251410b7b1e219d7ecad0bd7f67d9e4d48a5",
+        "requirement": "version_and_content_hash",
+        "satisfied": true
+      },
+      {
+        "detail": "last_audit_date=2026-08-02; health fields declared=['oracle_version', 'content_hash', 'fixture_suite_result', 'last_audit_date', 'unresolvable_reference_count']",
+        "requirement": "last_audit_date_and_health_emitted_with_every_result",
+        "satisfied": true
+      }
+    ],
+    "unsatisfied_requirements": []
+  },
+  "envelope": {
+    "content_hash": "sha256:55d54742a09fc6b242715de7d6ad5f259552324708182324e632fb8311eaeb67",
+    "contract_id": "EFAH-CONTRACT-001",
+    "contract_version": "1.1",
+    "created_at": "2026-08-02T05:51:22.969434+00:00",
+    "created_by_alias": "oracle-o02",
+    "methodology_version": "1.0.0",
+    "schema_id": "efah.oracle_mint_record",
+    "schema_version": "1.0",
+    "terminus_branch": null,
+    "terminus_commit": null,
+    "terminus_database": null
+  }
+}

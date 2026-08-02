@@ -1,0 +1,232 @@
+{
+  "body": {
+    "candidate_commit": "0f00a7a85932acd04cbd14bfa1525d98885ec907",
+    "checker_test_suite_result": "NOT_RUN_IN_THIS_PROCESS",
+    "content_hash": "sha256:073548d636cfe7a00bab28650798afc3298e577428808ff28f9203bc19103127",
+    "definition_path": "project-pack/acceptance/oracle-definitions/ORACLE-002-lease-fencing.yaml",
+    "fixture_suite": {
+      "failed": 0,
+      "oracle_id": "ORACLE-002",
+      "outcomes": [
+        {
+          "detail": "generation 4 is current and unexpired",
+          "expected": "PASS",
+          "fixture_id": "KG-001",
+          "kind": "known_good",
+          "observed": "PASS",
+          "ok": true
+        },
+        {
+          "detail": "lease expired at 2026-08-02T11:59:00+00:00 before the submission was observed at 2026-08-02T12:00:00+00:00",
+          "expected": "FAIL/STALE_ASSIGNMENT",
+          "fixture_id": "KB-001",
+          "kind": "known_bad",
+          "observed": "FAIL/STALE_ASSIGNMENT",
+          "ok": true
+        },
+        {
+          "detail": "submission_generation 3 < current_generation 4; generation 3 was superseded at 2026-08-02T11:55:00+00:00; a later renewal does not resurrect it",
+          "expected": "FAIL/STALE_ASSIGNMENT",
+          "fixture_id": "KB-002",
+          "kind": "known_bad",
+          "observed": "FAIL/STALE_ASSIGNMENT",
+          "ok": true
+        },
+        {
+          "detail": "submission targets feat/ws-a-compiler//wt/ws-e-assurance, lease owns feat/ws-e-assurance//wt/ws-e-assurance",
+          "expected": "FAIL/STALE_ASSIGNMENT",
+          "fixture_id": "KB-003",
+          "kind": "known_bad",
+          "observed": "FAIL/STALE_ASSIGNMENT",
+          "ok": true
+        },
+        {
+          "detail": "Two workers submit concurrently for the same work unit.",
+          "expected": "exactly 1 PASS",
+          "fixture_id": "KB-004",
+          "kind": "known_bad",
+          "observed": "1 PASS of 2",
+          "ok": true
+        },
+        {
+          "detail": "generation 3 was superseded at 2026-08-02T11:55:00+00:00; a later renewal does not resurrect it",
+          "expected": "FAIL/STALE_ASSIGNMENT",
+          "fixture_id": "GP-001",
+          "kind": "gaming_probe",
+          "observed": "FAIL/STALE_ASSIGNMENT",
+          "ok": true
+        },
+        {
+          "detail": "branch_or_worktree_owner 'implementer-i99' != lease_holder 'implementer-i12'; input_hashes differ from the lease record",
+          "expected": "FAIL/STALE_ASSIGNMENT",
+          "fixture_id": "GP-002",
+          "kind": "gaming_probe",
+          "observed": "FAIL/STALE_ASSIGNMENT",
+          "ok": true
+        },
+        {
+          "detail": "submitter-supplied timestamp 2026-08-02T11:50:00+00:00 contradicts the system event at 2026-08-02T12:00:00+00:00; lease expired at 2026-08-02T11:59:00+00:00 before the submission was observed at 2026-08-02T12:00:00+00:00",
+          "expected": "FAIL/STALE_ASSIGNMENT",
+          "fixture_id": "GP-003",
+          "kind": "gaming_probe",
+          "observed": "FAIL/STALE_ASSIGNMENT",
+          "ok": true
+        },
+        {
+          "detail": "submission_generation 3 < current_generation 4; generation 3 was superseded at 2026-08-02T11:55:00+00:00; a later renewal does not resurrect it; branch_or_worktree_owner 'implementer-i99' != lease_holder 'implementer-i12'",
+          "expected": "FAIL/STALE_ASSIGNMENT",
+          "fixture_id": "GP-004",
+          "kind": "gaming_probe",
+          "observed": "FAIL/STALE_ASSIGNMENT",
+          "ok": true
+        },
+        {
+          "detail": "lease_record_absent_from_terminusdb",
+          "expected": "UNVERIFIABLE",
+          "fixture_id": "UP-lease_record_absent_from_terminusdb",
+          "kind": "unverifiable_probe",
+          "observed": "UNVERIFIABLE",
+          "ok": true
+        },
+        {
+          "detail": "submission_carries_no_lease_identifier",
+          "expected": "UNVERIFIABLE",
+          "fixture_id": "UP-submission_carries_no_lease_identifier",
+          "kind": "unverifiable_probe",
+          "observed": "UNVERIFIABLE",
+          "ok": true
+        },
+        {
+          "detail": "clock_skew_exceeds_tolerance_and_expiry_is_ambiguous",
+          "expected": "UNVERIFIABLE",
+          "fixture_id": "UP-clock_skew_exceeds_tolerance_and_expiry_is_ambiguous",
+          "kind": "unverifiable_probe",
+          "observed": "UNVERIFIABLE",
+          "ok": true
+        }
+      ],
+      "result": "PASS",
+      "total": 12
+    },
+    "fixture_suite_result": "PASS",
+    "last_audit_date": "2026-08-02",
+    "minted": true,
+    "mutants_killed": [
+      "remove_generation_comparison",
+      "treat_expired_lease_as_valid",
+      "compare_lease_id_without_generation",
+      "accept_submitter_supplied_timestamp"
+    ],
+    "mutants_surviving": [],
+    "no_judge_proof": {
+      "check": "call_graph_analysis",
+      "entry_module": "oracles.oracle_002_lease_fencing",
+      "expected": "zero_model_calls_in_verdict_path",
+      "first_party_model_roots_forbidden": [
+        "models",
+        "research",
+        "workers"
+      ],
+      "holds": true,
+      "modules_analysed": [
+        "governance.envelope",
+        "governance.states",
+        "oracles.base",
+        "oracles.oracle_002_lease_fencing"
+      ],
+      "network_roots_forbidden": [
+        "aiohttp",
+        "anthropic",
+        "boto3",
+        "google",
+        "grpc",
+        "http",
+        "httpx",
+        "langchain",
+        "langchain_core",
+        "langgraph",
+        "litellm",
+        "openai",
+        "requests",
+        "socket",
+        "urllib",
+        "urllib3",
+        "websockets"
+      ],
+      "violations": []
+    },
+    "oracle_id": "ORACLE-002",
+    "oracle_version": "1.0.0",
+    "requirements": [
+      {
+        "detail": "definition declares deterministic_verdict_path=True, model_call_in_verdict_path=False",
+        "requirement": "deterministic_verdict_path_with_no_hidden_model_call",
+        "satisfied": true
+      },
+      {
+        "detail": "import closure of oracles.oracle_002_lease_fencing covers 4 modules; violations=[]",
+        "requirement": "structural_proof_no_judge_participates",
+        "satisfied": true
+      },
+      {
+        "detail": "second checker: git_reflog_and_worktree_ownership_cross_check",
+        "requirement": "independent_second_checker_comparison_where_feasible",
+        "satisfied": true
+      },
+      {
+        "detail": "fixture kinds present: ['gaming_probe', 'known_bad', 'known_good', 'unverifiable_probe']; definition IDs with no fixture: []",
+        "requirement": "known_good_fixtures",
+        "satisfied": true
+      },
+      {
+        "detail": "known-bad fixtures implemented; missing declared IDs: []",
+        "requirement": "known_bad_fixtures",
+        "satisfied": true
+      },
+      {
+        "detail": "4 probes",
+        "requirement": "gaming_probes",
+        "satisfied": true
+      },
+      {
+        "detail": "declared=['remove_generation_comparison', 'treat_expired_lease_as_valid', 'compare_lease_id_without_generation', 'accept_submitter_supplied_timestamp']; killed=['remove_generation_comparison', 'treat_expired_lease_as_valid', 'compare_lease_id_without_generation', 'accept_submitter_supplied_timestamp']; survived=[]; declared-but-never-killed=[]",
+        "requirement": "mutants_that_it_kills",
+        "satisfied": true
+      },
+      {
+        "detail": "unverifiable_when=['lease_record_absent_from_terminusdb', 'submission_carries_no_lease_identifier', 'clock_skew_exceeds_tolerance_and_expiry_is_ambiguous']; probes exercised and matched=True",
+        "requirement": "honest_unverifiable_output",
+        "satisfied": true
+      },
+      {
+        "detail": "tests/contract/test_oracle_002_lease_fencing.py exists",
+        "requirement": "pinned_checker_test_suite",
+        "satisfied": true
+      },
+      {
+        "detail": "version=1.0.0, content_hash=sha256:073548d636cfe7a00bab28650798afc3298e577428808ff28f9203bc19103127",
+        "requirement": "version_and_content_hash",
+        "satisfied": true
+      },
+      {
+        "detail": "last_audit_date=2026-08-02; health fields declared=['oracle_version', 'content_hash', 'fixture_suite_result', 'last_audit_date', 'clock_skew_observed']",
+        "requirement": "last_audit_date_and_health_emitted_with_every_result",
+        "satisfied": true
+      }
+    ],
+    "unsatisfied_requirements": []
+  },
+  "envelope": {
+    "content_hash": "sha256:6d465a90c14f8fe2c8af8ce6564b0aad6261d44c92463c9e2f242ac5644139fd",
+    "contract_id": "EFAH-CONTRACT-001",
+    "contract_version": "1.1",
+    "created_at": "2026-08-02T05:51:22.969079+00:00",
+    "created_by_alias": "oracle-o02",
+    "methodology_version": "1.0.0",
+    "schema_id": "efah.oracle_mint_record",
+    "schema_version": "1.0",
+    "terminus_branch": null,
+    "terminus_commit": null,
+    "terminus_database": null
+  }
+}
