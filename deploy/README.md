@@ -15,15 +15,32 @@ loginctl enable-linger "$USER"       # survives logout
 Then, from a phone on the tailnet:
 
 ```
-http://100.93.66.35:8088/owner/
+http://gravebuster.tail733a0f.ts.net:8088/owner/
 ```
 
-## Why it binds to the tailnet address and not 0.0.0.0
+## Why it binds to localhost behind `tailscale serve`
 
-Reachable from the owner's phone on the private network, and from nowhere else.
-`environments.yaml` makes the same choice for the protected TerminusDB instance
-and for this project's Phoenix and OTel collector: loopback or tailnet, never a
-public bind.
+The app listens on `127.0.0.1:8088` only. Tailscale's own proxy publishes it to
+the tailnet:
+
+```bash
+sudo tailscale serve --bg --http=8088 http://127.0.0.1:8088
+tailscale serve status        # should show "(tailnet only)"
+```
+
+**This replaced binding directly to the tailnet IP, which did not work.** The
+owner's phone is on a *different* tailnet and sees this host as a shared node
+under a different numeric address than the one the host holds locally
+(`100.93.66.34` on the phone vs `100.93.66.35` here — and `.34` does not exist
+on this machine at all). A socket bound to the literal local address therefore
+never received the phone's packets, and the surface was unreachable from the one
+device it exists to serve.
+
+`tailscale serve` fixes this properly: it publishes under the MagicDNS name, so
+the owner's tailnet resolves it however it needs to, and it is tailnet-only by
+construction — no `0.0.0.0` bind and no firewall rule.
+
+**Use the hostname, not the IP.** The IP is the thing that was wrong.
 
 ## Checking it
 

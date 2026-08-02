@@ -24,7 +24,7 @@ Environment=EFAH_TERMINUSDB_DB=efah
 Environment=EFAH_OWNER_LEDGER=/home/yoav/efah/efah-harness/.data/owner_surface_ledger.jsonl
 UnsetEnvironment=ANTHROPIC_API_KEY ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN CLAUDE_API_KEY
 EnvironmentFile=-/home/yoav/.efah/surface.env
-ExecStart=/home/yoav/efah/.venv/bin/uvicorn owner_surface.app:app --host 100.93.66.35 --port 8088
+ExecStart=/home/yoav/efah/.venv/bin/uvicorn owner_surface.app:app --host 127.0.0.1 --port 8088
 Restart=always
 RestartSec=5
 # The surface reads the graph and writes command records. It needs nothing else.
