@@ -62,7 +62,7 @@ _MESSAGE_SIGNALS: tuple[tuple[tuple[str, ...], FailureClass], ...] = (
     (("contract version", "contract drift", "stale contract"), FailureClass.CONTRACT_DRIFT),
     (("holdout",), FailureClass.HOLDOUT_FAILURE),
     (("oracle",), FailureClass.ORACLE_INVALID),
-    ((("protected",) + PROTECTED_INSTANCE_MARKERS[:1] + ("401",)), FailureClass.PROTECTED_ACCESS),
+    (("protected", *PROTECTED_INSTANCE_MARKERS[:1], "401"), FailureClass.PROTECTED_ACCESS),
 )
 
 _EXCEPTION_SIGNALS: tuple[tuple[tuple[str, ...], FailureClass], ...] = (

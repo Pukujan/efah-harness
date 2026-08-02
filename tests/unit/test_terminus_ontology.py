@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from pydantic import ValidationError
 
 from governance.envelope import Envelope
 from governance.states import ProjectState, TaskState
@@ -121,12 +122,12 @@ def _envelope() -> Envelope:
 def test_every_entity_requires_an_envelope():
     for model in ALL_MODELS:
         assert "envelope" in model.model_fields, model.__name__
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             model(entity_id="X-1")
 
 
 def test_extra_fields_are_forbidden():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Project(
             entity_id="P-1",
             envelope=_envelope(),
@@ -141,7 +142,7 @@ def test_extra_fields_are_forbidden():
 @pytest.mark.parametrize("bad", ["has space", "sha256:abc", "a/b", "", "-leading"])
 def test_entity_id_must_be_document_safe(bad):
     """TerminusDB percent-encodes a Lexical key, which would break link round-trips."""
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         Project(
             entity_id=bad,
             envelope=_envelope(),

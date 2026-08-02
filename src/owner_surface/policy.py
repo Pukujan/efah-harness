@@ -29,7 +29,7 @@ from .domain import MUTATING_VERBS, CommandOutcome, OwnerCommand, OwnerVerb, Rej
 #: PROTECTED_ASSET_ACCESS regardless of intent (§17.2, §11.2, GATE-D1-08).
 #: Imported rather than restated so a text scan finds one authorised definition
 #: instead of a scatter of indistinguishable string constants.
-PROTECTED_TERMS = tuple(m.lower() for m in ALL_PROTECTED_MARKERS) + (":6364",)
+PROTECTED_TERMS = (*(m.lower() for m in ALL_PROTECTED_MARKERS), ":6364")
 
 #: Attempts to make a gate pass by decree rather than by evidence (§21.2).
 GATE_BYPASS_PATTERNS = (

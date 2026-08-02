@@ -68,7 +68,7 @@ def entity_body(entity: ControlPlaneEntity) -> dict[str, Any]:
     return entity.model_dump(mode="json", exclude={"envelope"})
 
 
-def seal_entity(
+def seal_entity[E: ControlPlaneEntity](
     entity: E,
     *,
     database: str | None = None,

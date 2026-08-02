@@ -7,6 +7,7 @@ rather than the harness silently writing nowhere.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import uuid
 from collections.abc import AsyncIterator
@@ -62,10 +63,9 @@ async def scratch_database(live_client: TerminusClient) -> AsyncIterator[str]:
     try:
         yield name
     finally:
-        try:
+        # Cleanup must not mask the failure that brought us here.
+        with contextlib.suppress(Exception):
             await live_client.delete_database(name)
-        except Exception:  # pragma: no cover - cleanup must not mask a failure
-            pass
 
 
 async def test_server_is_reachable_and_reports_a_version(live_client: TerminusClient):

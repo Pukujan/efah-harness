@@ -7,6 +7,7 @@ stubbed and nothing is skipped for the test's convenience.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import uuid
@@ -66,10 +67,9 @@ async def scratch_database(live_client: TerminusClient) -> AsyncIterator[str]:
     try:
         yield name
     finally:
-        try:
+        # Cleanup must not mask the failure that brought us here.
+        with contextlib.suppress(Exception):
             await live_client.delete_database(name)
-        except Exception:  # pragma: no cover - cleanup must not mask a failure
-            pass
 
 
 @pytest.fixture
