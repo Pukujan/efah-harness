@@ -15,6 +15,7 @@ from __future__ import annotations
 import ast
 import json
 import os
+import re
 from pathlib import Path
 
 SRC = Path("src")
@@ -75,22 +76,50 @@ def a3_adapter_is_optional() -> tuple[bool, list[str]]:
 
 
 def a4_ci_has_no_claude_step() -> tuple[bool, list[str]]:
-    findings = []
+    """No CI step may *require* Claude access.
+
+    The check is structural, not textual. An earlier version flagged any line
+    mentioning "anthropic", which failed on the step named "…with Anthropic
+    credentials removed" — a step that proves the property rather than violating
+    it. Naming a vendor is not depending on one. What matters is:
+
+    * ``uses:`` an Anthropic/Claude action;
+    * ``run:`` invoking a Claude CLI;
+    * an env var bound to a *non-empty* Anthropic credential.
+    """
+    findings: list[str] = []
     if not CI.is_dir():
         return True, []
+
+    import yaml
+
+    vendor = re.compile(r"anthropic|claude", re.I)
+    invoke = re.compile(r"(^|[\s;|&(])(claude|anthropic)(\s|$)", re.I)
+
+    def walk(node: object, path: Path, trail: str) -> None:
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if key == "uses" and isinstance(value, str) and vendor.search(value):
+                    findings.append(f"{path}: step uses {value!r}")
+                elif key == "run" and isinstance(value, str) and invoke.search(value):
+                    findings.append(f"{path}: step runs a Claude/Anthropic command")
+                elif key == "env" and isinstance(value, dict):
+                    for env_name, env_value in value.items():
+                        # An empty assignment is the credential being *removed*,
+                        # which is the gate working, not a violation.
+                        if vendor.search(str(env_name)) and str(env_value or "").strip():
+                            findings.append(f"{path}: env {env_name} is bound to {env_value!r}")
+                else:
+                    walk(value, path, f"{trail}.{key}")
+        elif isinstance(node, list):
+            for index, item in enumerate(node):
+                walk(item, path, f"{trail}[{index}]")
+
     for path in sorted(CI.glob("*.yml")) + sorted(CI.glob("*.yaml")):
-        text = path.read_text()
-        for line_no, line in enumerate(text.splitlines(), 1):
-            stripped = line.strip()
-            if stripped.startswith("#"):
-                continue
-            lowered = stripped.lower()
-            # An empty-string assignment is the credential being *removed*,
-            # which is the gate working, not a violation.
-            if "anthropic" in lowered or "claude" in lowered:
-                if lowered.endswith((': ""', ": ''")):
-                    continue
-                findings.append(f"{path}:{line_no}: {stripped}")
+        try:
+            walk(yaml.safe_load(path.read_text()), path, "")
+        except yaml.YAMLError as exc:
+            findings.append(f"{path}: workflow does not parse ({exc})")
     return not findings, findings
 
 
