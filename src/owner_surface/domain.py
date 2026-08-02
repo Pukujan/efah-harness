@@ -143,6 +143,32 @@ class WorkUnitView(BaseModel):
     updated_at: str = Field(default_factory=utc_now)
 
 
+class InstructionExchange(BaseModel):
+    """One instruction and what came back. A read projection, never truth.
+
+    The surface is not a chat client and this is not a transcript: each exchange
+    is an independent request with no thread and no carried context. It exists
+    so the owner can see the *result* of an instruction next to the instruction,
+    which is the minimum for the surface to be usable at all.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    record_id: str
+    instruction: str
+    issued_at: str
+    state: str | None = None
+    #: Blinded alias only (§12.3). Never a vendor, family, or model id.
+    assigned_alias: str | None = None
+    result: str | None = None
+    failure_class: str | None = None
+    completed_at: str | None = None
+
+    @property
+    def pending(self) -> bool:
+        return self.state is None
+
+
 class ProjectView(BaseModel):
     """Top-level state the owner sees first on a phone."""
 
@@ -160,4 +186,9 @@ class ProjectView(BaseModel):
     tasks_blocked: int = 0
     open_blockers: list[OpenBlocker] = Field(default_factory=list)
     work_units: list[WorkUnitView] = Field(default_factory=list)
+    #: Recent instruction exchanges, newest last. Added after the owner opened
+    #: the surface and found no way to see what came back from an instruction:
+    #: the consumer wrote results into the ledger and nothing displayed them, so
+    #: issuing work felt identical to issuing nothing.
+    exchanges: list[InstructionExchange] = Field(default_factory=list)
     generated_at: str = Field(default_factory=utc_now)

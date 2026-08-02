@@ -23,7 +23,13 @@ import httpx
 from governance.envelope import CompiledObject, content_hash, utc_now
 from governance.states import ProjectState, TaskState
 
-from .domain import OpenBlocker, OwnerCommand, ProjectView, WorkUnitView
+from .domain import (
+    InstructionExchange,
+    OpenBlocker,
+    OwnerCommand,
+    ProjectView,
+    WorkUnitView,
+)
 
 DEFAULT_TERMINUS_URL = os.environ.get("EFAH_TERMINUSDB_URL", "http://localhost:6363")
 DEFAULT_DATABASE = os.environ.get("EFAH_TERMINUSDB_DB", "efah")
@@ -100,6 +106,7 @@ class TerminusControlPlaneGateway:
 
         units = self._ledger_work_units()
         blockers = await self.open_blockers()
+        exchanges = self._recent_exchanges()
 
         if not reachable:
             state = ProjectState.FAILED_INFRASTRUCTURE.value
@@ -123,7 +130,47 @@ class TerminusControlPlaneGateway:
             ),
             open_blockers=blockers,
             work_units=units,
+            exchanges=exchanges,
         )
+
+    def _recent_exchanges(self, limit: int = 12) -> list[InstructionExchange]:
+        """Pair each issued instruction with its consumed result.
+
+        Both live in the same append-only ledger: the surface writes the command,
+        the consumer writes the result, and nothing joined them. An instruction
+        with no result yet is returned as pending rather than omitted — "sent and
+        waiting" and "sent and lost" must not look the same.
+        """
+        issued: dict[str, dict[str, Any]] = {}
+        results: dict[str, dict[str, Any]] = {}
+
+        for row in self._read_ledger():
+            kind = row.get("kind")
+            record_id = str(row.get("record_id") or "")
+            if not record_id:
+                continue
+            if kind == "owner_command":
+                body = ((row.get("body") or {}).get("body")) or {}
+                if body.get("verb") == "INSTRUCT" and body.get("accepted"):
+                    issued[record_id] = {"text": str(body.get("text") or ""), "at": str(row.get("at") or "")}
+            elif kind == "owner_instruction_result":
+                results[record_id] = ((row.get("body") or {}).get("body")) or {}
+
+        exchanges = [
+            InstructionExchange(
+                record_id=record_id,
+                instruction=data["text"],
+                issued_at=data["at"],
+                state=(results.get(record_id) or {}).get("state"),
+                assigned_alias=(results.get(record_id) or {}).get("assigned_alias"),
+                result=(results.get(record_id) or {}).get("result_preview"),
+                failure_class=(results.get(record_id) or {}).get("failure_class"),
+                completed_at=(results.get(record_id) or {}).get("completed_at"),
+            )
+            for record_id, data in issued.items()
+        ]
+        exchanges.sort(key=lambda e: e.issued_at)
+        return exchanges[-limit:]
 
     # -- ledger --------------------------------------------------------------
 

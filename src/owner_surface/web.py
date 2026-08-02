@@ -79,7 +79,23 @@ MOBILE_PAGE = """<!doctype html>
   .meta { color: var(--muted); font-size: 12px; margin-top: 6px;
           font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   .blocker { border-left: 3px solid var(--warn); padding-left: 10px; margin-bottom: 12px; }
-  .blocker .q { font-size: 14px; }
+  .blocker .q { font-size: 12px; color: var(--muted); letter-spacing: .02em; }
+  .qhead { font-size: 15px; line-height: 1.5; margin: 6px 0 10px; }
+  .qrest { font-size: 13px; line-height: 1.55; color: var(--muted); margin: 0 0 8px; }
+  details summary { font-size: 12px; color: var(--accent); cursor: pointer; padding: 4px 0; }
+  .opts { margin-top: 10px; display: grid; gap: 8px; }
+  .opt { display: flex; gap: 10px; align-items: flex-start; }
+  .opt.rec { border-top: 1px solid #2a2f3a; padding-top: 10px; }
+  .optkey { flex: 0 0 auto; min-width: 38px; min-height: 38px; border-radius: 8px;
+            border: 1px solid var(--accent); background: transparent; color: var(--accent);
+            font-size: 15px; font-weight: 700; cursor: pointer; }
+  .optkey:active { background: var(--accent); color: #0b0d11; }
+  .optbody { font-size: 13px; line-height: 1.5; }
+  .hint { font-size: 12px; color: var(--muted); margin: 6px 0 8px; }
+  .xch { border-left: 3px solid #2a2f3a; padding-left: 10px; margin-bottom: 14px; }
+  .xch .you { font-size: 14px; margin-bottom: 6px; }
+  .xch .them { font-size: 13px; line-height: 1.55; color: var(--muted);
+               background: #12151c; border-radius: 8px; padding: 8px 10px; white-space: pre-wrap; }
   .unit { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0;
           border-bottom: 1px solid var(--line); font-size: 13px; }
   .unit:last-child { border-bottom: 0; }
@@ -111,19 +127,25 @@ MOBILE_PAGE = """<!doctype html>
     <div id="units"></div>
   </section>
 
+  <section class="card" id="exchanges-card" hidden>
+    <h2>Instructions &amp; results</h2>
+    <div id="exchanges"></div>
+  </section>
+
   <section class="card">
     <h2>Command</h2>
     <div class="verbs" role="group" aria-label="Verb">
-      <button type="button" data-verb="OBSERVE" aria-pressed="true">Observe</button>
+      <button type="button" data-verb="INSTRUCT" aria-pressed="true">Instruct</button>
+      <button type="button" data-verb="OBSERVE" aria-pressed="false">Observe</button>
       <button type="button" data-verb="ANSWER_BLOCKER" aria-pressed="false">Answer</button>
       <button type="button" data-verb="RESUME" aria-pressed="false">Resume</button>
       <button type="button" data-verb="RETRY" aria-pressed="false">Retry</button>
       <button type="button" data-verb="CANCEL" aria-pressed="false">Cancel</button>
-      <button type="button" data-verb="INSTRUCT" aria-pressed="false">Instruct</button>
     </div>
+    <div class="hint" id="verb-hint"></div>
     <input id="target" placeholder="Target id (optional) e.g. WU-0042" autocomplete="off"
            autocapitalize="characters" spellcheck="false">
-    <textarea id="text" rows="3" placeholder="Say what you want."></textarea>
+    <textarea id="text" rows="3" placeholder="Say what you want done."></textarea>
     <button class="primary" id="send" type="button">Send</button>
     <div class="out" id="out" hidden></div>
     <div class="meta" id="meta" hidden></div>
@@ -137,7 +159,11 @@ MOBILE_PAGE = """<!doctype html>
 <script>
 (function () {
   "use strict";
-  var verb = "OBSERVE";
+  // INSTRUCT is the default. OBSERVE used to be, and it silently swallowed
+  // whatever the owner typed -- typing "Hello" returned a status dump and
+  // looked like the box was broken. The safe-looking default was the confusing
+  // one, because the read-only verb ignores its own input.
+  var verb = "INSTRUCT";
   var $ = function (id) { return document.getElementById(id); };
 
   function esc(s) {
@@ -155,13 +181,37 @@ MOBILE_PAGE = """<!doctype html>
     return "<div class='stat'><dt>" + esc(k) + "</dt><dd>" + v + "</dd></div>";
   }
 
-  document.querySelectorAll("[data-verb]").forEach(function (b) {
-    b.addEventListener("click", function () {
-      verb = b.dataset.verb;
-      document.querySelectorAll("[data-verb]").forEach(function (o) {
-        o.setAttribute("aria-pressed", String(o === b));
-      });
+  var VERB_HINT = {
+    INSTRUCT: "Your text is sent as work. The consumer picks it up within ~10s.",
+    OBSERVE: "Read only \u2014 your text is ignored and the project state is returned.",
+    ANSWER_BLOCKER: "Answers the open blocker. Tap a letter above to fill it in.",
+    RESUME: "Needs a target id, e.g. WU-0042.",
+    RETRY: "Needs a target id, e.g. WU-0042.",
+    CANCEL: "Needs a target id, e.g. WU-0042."
+  };
+
+  function setVerb(name) {
+    verb = name;
+    document.querySelectorAll("[data-verb]").forEach(function (o) {
+      o.setAttribute("aria-pressed", String(o.dataset.verb === name));
     });
+    $("verb-hint").textContent = VERB_HINT[name] || "";
+  }
+
+  document.querySelectorAll("[data-verb]").forEach(function (b) {
+    b.addEventListener("click", function () { setVerb(b.dataset.verb); });
+  });
+
+  // Tapping an option letter on a blocker loads the answer and switches verb,
+  // so answering is two taps instead of retyping a letter into a free-text box
+  // and hoping the right verb is selected.
+  document.addEventListener("click", function (ev) {
+    var t = ev.target;
+    if (!t || !t.classList || !t.classList.contains("optkey")) return;
+    setVerb("ANSWER_BLOCKER");
+    $("target").value = t.dataset.blocker || "";
+    $("text").value = t.dataset.choice || "";
+    $("text").focus();
   });
 
   function render(v) {
@@ -178,10 +228,55 @@ MOBILE_PAGE = """<!doctype html>
     var bl = v.open_blockers || [];
     $("blockers-card").hidden = bl.length === 0;
     $("blockers").innerHTML = bl.map(function (b) {
-      return "<div class='blocker'><div class='q'><strong>" + esc(b.blocker_id) + "</strong> &middot; " +
-        esc(b.interrupt_type) + "<br>" + esc(b.question) + "</div>" +
-        (b.options && b.options.length
-          ? "<div class='meta'>" + b.options.map(esc).join(" &middot; ") + "</div>" : "") +
+      // The question is written as prose and can run to thousands of
+      // characters. Rendered as one paragraph it is unreadable on a phone --
+      // measured by the owner opening it and saying so -- so it is split on
+      // sentence boundaries and collapsed behind a summary. The first sentence
+      // is almost always the finding; the rest is why.
+      var q = String(b.question || "");
+      var parts = q.split(/(?<=\\.)\\s+(?=[A-Z(])/).filter(function (s) { return s.trim(); });
+      var head = parts.length ? parts[0] : q;
+      var rest = parts.slice(1);
+
+      var opts = (b.options || []).map(function (o, i) {
+        var s = String(o);
+        // An option label is the text before the first " - " or " CONSEQUENCE:".
+        var m = s.match(/^([A-Z])\\s*[-\\u2013]\\s*(.*)$/);
+        var isRec = /^RECOMMENDATION/.test(s);
+        var key = m ? m[1] : (isRec ? "" : String(i + 1));
+        var body = m ? m[2] : s;
+        return "<div class='opt" + (isRec ? " rec" : "") + "'>" +
+          (key ? "<button type='button' class='optkey' data-blocker='" + esc(b.blocker_id) +
+                 "' data-choice='" + esc(key) + "'>" + esc(key) + "</button>" : "") +
+          "<div class='optbody'>" + esc(body) + "</div></div>";
+      }).join("");
+
+      return "<div class='blocker'>" +
+        "<div class='q'><strong>" + esc(b.blocker_id) + "</strong> &middot; " + esc(b.interrupt_type) + "</div>" +
+        "<p class='qhead'>" + esc(head) + "</p>" +
+        (rest.length
+          ? "<details><summary>Full question (" + rest.length + " more)</summary><p class='qrest'>" +
+            rest.map(esc).join("</p><p class='qrest'>") + "</p></details>"
+          : "") +
+        (opts ? "<div class='opts'>" + opts + "</div>" : "") +
+        "<div class='hint'>Tap a letter to load that answer, then Send.</div>" +
+        "</div>";
+    }).join("");
+
+    var ex = v.exchanges || [];
+    $("exchanges-card").hidden = ex.length === 0;
+    $("exchanges").innerHTML = ex.slice().reverse().map(function (e) {
+      var done = e.state && e.state !== "null";
+      var body = e.result
+        ? esc(e.result)
+        : (e.failure_class
+            ? "<span class='pill bad'>" + esc(e.failure_class) + "</span>"
+            : "<span class='pill warn'>waiting for the consumer\\u2026</span>");
+      return "<div class='xch'>" +
+        "<div class='you'>" + esc(e.instruction) + "</div>" +
+        "<div class='them'>" + body + "</div>" +
+        "<div class='meta'>" + (done ? esc(e.state) : "pending") +
+        (e.assigned_alias ? " &middot; " + esc(e.assigned_alias) : "") + "</div>" +
         "</div>";
     }).join("");
 
@@ -237,6 +332,7 @@ MOBILE_PAGE = """<!doctype html>
     });
   });
 
+  setVerb("INSTRUCT");
   refresh();
   setInterval(refresh, 15000);
 })();
