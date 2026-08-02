@@ -28,7 +28,9 @@ All three were retrieved through Context7 and snapshotted with hashes (§16.1)
 rather than recalled. The snapshots are the citation; the libraries are not.
 
 ### 1. Open WebUI — `/websites/openwebui`
-Snapshot `C7-openwebui-openai-compatible-a61d143d`.
+Pack snapshot `C7-openwebui-connections-e92742a3` (declared credential). The two
+quotes below come from the MCP-path retrieval in
+`evidence/context7-mcp-retrievals/` and are cited at `SECONDARY_COMMENTARY`.
 
 > "To ensure full compatibility with Open WebUI, servers should implement
 > specific OpenAI-standard endpoints. The core chat functionality requires the
@@ -45,7 +47,7 @@ and a fixed list is more honest than a discovery endpoint pretending modes are
 models.
 
 ### 2. LibreChat — `/websites/librechat_ai`
-Snapshot `C7-librechat-custom-endpoints-9aefc459`.
+Pack snapshot `C7-librechat-custom-endpoints-03d45044` (declared credential).
 
 > "LibreChat supports OpenAI API-compatible services as custom endpoints. …
 > Configuration is done through `librechat.yaml`, with API keys stored in
@@ -56,7 +58,8 @@ suits a fixed mode list. It documents LiteLLM as a custom endpoint directly —
 useful as a warning rather than a recommendation, see the trap below.
 
 ### 3. LangGraph Agent Chat UI + local server — `/websites/langchain_oss_python_langgraph`
-Snapshot `C7-langgraph-agent-chat-ui-087f6f72`. **Already the selected
+Pack snapshot `C7-langgraph-chat-ui-threads-b28a3847` (declared credential); the
+interrupted-threads quote is from the MCP-path retrieval. **Already the selected
 `workflow_runtime`**, so §14.2 requires considering it first.
 
 > "Agent Chat UI supports connections to both local and deployed agents.
