@@ -1,0 +1,163 @@
+"""Owner control surface — domain model and authority limits.
+
+Contract EFAH-CONTRACT-001 **v1.1 §11.7**, added by AMENDMENT-001.
+
+The surface exists to close the *control* half of
+``product.vendor_neutral_after_deadline``. Execution is already vendor-neutral;
+without this, the owner's only ways to drive the harness die with Claude Code
+access on 2026-08-03.
+
+**What this module is not.** The amendment is explicit: the surface
+
+- is not a second orchestrator;
+- holds no authority the API and contract do not already grant;
+- cannot change scope, approve its own requests, bypass a gate, alter the
+  contract, or reach protected assets.
+
+Every command it accepts is a *request* that enters the same validation, drift,
+and gate path as any other input. Those limits are expressed here as data and
+enforced in :mod:`owner_surface.policy`, so they are testable rather than
+aspirational — GATE-D1-10 A6, A7 and A8 are negative controls that must reject.
+"""
+
+from __future__ import annotations
+
+from enum import StrEnum
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from governance.envelope import CONTRACT_VERSION, content_hash, utc_now
+from governance.states import DriftFinding, OwnerInterrupt, TaskState
+
+
+class OwnerVerb(StrEnum):
+    """The closed set of things the owner may do through the surface.
+
+    §11.7 names exactly four capabilities: observe state, answer an open typed
+    blocker, resume/retry/cancel a work unit, and issue a new contract-bounded
+    instruction. Nothing else is in scope, and a verb that is not here is not a
+    verb the surface has.
+    """
+
+    OBSERVE = "OBSERVE"
+    ANSWER_BLOCKER = "ANSWER_BLOCKER"
+    RESUME = "RESUME"
+    RETRY = "RETRY"
+    CANCEL = "CANCEL"
+    INSTRUCT = "INSTRUCT"
+
+
+#: Verbs that mutate. Each still enters the normal gate path; none self-approve.
+MUTATING_VERBS = frozenset(
+    {
+        OwnerVerb.ANSWER_BLOCKER,
+        OwnerVerb.RESUME,
+        OwnerVerb.RETRY,
+        OwnerVerb.CANCEL,
+        OwnerVerb.INSTRUCT,
+    }
+)
+
+
+class RejectionReason(StrEnum):
+    """Why a command was refused. Every value maps to a contract failure state."""
+
+    UNAPPROVED_SCOPE_EXPANSION = "UNAPPROVED_SCOPE_EXPANSION"
+    GATE_BYPASS_ATTEMPTED = "GATE_BYPASS_ATTEMPTED"
+    PROTECTED_ASSET_ACCESS = "PROTECTED_ASSET_ACCESS"
+    CONTRACT_AMENDMENT_REQUIRED = "CONTRACT_AMENDMENT_REQUIRED"
+    UNKNOWN_TARGET = "UNKNOWN_TARGET"
+    NOT_A_PERMITTED_VERB = "NOT_A_PERMITTED_VERB"
+    STALE_CONTRACT_VERSION = "STALE_CONTRACT_VERSION"
+
+
+class OwnerCommand(BaseModel):
+    """One instruction from the owner. A request, never an authorisation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    verb: OwnerVerb
+    text: str = ""
+    target_id: str | None = None
+    contract_version: str = CONTRACT_VERSION
+    received_at: str = Field(default_factory=utc_now)
+
+    @property
+    def command_hash(self) -> str:
+        return content_hash(
+            {"verb": str(self.verb), "text": self.text, "target_id": self.target_id}
+        )
+
+
+class CommandOutcome(BaseModel):
+    """The result of submitting a command. Records refusals as first-class."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    accepted: bool
+    verb: OwnerVerb
+    message: str
+    rejection_reason: RejectionReason | None = None
+    drift_finding: DriftFinding | None = None
+    #: Set when the command produced a durable record (a Decision, a task
+    #: transition). Bound to a TerminusDB commit where the graph is reachable.
+    record_id: str | None = None
+    terminus_commit: str | None = None
+    command_hash: str | None = None
+    entered_gate_path: bool = False
+
+
+class OpenBlocker(BaseModel):
+    """A typed owner blocker awaiting an answer.
+
+    §10.7 keeps this list closed: the surface is how the owner *answers* a
+    blocker, and it does not create new interrupt types.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    blocker_id: str
+    interrupt_type: OwnerInterrupt
+    task_id: str | None = None
+    question: str
+    options: list[str] = Field(default_factory=list)
+    raised_at: str = Field(default_factory=utc_now)
+    answered_at: str | None = None
+    answer: str | None = None
+
+
+class WorkUnitView(BaseModel):
+    """A read projection of a work unit. Read-only by construction (§5.1)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    work_unit_id: str
+    task_id: str
+    objective: str
+    state: TaskState
+    #: Blinded alias only. §11.2 — the real model identity lives in the
+    #: protected store and never reaches a task-facing projection.
+    assigned_alias: str | None = None
+    lease_generation: int | None = None
+    pending_gates: list[str] = Field(default_factory=list)
+    updated_at: str = Field(default_factory=utc_now)
+
+
+class ProjectView(BaseModel):
+    """Top-level state the owner sees first on a phone."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    project_id: str
+    project_state: str
+    contract_id: str
+    contract_version: str
+    terminus_database: str | None = None
+    terminus_branch: str | None = None
+    terminus_commit: str | None = None
+    tasks_total: int = 0
+    tasks_passed: int = 0
+    tasks_blocked: int = 0
+    open_blockers: list[OpenBlocker] = Field(default_factory=list)
+    work_units: list[WorkUnitView] = Field(default_factory=list)
+    generated_at: str = Field(default_factory=utc_now)
