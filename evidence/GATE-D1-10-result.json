@@ -7,52 +7,52 @@
     "A1": {
       "claim": "responds with Anthropic credentials unset",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.51s"
+      "detail": "1 passed, 34 deselected, 1 warning in 0.51s"
     },
     "A2": {
       "claim": "no Anthropic import in any surface code path",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.39s"
+      "detail": "1 passed, 34 deselected, 1 warning in 0.44s"
     },
     "A3": {
       "claim": "owner reads project and task state",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.47s"
+      "detail": "1 passed, 34 deselected, 1 warning in 0.47s"
     },
     "A4": {
       "claim": "owner answers an open typed blocker",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.44s"
+      "detail": "1 passed, 34 deselected, 1 warning in 0.47s"
     },
     "A5": {
       "claim": "owner can resume, retry, cancel",
       "passed": true,
-      "detail": "4 passed, 27 deselected, 1 warning in 0.56s"
+      "detail": "4 passed, 31 deselected, 1 warning in 0.60s"
     },
     "A6": {
       "claim": "scope expansion rejected, not executed",
       "passed": true,
-      "detail": "6 passed, 25 deselected, 1 warning in 0.63s"
+      "detail": "6 passed, 29 deselected, 1 warning in 0.65s"
     },
     "A7": {
       "claim": "cannot bypass a gate or self-approve",
       "passed": true,
-      "detail": "6 passed, 25 deselected, 1 warning in 0.65s"
+      "detail": "6 passed, 29 deselected, 1 warning in 0.64s"
     },
     "A8": {
       "claim": "cannot reach protected assets",
       "passed": true,
-      "detail": "6 passed, 25 deselected, 1 warning in 0.64s"
+      "detail": "6 passed, 29 deselected, 1 warning in 0.63s"
     },
     "A9": {
       "claim": "usable from a mobile viewport, self-contained",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.41s"
+      "detail": "1 passed, 34 deselected, 1 warning in 0.45s"
     },
     "A10": {
       "claim": "routes through the production gateway",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.39s"
+      "detail": "1 passed, 34 deselected, 1 warning in 0.46s"
     }
   }
 }
