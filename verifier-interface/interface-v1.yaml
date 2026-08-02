@@ -1,0 +1,89 @@
+# Protected verifier interface — machine-readable contract
+# Contract: EFAH-CONTRACT-001 v1.1 §17.2 · repositories.yaml sealed_repos
+#
+# This file is the seam's declaration. The sealed side implements it; the build
+# side consumes it. Neither half may add a field without a contract amendment,
+# because the field sets are the isolation property, not an implementation
+# detail of it.
+
+schema_id: efah.verifier_interface
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.1"
+
+interface_version: "1.0.0"
+transport: request_response_over_https
+authority: contract_section_17_2
+
+submission:
+  json_schema: schema/v1/submission.schema.json
+  permitted_fields:
+    - artifact_or_commit_identifier
+    - allowed_runtime_inputs
+    - evaluation_request_id
+    - required_contract_or_oracle_version
+  additional_fields: reject
+  rejection_state: FAILED_PROVENANCE
+
+result:
+  json_schema: schema/v1/result.schema.json
+  permitted_fields:
+    - evaluation_request_id
+    - verdict
+    - oracle_version
+    - oracle_health
+    - failure_class
+  additional_fields: reject
+  rejection_state: FAILED_PROVENANCE
+  forbidden_content:
+    - hidden_assertion_text
+    - private_fixture_content
+    - mutant_source
+    - holdout_case_body
+  # oracle_health is the only open-shaped field, so it is closed by allowlist
+  # rather than policed by pattern. A key outside this list is refused without
+  # the build side needing to guess what it contains.
+  oracle_health_permitted_keys:
+    - oracle_id
+    - oracle_version
+    - content_hash
+    - last_audit_date
+    - fixture_suite_result
+    - checker_test_suite_result
+    - clock_skew_observed
+    - unresolvable_reference_count
+    - health_status
+    - degraded
+    - last_run_at
+  oracle_health_value_kind: scalar_only
+
+isolation:
+  # Restating repositories.yaml so an implementer reading only this file cannot
+  # miss it. The endpoint is absent from the build side deliberately.
+  endpoint_configured_on_build_side: false
+  endpoint_source: injected_configuration_held_by_verifier_service_identity
+  build_side_behaviour_when_unset: BLOCKED_EXTERNAL_ACCESS
+  build_side_local_fallback: forbidden      # a local verifier is a circular one
+  verifier_service_identity: separate_from_builder
+  builder_token_scope_excludes_sealed_repos: true
+  remediation_must_not_include: granting_builder_access_to_sealed_side
+
+client_requirements:
+  # DEC-002 / model-policy.yaml gateway_routing.eval.client_requirements. A
+  # retry the recorded configuration does not mention makes the evidence
+  # unprovable, which is worse than a failure.
+  sdk_max_retries: 0
+  timeout_seconds: 120
+  shared_session_objects: check_before_use
+
+versioning:
+  scheme: semver_over_the_two_shapes
+  patch: documentation_only
+  minor: field_becomes_optional_or_tolerated_enum_value_added
+  major: any_change_to_the_permitted_field_sets
+  major_requires: contract_amendment_under_section_17_2
+
+implemented_by:
+  build_side_client: src/evaluation/verifier_client.py
+  build_side_pin: INTERFACE_VERSION
+  sealed_side: not_resolvable_from_this_repository

@@ -1,0 +1,9 @@
+{
+  "artifact": "artifact_hashes_and_commit_binding",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+    "submission_hash": "sha256:e42c41e43c3683e2042f7fabdf8fcf69acce3dce4ffc4044d222720460522fdc"
+  },
+  "gate_id": "GATE-D2-19"
+}

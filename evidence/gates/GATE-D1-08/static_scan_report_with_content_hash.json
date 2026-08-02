@@ -1,0 +1,131 @@
+{
+  "artifact": "static_scan_report_with_content_hash",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "build_side_violations": [],
+    "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+    "content_hash": "sha256:7b7f2cccba97843ec658239ddd02e5f4890acffa67dae662dc5da57e48fa7010",
+    "declared_sealed_repos_block_matches": [
+      {
+        "line": 186,
+        "path": "project-pack/model-policy.yaml",
+        "pattern": "Eval-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 78,
+        "path": "project-pack/secrets.refs.yaml",
+        "pattern": "efah-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 78,
+        "path": "project-pack/secrets.refs.yaml",
+        "pattern": "Eval-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 72,
+        "path": "project-pack/repositories.yaml",
+        "pattern": "efah-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 108,
+        "path": "project-pack/repositories.yaml",
+        "pattern": "efah-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 108,
+        "path": "project-pack/repositories.yaml",
+        "pattern": "Eval-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 113,
+        "path": "project-pack/repositories.yaml",
+        "pattern": "Eval-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 25,
+        "path": "project-pack/evidence/owner-documents/HANDOFF.md",
+        "pattern": "Eval-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 50,
+        "path": "project-pack/evidence/owner-documents/HANDOFF.md",
+        "pattern": "Eval-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 57,
+        "path": "project-pack/evidence/owner-documents/HANDOFF.md",
+        "pattern": "Eval-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 79,
+        "path": "project-pack/evidence/owner-documents/HANDOFF.md",
+        "pattern": "Eval-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 128,
+        "path": "project-pack/evidence/owner-documents/HANDOFF.md",
+        "pattern": "Eval-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 7,
+        "path": "project-pack/acceptance/oracle-definitions/README.md",
+        "pattern": "efah-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 38,
+        "path": "project-pack/acceptance/visible/GATE-D1-08-protected-verifier-isolation.yaml",
+        "pattern": "efah-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 38,
+        "path": "project-pack/acceptance/visible/GATE-D1-08-protected-verifier-isolation.yaml",
+        "pattern": "Eval-lab-verifier",
+        "resolves_a_route": false
+      },
+      {
+        "line": 38,
+        "path": "project-pack/acceptance/visible/GATE-D1-08-protected-verifier-isolation.yaml",
+        "pattern": "verifier_token",
+        "resolves_a_route": false
+      },
+      {
+        "line": 38,
+        "path": "project-pack/acceptance/visible/GATE-D1-08-protected-verifier-isolation.yaml",
+        "pattern": "holdout_db",
+        "resolves_a_route": false
+      },
+      {
+        "line": 38,
+        "path": "project-pack/acceptance/visible/GATE-D1-08-protected-verifier-isolation.yaml",
+        "pattern": "sealed_holdout_path",
+        "resolves_a_route": false
+      }
+    ],
+    "files_scanned": 137,
+    "pattern_count": 5,
+    "scope": [
+      "project-pack/",
+      "src/",
+      "tests/",
+      ".github/",
+      "docker/",
+      "*.env.example"
+    ],
+    "sealed_repo_url_findings": []
+  },
+  "gate_id": "GATE-D1-08"
+}

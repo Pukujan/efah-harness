@@ -1,0 +1,11 @@
+{
+  "artifact": "oracle-003-known-good-evidence",
+  "purpose": "ORACLE-003 KG-001 needs an evidence artifact that really exists, is really readable, and whose content hash really recomputes. A fixture that points at an imaginary file proves nothing.",
+  "contract_id": "EFAH-CONTRACT-001",
+  "contract_version": "1.1",
+  "produced_by": "oracles.fixtures",
+  "records": [
+    {"check": "content_hash_recomputes", "expected": true},
+    {"check": "artifact_is_structured_not_prose", "expected": true}
+  ]
+}

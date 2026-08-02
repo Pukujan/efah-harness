@@ -1,0 +1,9 @@
+{
+  "artifact": "artifact_hashes_and_commit_binding",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+    "record_hash": "sha256:5f4890398a7d3090a2c74336c8a4b4bcec3385321239ad8c8f6ea07ee059de49"
+  },
+  "gate_id": "GATE-D3-25"
+}

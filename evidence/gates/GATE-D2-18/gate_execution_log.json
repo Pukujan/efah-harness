@@ -1,0 +1,19 @@
+{
+  "artifact": "gate_execution_log",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "required_steps": [
+      "quarantine",
+      "reproducibility",
+      "independent_verification",
+      "mutant_validation",
+      "contamination_review"
+    ],
+    "with_all_five_allowed": true,
+    "without_steps_allowed": false,
+    "without_steps_blockers": [
+      "Section 15.6 promotion steps not recorded: ['quarantine', 'reproducibility', 'independent_verification', 'mutant_validation', 'contamination_review']"
+    ]
+  },
+  "gate_id": "GATE-D2-18"
+}
