@@ -50,6 +50,7 @@ class SurfaceState(TypedDict, total=False):
     explicit_verb: str | None
     target_id: str | None
     contract_version: str
+    origin: str
     command: OwnerCommand
     outcome: CommandOutcome
     view: dict[str, Any]
@@ -213,6 +214,7 @@ def build_graph(gateway: ControlPlaneGateway):
                 "accepted": outcome.accepted,
                 "rejection_reason": str(outcome.rejection_reason) if outcome.rejection_reason else None,
                 "gateway_class": GATEWAY_CLASS,
+                "origin": state.get("origin", ""),
             },
         )
         return {

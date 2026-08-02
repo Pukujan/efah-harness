@@ -406,7 +406,7 @@ async def run_walking_skeleton(config: HarnessConfig) -> SkeletonRun:
     try:
         import httpx
 
-        base = os.environ.get("EFAH_SURFACE_URL", "http://100.93.66.35:8088")
+        base = os.environ.get("EFAH_SURFACE_URL", "http://gravebuster.tail733a0f.ts.net:8088")
         health = httpx.get(f"{base}/owner/health", timeout=10).json()
         record(15, "owner control surface", StationStatus.EXERCISED,
                f"live at {base}, vendor_neutral={health.get('vendor_neutral')}",

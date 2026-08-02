@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -80,13 +80,21 @@ def create_owner_router(gateway: ControlPlaneGateway | None = None) -> APIRouter
         return [b.model_dump(mode="json") for b in await gw.open_blockers()]
 
     @router.post("/command", response_model=CommandResponse)
-    async def command(request: CommandRequest) -> CommandResponse:
+    async def command(request: CommandRequest, http: Request) -> CommandResponse:
+        # §11.4 request provenance. GATE-D1-10 A9 names a CLIENT-side condition
+        # ("usable from a mobile viewport over the private network"), and a
+        # server-side observation cannot satisfy it -- see FINDING-004, where
+        # exactly that substitution let a broken surface report PASS. Recording
+        # the origin makes an off-host command provable rather than assumed.
+        forwarded = http.headers.get("x-forwarded-for", "")
+        origin = forwarded.split(",")[0].strip() or (http.client.host if http.client else "")
         result = await graph.ainvoke(
             {
                 "raw_text": request.text,
                 "explicit_verb": request.verb,
                 "target_id": request.target_id,
                 "contract_version": request.contract_version,
+                "origin": origin,
             }
         )
         outcome = result.get("outcome")

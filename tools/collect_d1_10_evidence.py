@@ -16,7 +16,10 @@ from pathlib import Path
 
 import httpx
 
-BASE = os.environ.get("EFAH_SURFACE_URL", "http://100.93.66.35:8088")
+#: The MagicDNS name, not the IP. `tailscale serve` routes by Host header, so
+#: the bare address 404s -- and the address was the thing that was wrong
+#: (FINDING-004).
+BASE = os.environ.get("EFAH_SURFACE_URL", "http://gravebuster.tail733a0f.ts.net:8088")
 OUT = Path("evidence/gates/GATE-D1-10")
 SURFACE_PKG = Path("src/owner_surface")
 
@@ -95,6 +98,60 @@ def blocker_round_trip() -> dict:
             "state": httpx.get(f"{BASE}/owner/state", timeout=10).json()}
 
 
+#: Addresses that are this machine. A command from one of these is the builder
+#: testing itself, which is precisely what FINDING-004 recorded.
+SELF_ORIGINS = {"127.0.0.1", "::1", "localhost", "100.93.66.35", ""}
+#: NOTE: 100.93.66.35 is this host's own tailnet address, so a command
+#: relayed from here through the proxy still counts as self-origin.
+
+
+def owner_originated_command() -> dict:
+    """A9's client half — a command that came from OFF this host.
+
+    FINDING-004: A9 names a client-side condition ("usable from a mobile
+    viewport over the private network"), and it was reported PASS on a
+    screenshot taken by headless Chrome running on this machine. That proved the
+    server renders; it did not prove the owner could reach it. In fact they could
+    not, for the whole time it was reported green.
+
+    So the artifact is now a recorded command whose origin is not this host. The
+    builder cannot manufacture one.
+    """
+    ledger = Path(os.environ.get("EFAH_OWNER_LEDGER", ".data/owner_surface_ledger.jsonl"))
+    rows = []
+    if ledger.is_file():
+        for line in ledger.read_text().splitlines():
+            if line.strip():
+                try:
+                    rows.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+    commands = [r for r in rows if r.get("kind") == "owner_command"]
+    off_host = [
+        {"record_id": r.get("record_id"), "at": r.get("at"),
+         "origin": r["body"]["body"].get("origin"), "verb": r["body"]["body"].get("verb"),
+         "accepted": r["body"]["body"].get("accepted"),
+         "content_hash": r["body"]["envelope"].get("content_hash")}
+        for r in commands
+        # A MISSING origin is not an off-host origin. Commands recorded before
+        # the field existed carry None, and treating that as "came from
+        # elsewhere" would be absence-as-success -- the same shape of error
+        # FINDING-004 is about, reproduced inside its own remedy.
+        if isinstance(r["body"]["body"].get("origin"), str)
+        and r["body"]["body"]["origin"].strip()
+        and r["body"]["body"]["origin"] not in SELF_ORIGINS
+    ]
+    return {
+        "commands_recorded": len(commands),
+        "off_host_commands": off_host,
+        "satisfied": bool(off_host),
+        "note": (
+            "A9 requires a command originating off this host. A locally rendered "
+            "screenshot does not satisfy it -- see FINDING-004."
+        ),
+    }
+
+
 def mobile_screenshot() -> dict:
     """A9 — a real 390px render, not a claim about one."""
     png = OUT / "mobile-390x844.png"
@@ -118,6 +175,7 @@ def main() -> int:
         "negative_control_transcripts_for_A6_A7_A8": negative_controls(),
         "blocker_answer_round_trip_with_terminus_commit": blocker_round_trip(),
         "mobile_viewport_session_recording_or_screenshots": mobile_screenshot(),
+        "owner_originated_command": owner_originated_command(),
     }
     for name, payload in artifacts.items():
         (OUT / f"{name}.json").write_text(json.dumps(payload, indent=2, default=str) + "\n")
@@ -127,6 +185,8 @@ def main() -> int:
         and not artifacts["credential_stripped_run_transcript"]["anthropic_or_claude_variables"]
         and all(not v.get("accepted", True) for v in artifacts["negative_control_transcripts_for_A6_A7_A8"].values())
         and artifacts["mobile_viewport_session_recording_or_screenshots"]["exists"]
+        # The half that was missing. Without it A9 is unproven, not passed.
+        and artifacts["owner_originated_command"]["satisfied"]
     )
     print("GATE-D1-10 evidence:", "COMPLETE" if ok else "INCOMPLETE")
     return 0 if ok else 1

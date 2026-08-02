@@ -40,7 +40,9 @@ device it exists to serve.
 the owner's tailnet resolves it however it needs to, and it is tailnet-only by
 construction — no `0.0.0.0` bind and no firewall rule.
 
-**Use the hostname, not the IP.** The IP is the thing that was wrong.
+**Use the hostname, not the IP.** `tailscale serve` routes by `Host` header, so
+`http://100.93.66.35:8088/` now returns **404 page not found**. That is expected.
+The address was the thing that was wrong in the first place (FINDING-004).
 
 ## Checking it
 

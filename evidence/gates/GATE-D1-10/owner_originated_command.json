@@ -1,0 +1,15 @@
+{
+  "commands_recorded": 36,
+  "off_host_commands": [
+    {
+      "record_id": "529b0545bdc487b8",
+      "at": "2026-08-02T13:10:56.353580+00:00",
+      "origin": "100.69.145.111",
+      "verb": "OBSERVE",
+      "accepted": true,
+      "content_hash": "sha256:afd4efab7b4ba06f036a235a56712774bd71c94a290c54ae8347b691a44fb8d3"
+    }
+  ],
+  "satisfied": true,
+  "note": "A9 requires a command originating off this host. A locally rendered screenshot does not satisfy it -- see FINDING-004."
+}
