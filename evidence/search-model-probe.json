@@ -1,0 +1,187 @@
+{
+  "check": "search_and_fetch_capability",
+  "contract_ref": "contract_17.4_deterministic_verdict_path_and_7.3_citation_validation",
+  "oracle_type": "deterministic_oracle",
+  "model_judge_in_verdict_path": false,
+  "gateway": "https://litellm-eval-production.up.railway.app",
+  "max_tokens": 2048,
+  "ground_truth": {
+    "fetch_known_url": "https://example.com",
+    "fetch_known_expect": "Example Domain",
+    "fetch_volatile_url": "https://api.github.com/repos/python/cpython/commits?per_page=3",
+    "fetch_volatile_verified_live": true
+  },
+  "caveat": "search_cited is reported but never a pass criterion: a URL in the response proves a citation was emitted, not that it was read. Only fetch_known and fetch_volatile have a harness-held oracle.",
+  "models_with_verified_retrieval": [],
+  "models_passing_memorizable_fetch_only": [
+    "gemini-3.5-flash-search"
+  ],
+  "verification_rule": "a model is credited with retrieval ONLY on fetch_volatile, whose ground truth cannot be in any training corpus. fetch_known is reported but never sufficient on its own.",
+  "results": [
+    {
+      "task": "fetch_known",
+      "condition": "non_streaming",
+      "transport_ok": true,
+      "grounded": true,
+      "latency_seconds": 6.89,
+      "http_status": 200,
+      "response_chars": 14,
+      "urls_returned": [],
+      "detail": "ground truth reproduced: 'Example Domain'",
+      "error": null,
+      "model": "gemini-3.5-flash-search"
+    },
+    {
+      "task": "fetch_known",
+      "condition": "streaming",
+      "transport_ok": true,
+      "grounded": true,
+      "latency_seconds": 6.75,
+      "http_status": 200,
+      "response_chars": 14,
+      "urls_returned": [],
+      "detail": "ground truth reproduced: 'Example Domain'",
+      "error": null,
+      "model": "gemini-3.5-flash-search"
+    },
+    {
+      "task": "fetch_volatile",
+      "condition": "non_streaming",
+      "transport_ok": true,
+      "grounded": false,
+      "latency_seconds": 87.37,
+      "http_status": 200,
+      "response_chars": 0,
+      "urls_returned": [],
+      "detail": "none of 3 ground-truth value(s) present",
+      "error": null,
+      "model": "gemini-3.5-flash-search"
+    },
+    {
+      "task": "fetch_volatile",
+      "condition": "streaming",
+      "transport_ok": true,
+      "grounded": false,
+      "latency_seconds": 82.51,
+      "http_status": 200,
+      "response_chars": 0,
+      "urls_returned": [],
+      "detail": "none of 3 ground-truth value(s) present",
+      "error": null,
+      "model": "gemini-3.5-flash-search"
+    },
+    {
+      "task": "search_cited",
+      "condition": "non_streaming",
+      "transport_ok": true,
+      "grounded": null,
+      "latency_seconds": 10.91,
+      "http_status": 200,
+      "response_chars": 761,
+      "urls_returned": [
+        "https://www.python.org/downloads/",
+        "https://www.python.org/downloads/source/",
+        "https://www.python.org/downloads/windows/",
+        "https://peps.python.org/pep-0745/"
+      ],
+      "detail": "4 url(s) returned; grounding not harness-verifiable",
+      "error": null,
+      "model": "gemini-3.5-flash-search"
+    },
+    {
+      "task": "search_cited",
+      "condition": "streaming",
+      "transport_ok": true,
+      "grounded": null,
+      "latency_seconds": 14.47,
+      "http_status": 200,
+      "response_chars": 857,
+      "urls_returned": [
+        "https://www.python.org/downloads/",
+        "https://peps.python.org/pep-0745/",
+        "https://en.wikipedia.org/wiki/Python_(programming_language"
+      ],
+      "detail": "3 url(s) returned; grounding not harness-verifiable",
+      "error": null,
+      "model": "gemini-3.5-flash-search"
+    },
+    {
+      "task": "fetch_known",
+      "condition": "non_streaming",
+      "transport_ok": false,
+      "grounded": null,
+      "latency_seconds": 0.22,
+      "http_status": 500,
+      "response_chars": 0,
+      "urls_returned": [],
+      "detail": "",
+      "error": "{\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - 当前无可用凭证. Received Model Group=gemini-3.1-pro-preview-search\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"500\"}}",
+      "model": "gemini-3.1-pro-preview-search"
+    },
+    {
+      "task": "fetch_known",
+      "condition": "streaming",
+      "transport_ok": false,
+      "grounded": null,
+      "latency_seconds": 0.21,
+      "http_status": 500,
+      "response_chars": 0,
+      "urls_returned": [],
+      "detail": "",
+      "error": "{\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - 当前无可用凭证. Received Model Group=gemini-3.1-pro-preview-search\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"500\"}}",
+      "model": "gemini-3.1-pro-preview-search"
+    },
+    {
+      "task": "fetch_volatile",
+      "condition": "non_streaming",
+      "transport_ok": false,
+      "grounded": null,
+      "latency_seconds": 0.24,
+      "http_status": 500,
+      "response_chars": 0,
+      "urls_returned": [],
+      "detail": "",
+      "error": "{\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - 当前无可用凭证. Received Model Group=gemini-3.1-pro-preview-search\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"500\"}}",
+      "model": "gemini-3.1-pro-preview-search"
+    },
+    {
+      "task": "fetch_volatile",
+      "condition": "streaming",
+      "transport_ok": false,
+      "grounded": null,
+      "latency_seconds": 0.27,
+      "http_status": 500,
+      "response_chars": 0,
+      "urls_returned": [],
+      "detail": "",
+      "error": "{\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - 当前无可用凭证. Received Model Group=gemini-3.1-pro-preview-search\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"500\"}}",
+      "model": "gemini-3.1-pro-preview-search"
+    },
+    {
+      "task": "search_cited",
+      "condition": "non_streaming",
+      "transport_ok": false,
+      "grounded": null,
+      "latency_seconds": 0.28,
+      "http_status": 500,
+      "response_chars": 0,
+      "urls_returned": [],
+      "detail": "",
+      "error": "{\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - 当前无可用凭证. Received Model Group=gemini-3.1-pro-preview-search\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"500\"}}",
+      "model": "gemini-3.1-pro-preview-search"
+    },
+    {
+      "task": "search_cited",
+      "condition": "streaming",
+      "transport_ok": false,
+      "grounded": null,
+      "latency_seconds": 0.2,
+      "http_status": 500,
+      "response_chars": 0,
+      "urls_returned": [],
+      "detail": "",
+      "error": "{\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - 当前无可用凭证. Received Model Group=gemini-3.1-pro-preview-search\\nAvailable Model Group Fallbacks=None\",\"type\":null,\"param\":null,\"code\":\"500\"}}",
+      "model": "gemini-3.1-pro-preview-search"
+    }
+  ]
+}

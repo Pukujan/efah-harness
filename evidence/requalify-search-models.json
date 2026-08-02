@@ -1,0 +1,93 @@
+{
+  "check": "model_requalification",
+  "contract_ref": "contract_7.2_live_empirical_fact_and_7.4_hypothesis_discipline",
+  "oracle_type": "reproducible_empirical_benchmark",
+  "model_judge_in_verdict_path": false,
+  "evidence_tier": "INDEPENDENTLY_REPRODUCED",
+  "probed_at": "2026-08-02T20:49:42Z",
+  "gateway": "https://litellm-eval-production.up.railway.app",
+  "max_tokens": 1024,
+  "spacing_seconds": 1.6,
+  "repetitions_per_condition": 5,
+  "routes": [
+    {
+      "model": "gemini-3.5-flash-search",
+      "condition": "non_streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.19,
+      "latency_max": 2.75,
+      "latency_all": [
+        2.12,
+        2.16,
+        2.19,
+        2.7,
+        2.75
+      ],
+      "failures": []
+    },
+    {
+      "model": "gemini-3.5-flash-search",
+      "condition": "streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.14,
+      "latency_max": 2.99,
+      "latency_all": [
+        1.94,
+        1.96,
+        2.14,
+        2.26,
+        2.99
+      ],
+      "failures": []
+    },
+    {
+      "model": "gemini-3.1-pro-preview-search",
+      "condition": "non_streaming",
+      "attempts": 5,
+      "successes": 3,
+      "success_rate": 0.6,
+      "tool_call_rate": 1.0,
+      "latency_p50": 4.82,
+      "latency_max": 6.32,
+      "latency_all": [
+        4.8,
+        4.82,
+        6.32
+      ],
+      "failures": [
+        {
+          "http_status": 408,
+          "error": "{\"error\":{\"message\":\"litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out. - timeout value=120.0, time taken=120.01 seconds\\n\\nDep"
+        },
+        {
+          "http_status": 408,
+          "error": "{\"error\":{\"message\":\"litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out. - timeout value=120.0, time taken=120.0 seconds\\n\\nDepl"
+        }
+      ]
+    },
+    {
+      "model": "gemini-3.1-pro-preview-search",
+      "condition": "streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 3.79,
+      "latency_max": 5.8,
+      "latency_all": [
+        3.04,
+        3.22,
+        3.79,
+        4.09,
+        5.8
+      ],
+      "failures": []
+    }
+  ]
+}

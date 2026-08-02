@@ -1,0 +1,86 @@
+{
+  "check": "model_requalification",
+  "contract_ref": "contract_7.2_live_empirical_fact_and_7.4_hypothesis_discipline",
+  "oracle_type": "reproducible_empirical_benchmark",
+  "model_judge_in_verdict_path": false,
+  "evidence_tier": "INDEPENDENTLY_REPRODUCED",
+  "probed_at": "2026-08-02T20:45:38Z",
+  "gateway": "https://litellm-eval-production.up.railway.app",
+  "max_tokens": 1024,
+  "spacing_seconds": 1.6,
+  "repetitions_per_condition": 5,
+  "routes": [
+    {
+      "model": "minimax-m3",
+      "condition": "non_streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.12,
+      "latency_max": 3.33,
+      "latency_all": [
+        1.88,
+        2.05,
+        2.12,
+        2.4,
+        3.33
+      ],
+      "failures": []
+    },
+    {
+      "model": "minimax-m3",
+      "condition": "streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.5,
+      "latency_max": 2.55,
+      "latency_all": [
+        1.93,
+        2.13,
+        2.5,
+        2.53,
+        2.55
+      ],
+      "failures": []
+    },
+    {
+      "model": "mimo-v2.5-pro",
+      "condition": "non_streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 0.8,
+      "latency_p50": 4.53,
+      "latency_max": 9.39,
+      "latency_all": [
+        2.63,
+        4.4,
+        4.53,
+        6.05,
+        9.39
+      ],
+      "failures": []
+    },
+    {
+      "model": "mimo-v2.5-pro",
+      "condition": "streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.44,
+      "latency_max": 3.14,
+      "latency_all": [
+        2.34,
+        2.35,
+        2.44,
+        2.53,
+        3.14
+      ],
+      "failures": []
+    }
+  ]
+}
