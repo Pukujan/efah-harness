@@ -8,15 +8,15 @@
     "terminus_database": null,
     "terminus_branch": null,
     "terminus_commit": null,
-    "content_hash": "sha256:9cf2d07fdff38f298e40632c06d335f477a44c80cf450d9372d936fcf2e81217",
+    "content_hash": "sha256:b9d6a3dfa47da55f0c11272f343da56ddaf782be3273191503d5290665e262da",
     "created_by_alias": "release-v04",
-    "created_at": "2026-08-02T18:20:41.620138+00:00"
+    "created_at": "2026-08-02T18:42:16.006942+00:00"
   },
   "body": {
     "schema": "efah.evidence_package",
     "contract_ref": "contract.md#27",
     "gate_ref": "GATE-D3-26",
-    "built_at": "2026-08-02T18:20:41.620070+00:00",
+    "built_at": "2026-08-02T18:42:16.006850+00:00",
     "project_status": "RUNNING",
     "fields_total": 22,
     "fields_present": 20,
@@ -93,7 +93,7 @@
         "value": {
           "repository": "git@github-efah:Pukujan/efah-harness.git",
           "branch": "feat/kernel-and-ci",
-          "commit": "db55bbfb0b49281e30016f7c80b6683cb0c4e2f6",
+          "commit": "03a149084144050c4ae5e5a94fc9858c1aa2580b",
           "working_tree_clean": false
         },
         "source": "git rev-parse HEAD / git status --porcelain",
@@ -150,7 +150,7 @@
         "contract_line": "Visible tests result",
         "label": "Visible tests result",
         "value": "UNAVAILABLE",
-        "source": "the recorded run exercised source tree 0f0d00952e10, the working tree is da0cbd5b2c61",
+        "source": "the recorded run exercised source tree 0f0d00952e10, the working tree is ddb113bd871c",
         "evidence_tier": "NOT_MEASURED",
         "present": false,
         "note": "a passing suite from different source is not evidence about this source"
@@ -175,7 +175,7 @@
         "label": "Hidden holdout result",
         "value": {
           "lane": "hidden",
-          "candidate_commit": "db55bbfb0b49281e30016f7c80b6683cb0c4e2f6",
+          "candidate_commit": "03a149084144050c4ae5e5a94fc9858c1aa2580b",
           "verdict": "UNVERIFIABLE",
           "blocked_reason": "no protected-verifier endpoint is configured on the build side, and none may be; the sealed side is reached only through injected configuration held by the verifier service identity",
           "holdout_content_present_on_build_side": false,
@@ -183,7 +183,7 @@
             "check": "schema_assert_on_verdict_payload",
             "expected": "no_forbidden_field_present",
             "interface_version": "1.0.0",
-            "evaluation_request_id": "EVID-db55bbfb0b49",
+            "evaluation_request_id": "EVID-03a149084144",
             "state": "BLOCKED_EXTERNAL_ACCESS",
             "permitted_submission_fields": [
               "artifact_or_commit_identifier",
@@ -546,7 +546,7 @@
                   "expected": "FAIL/FAILED_PROVENANCE",
                   "observed": "FAIL/FAILED_PROVENANCE",
                   "ok": true,
-                  "detail": "R-001: content_hash sha256:9159d1c33322dc65f5887aa680b5604a072f9c00d2b94f22d7d2309593462411 does not match recomputed sha256:dcf9c48d7bb21b682d4174b32017cc58420abf60bc5faebfc64abc160893de0a"
+                  "detail": "R-001: content_hash sha256:c1f92ed3e02e3ddc3bfceb5c5e91bbfcf8d4a19bc977eca6ee13807222210db0 does not match recomputed sha256:a1e53240396df60e014e0132d2b499dde39ae3f18409bf52458a9fd48346d86f"
                 },
                 {
                   "fixture_id": "KB-003",
@@ -772,13 +772,13 @@
                 "sealed_holdout_author",
                 "visible_test_author"
               ],
-              "deepseek": [
-                "evidence_auditor",
-                "judge"
-              ],
-              "qwen": [
+              "moonshot": [
                 "integration_verifier",
-                "oracle_author"
+                "mutant_author"
+              ],
+              "zhipu": [
+                "evidence_auditor",
+                "release_verifier"
               ]
             },
             "family_separation_confidence": "label_verified"
@@ -794,11 +794,11 @@
         "contract_line": "Timing breakdown",
         "label": "Timing breakdown",
         "value": {
-          "package_build_seconds": 0.257,
+          "package_build_seconds": 0.266,
           "stages": [
             {
               "stage": "terminusdb",
-              "seconds": 0.077
+              "seconds": 0.079
             },
             {
               "stage": "requirements",
@@ -806,7 +806,7 @@
             },
             {
               "stage": "tasks",
-              "seconds": 0.0
+              "seconds": 0.001
             },
             {
               "stage": "composition",
@@ -814,11 +814,11 @@
             },
             {
               "stage": "hidden_holdout",
-              "seconds": 0.006
+              "seconds": 0.007
             },
             {
               "stage": "mutants",
-              "seconds": 0.086
+              "seconds": 0.088
             },
             {
               "stage": "oracles",
@@ -838,7 +838,7 @@
             },
             {
               "stage": "aliases",
-              "seconds": 0.027
+              "seconds": 0.029
             }
           ],
           "host": {

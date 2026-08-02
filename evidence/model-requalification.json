@@ -1,0 +1,122 @@
+{
+  "check": "model_requalification",
+  "contract_ref": "contract_7.2_live_empirical_fact_and_7.4_hypothesis_discipline",
+  "oracle_type": "reproducible_empirical_benchmark",
+  "model_judge_in_verdict_path": false,
+  "evidence_tier": "INDEPENDENTLY_REPRODUCED",
+  "probed_at": "2026-08-02T18:25:03Z",
+  "gateway": "https://litellm-eval-production.up.railway.app",
+  "max_tokens": 1024,
+  "spacing_seconds": 1.6,
+  "repetitions_per_condition": 5,
+  "routes": [
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "non_streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.41,
+      "latency_max": 4.8,
+      "latency_all": [
+        2.12,
+        2.21,
+        2.41,
+        2.51,
+        4.8
+      ],
+      "failures": []
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "condition": "streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.37,
+      "latency_max": 2.83,
+      "latency_all": [
+        2.06,
+        2.06,
+        2.37,
+        2.57,
+        2.83
+      ],
+      "failures": []
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "condition": "non_streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.58,
+      "latency_max": 2.88,
+      "latency_all": [
+        2.47,
+        2.53,
+        2.58,
+        2.67,
+        2.88
+      ],
+      "failures": []
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "condition": "streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.51,
+      "latency_max": 3.17,
+      "latency_all": [
+        2.11,
+        2.4,
+        2.51,
+        2.65,
+        3.17
+      ],
+      "failures": []
+    },
+    {
+      "model": "glm-5.2",
+      "condition": "non_streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 4.18,
+      "latency_max": 9.14,
+      "latency_all": [
+        1.46,
+        1.68,
+        4.18,
+        8.4,
+        9.14
+      ],
+      "failures": []
+    },
+    {
+      "model": "glm-5.2",
+      "condition": "streaming",
+      "attempts": 5,
+      "successes": 5,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.36,
+      "latency_max": 12.53,
+      "latency_all": [
+        1.46,
+        2.02,
+        2.36,
+        8.83,
+        12.53
+      ],
+      "failures": []
+    }
+  ]
+}

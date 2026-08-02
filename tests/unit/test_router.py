@@ -174,7 +174,12 @@ def test_should_differ_rules_are_advisory_not_blocking(tmp_path):
 # -- prohibited and degraded models ---------------------------------------
 def test_prohibited_model_cannot_be_mapped_to_a_role(tmp_path):
     def mutate(data):
-        data["aliases"]["planner"]["litellm_model"] = "gpt-5.6-sol"  # latency_variance
+        # minimax-m3, not gpt-5.6-sol: sol's prohibition was lifted on
+        # measurement (see model-policy.yaml `requalified`), and a test that
+        # pins a specific model as "the prohibited one" goes stale the moment a
+        # prohibition is revisited. minimax-m3 is prohibited for a capability
+        # gap rather than a benchmark number, so it is the stabler example.
+        data["aliases"]["planner"]["litellm_model"] = "minimax-m3"  # streaming_tool_call_gap
 
     with pytest.raises(ProhibitedModelError):
         write_policy(tmp_path, mutate)

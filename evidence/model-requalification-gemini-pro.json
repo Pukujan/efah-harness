@@ -1,0 +1,48 @@
+{
+  "check": "model_requalification",
+  "contract_ref": "contract_7.2_live_empirical_fact_and_7.4_hypothesis_discipline",
+  "oracle_type": "reproducible_empirical_benchmark",
+  "model_judge_in_verdict_path": false,
+  "evidence_tier": "INDEPENDENTLY_REPRODUCED",
+  "probed_at": "2026-08-02T18:32:00Z",
+  "gateway": "https://litellm-eval-production.up.railway.app",
+  "max_tokens": 1024,
+  "spacing_seconds": 1.6,
+  "repetitions_per_condition": 4,
+  "routes": [
+    {
+      "model": "gemini-3.1-pro-preview",
+      "condition": "non_streaming",
+      "attempts": 4,
+      "successes": 4,
+      "success_rate": 1.0,
+      "tool_call_rate": 0.75,
+      "latency_p50": 14.26,
+      "latency_max": 24.16,
+      "latency_all": [
+        6.36,
+        12.7,
+        15.82,
+        24.16
+      ],
+      "failures": []
+    },
+    {
+      "model": "gemini-3.1-pro-preview",
+      "condition": "streaming",
+      "attempts": 4,
+      "successes": 4,
+      "success_rate": 1.0,
+      "tool_call_rate": 0.25,
+      "latency_p50": 4.66,
+      "latency_max": 5.78,
+      "latency_all": [
+        4.34,
+        4.66,
+        4.67,
+        5.78
+      ],
+      "failures": []
+    }
+  ]
+}
