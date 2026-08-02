@@ -166,7 +166,7 @@ def run_mutation_gate(
     for mutant in catalogue:
         try:
             report: KillReport = mutant.run(oracles)
-        except Exception as exc:  # noqa: BLE001 - a crashing mutant is not a killed one
+        except Exception as exc:
             result.outcomes.append(
                 MutantOutcome(
                     mutant.mutant_id,

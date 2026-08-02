@@ -19,17 +19,19 @@ from __future__ import annotations
 
 import re
 
-from governance.protected import ALL_PROTECTED_MARKERS
+from governance.protected import denied_terms
 from governance.states import DriftFinding
 
 from .domain import MUTATING_VERBS, CommandOutcome, OwnerCommand, OwnerVerb, RejectionReason
 
-#: Sealed-side and protected-instance names, from the single canonical
-#: declaration. Reaching for any of these through the surface is
-#: PROTECTED_ASSET_ACCESS regardless of intent (§17.2, §11.2, GATE-D1-08).
-#: Imported rather than restated so a text scan finds one authorised definition
-#: instead of a scatter of indistinguishable string constants.
-PROTECTED_TERMS = (*(m.lower() for m in ALL_PROTECTED_MARKERS), ":6364")
+#: Reaching for any of these through the surface is PROTECTED_ASSET_ACCESS
+#: regardless of intent (§17.2, §11.2, GATE-D1-08).
+#:
+#: Derived at import from the pack's declared ``sealed_repos`` block rather than
+#: written here. GATE-D1-08 A2 forbids the sealed repository names anywhere under
+#: ``src/`` outside that block — and it is right to: a name in source is a name
+#: that gets copied, logged, and eventually resolved.
+PROTECTED_TERMS = (*denied_terms(), ":6364")
 
 #: Attempts to make a gate pass by decree rather than by evidence (§21.2).
 GATE_BYPASS_PATTERNS = (

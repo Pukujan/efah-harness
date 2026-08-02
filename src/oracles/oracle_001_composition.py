@@ -130,7 +130,7 @@ def _find_cycle(nodes: list[str], edges: list[tuple[str, str]]) -> list[str] | N
         path.append(node)
         for neighbour in adjacency[node]:
             if colour[neighbour] == GREY:
-                return path[path.index(neighbour):] + [neighbour]
+                return [*path[path.index(neighbour):], neighbour]
             if colour[neighbour] == WHITE:
                 found = visit(neighbour)
                 if found:

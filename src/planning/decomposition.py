@@ -21,6 +21,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
 from governance.envelope import content_hash
+from governance.protected import sealed_repository_names
 from integrations.pack import ProjectPack
 
 
@@ -139,8 +140,11 @@ def decompose(pack: ProjectPack) -> list[WorkUnit]:
                 allowed_paths=["src/**", "tests/**", "docs/decisions/**"],
                 prohibited_paths=[
                     "project-pack/acceptance/visible/**",
-                    "efah-lab-verifier/**",
-                    "Eval-lab-verifier/**",
+                    # Derived from the pack's declared sealed_repos rather than
+                    # written out: GATE-D1-08 A2 forbids the sealed names under
+                    # src/, and a denylist that hardcodes them violates the gate
+                    # it exists to serve.
+                    *(f"{name}/**" for name in sealed_repository_names()),
                 ],
                 required_artifacts=[f"evidence/{_slug(check)}.json"],
                 success_conditions=[

@@ -207,7 +207,7 @@ def _oracle_001_fixtures() -> list[Fixture]:
     )
 
     kb4 = good_composition()
-    kb4.import_edges = kb4.import_edges + [("evaluation", "projects")]
+    kb4.import_edges = [*kb4.import_edges, ("evaluation", "projects")]
     out.append(
         Fixture(
             "KB-004",
@@ -238,13 +238,7 @@ def _oracle_001_fixtures() -> list[Fixture]:
     gp2 = good_composition()
     gp2.invocation_edges = [("api", "projects"), ("projects", "tasks")]
     gp2.import_edges = list(gp2.invocation_edges)
-    gp2.entry_points = gp2.entry_points + [
-        EntryPoint(
-            name="tests/e2e/_test_only_entry.py",
-            approved_user_to_result_path=False,
-            reaches=["evaluation"],
-        )
-    ]
+    gp2.entry_points = [*gp2.entry_points, EntryPoint(name="tests/e2e/_test_only_entry.py", approved_user_to_result_path=False, reaches=["evaluation"])]
     out.append(
         Fixture(
             "GP-002",

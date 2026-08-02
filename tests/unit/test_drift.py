@@ -34,6 +34,7 @@ from drift.review import (
     ReviewTrigger,
 )
 from governance.envelope import CONTRACT_VERSION
+from governance.protected import sealed_repository_names
 from governance.states import ContractReviewOutcome, DriftFinding, ProjectState, TaskState
 from integrations.pack import load_pack
 
@@ -247,7 +248,7 @@ def test_role_conflict_does_not_fire_for_distinct_aliases():
 
 def test_protected_asset_access_is_detected():
     report = scan(
-        active_tasks=[clean_task(changed_paths=("efah-lab-verifier/holdouts/secret.py",), allowed_paths=("**",))]
+        active_tasks=[clean_task(changed_paths=(f"{sealed_repository_names()[0]}/holdouts/secret.py",), allowed_paths=("**",))]
     )
     assert report.of_type(DriftFinding.PROTECTED_ASSET_ACCESS)
 
@@ -323,7 +324,7 @@ def test_all_thirteen_section_19_2_finding_types_are_reachable():
                 requirement_ids=(),
                 contract_version="1.0",
                 state=str(TaskState.CANDIDATE_COMPLETE),
-                changed_paths=("efah-lab-verifier/x.py", "/etc/passwd", "shared.py"),
+                changed_paths=(f"{sealed_repository_names()[0]}/x.py", "/etc/passwd", "shared.py"),
                 allowed_paths=("src/**",),
                 role_assignments={"implementer": "a1", "judge": "a1"},
                 introduces_components=("custom_graph_database",),

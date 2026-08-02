@@ -266,7 +266,7 @@ class GateRunner:
                 continue
             try:
                 outcome: AssertionOutcome = check(self.context, gate, assertion)
-            except Exception as exc:  # noqa: BLE001 - a crashing check is a failure, not a pass
+            except Exception as exc:
                 results.append(
                     AssertionResult(
                         assertion_id=assertion.assertion_id,

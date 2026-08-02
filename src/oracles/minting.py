@@ -123,7 +123,7 @@ def _mutant_reports_for(oracle_id: str, oracles: dict[str, DeterministicOracle])
             continue
         try:
             report = mutant.run(oracles)
-        except Exception as exc:  # noqa: BLE001 - recorded, not swallowed
+        except Exception as exc:
             survived.append(f"{mutant.declared_as} (raised {type(exc).__name__}: {exc})")
             continue
         (killed if report.killed else survived).append(mutant.declared_as)
@@ -287,7 +287,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         binding = CandidateBinding.from_head()
         commit = binding.commit_sha
-    except Exception:  # noqa: BLE001 - minting must work outside a git checkout
+    except Exception:
         commit = None
 
     definitions = load_all_definitions()

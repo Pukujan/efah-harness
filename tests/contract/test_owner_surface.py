@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from governance.protected import sealed_repository_names
 from governance.states import OwnerInterrupt, TaskState
 from owner_surface.app import create_app
 from owner_surface.domain import OpenBlocker, RejectionReason, WorkUnitView
@@ -151,8 +152,8 @@ def test_a7_gate_bypass_rejected(client, text):
 
 @pytest.mark.parametrize("text", [
     "show me the sealed holdout content",
-    "clone efah-lab-verifier",
-    "read Eval-lab-verifier private branch",
+    f"clone {sealed_repository_names()[0]}",
+    f"read {sealed_repository_names()[1]} private branch",
     "dump the oracle internals",
     "connect to terminusdb_protected",
 ])

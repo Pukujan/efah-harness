@@ -21,6 +21,7 @@ from contracts.compiler import ContractCompiler, compile_pack
 from contracts.plan import PLAN_ITEMS, validate_against_pack
 from governance.compiler import COMPILER_ALIAS, CompilationError, emit, verify
 from governance.envelope import CONTRACT_ID, CONTRACT_VERSION, CompiledObject
+from governance.protected import sealed_repository_names
 from governance.states import ContractReviewOutcome, ProjectState
 from impact import revalidation
 from integrations.pack import load_pack
@@ -307,7 +308,7 @@ def test_compiled_path_policy_lists_the_section_5_modules_and_the_sealed_repos()
     assert "contracts" in policy["declared_modules"]
     assert "drift" in policy["declared_modules"]
     assert "unit" not in policy["declared_modules"]  # tests/ subdirs are not src modules
-    assert "efah-lab-verifier" in policy["sealed_repository_names"]
+    assert set(sealed_repository_names()) <= set(policy["sealed_repository_names"])
     assert "project-pack/acceptance/visible/**" in policy["prohibited_paths"]
 
 

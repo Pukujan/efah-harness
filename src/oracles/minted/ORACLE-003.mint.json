@@ -1,6 +1,6 @@
 {
   "body": {
-    "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+    "candidate_commit": "efa14d10edb56dbf65f83e3d988f29342c082e2a",
     "checker_test_suite_result": "NOT_RUN_IN_THIS_PROCESS",
     "content_hash": "sha256:4f19daf15466d47f0c6ca54e4330251410b7b1e219d7ecad0bd7f67d9e4d48a5",
     "definition_path": "project-pack/acceptance/oracle-definitions/ORACLE-003-provenance-binding.yaml",
@@ -25,7 +25,7 @@
           "ok": true
         },
         {
-          "detail": "R-001: content_hash sha256:cd8174244fda0944476bfc671aa04a4147954cdfdb4c809aed42176359ce8e1e does not match recomputed sha256:4d7329d78ef66b8a244c1dd0811130d22d3a82d73991bb889687d3c55a24ef43",
+          "detail": "R-001: content_hash sha256:34171bf8e2976fb68fa9268af46e192bda1d66705d0a017d157532733365cd3c does not match recomputed sha256:26843825d6b47022f37a150d375c8dccb08dcbec11d025e17b804a326b1d2553",
           "expected": "FAIL/FAILED_PROVENANCE",
           "fixture_id": "KB-002",
           "kind": "known_bad",
@@ -226,10 +226,10 @@
     "unsatisfied_requirements": []
   },
   "envelope": {
-    "content_hash": "sha256:69ba5f6128b062ec8846e56f1c88a3347420241ccbc33e2145b8667d1db74a5d",
+    "content_hash": "sha256:2e7a2f8b04fc1a2271e5ce26b087d02c5ebed93fb738d73de276bcb133f6f552",
     "contract_id": "EFAH-CONTRACT-001",
     "contract_version": "1.1",
-    "created_at": "2026-08-02T06:01:20.620208+00:00",
+    "created_at": "2026-08-02T06:10:04.404959+00:00",
     "created_by_alias": "oracle-o02",
     "methodology_version": "1.0.0",
     "schema_id": "efah.oracle_mint_record",

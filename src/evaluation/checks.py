@@ -197,13 +197,13 @@ def _d1_02_a3(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOu
     try:
         Envelope(schema_version="1.0")  # type: ignore[call-arg]
         findings.append("Envelope constructed with no schema_id or created_by_alias")
-    except Exception as exc:  # noqa: BLE001 - any refusal is the behaviour under test
+    except Exception as exc:
         raised = type(exc).__name__
     extra_field_refused = False
     try:
         Envelope(schema_id="x", created_by_alias="y", unknown_field="z")  # type: ignore[call-arg]
         findings.append("Envelope accepted an undeclared field")
-    except Exception:  # noqa: BLE001 - the refusal itself is what is being asserted
+    except Exception:
         extra_field_refused = True
     evidence = {
         "negative_control_transcript": {
@@ -719,7 +719,7 @@ def _d2_19_a2(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOu
     extra_rejected = False
     try:
         submission.__class__(**submission.model_dump(), hint="the holdout expects 42")
-    except Exception:  # noqa: BLE001 - the schema refusing is the assertion
+    except Exception:
         extra_rejected = True
     evidence = {
         "gate_execution_log": {
