@@ -2,7 +2,7 @@
   "gate_id": "GATE-D1-07",
   "contract_version": "1.1",
   "model_judge_in_verdict_path": false,
-  "verdict": "FAIL",
+  "verdict": "PASS",
   "assertions": {
     "A1": {
       "claim": "no essential module imports the Anthropic SDK",
@@ -26,10 +26,8 @@
     },
     "A5": {
       "claim": "an alternate worker adapter completes work",
-      "passed": false,
-      "findings": [
-        "no non-Claude worker adapter present"
-      ]
+      "passed": true,
+      "findings": []
     }
   }
 }

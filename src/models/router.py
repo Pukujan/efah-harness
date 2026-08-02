@@ -106,7 +106,7 @@ class RoutingDecision:
             "reasons": list(self.reasons),
         }
 
-    def with_hash(self) -> "RoutingDecision":
+    def with_hash(self) -> RoutingDecision:
         body = self.as_body()
         return RoutingDecision(**{**body, "reasons": self.reasons, "decision_hash": content_hash(body)})
 

@@ -59,7 +59,7 @@ class LiteLLMWorkerAdapter:
         """Usable whenever a gateway credential resolves. No vendor SDK needed."""
         try:
             return bool(self.gateway.api_key("production")) or bool(self.gateway.api_key("eval"))
-        except Exception:  # noqa: BLE001 - a missing credential means unavailable
+        except Exception:
             return False
 
     async def execute(self, work_unit: WorkUnit, decision: RoutingDecision) -> WorkerOutcome:

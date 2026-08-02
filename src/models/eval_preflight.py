@@ -116,7 +116,7 @@ def static_checks(gateway: LiteLLMGateway, policy: ModelPolicy | None = None) ->
     try:
         keys_differ = gateway.api_key(GatewayClass.EVAL) != gateway.api_key(GatewayClass.PRODUCTION)
         key_detail = "eval and production master keys differ"
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         keys_differ = False
         key_detail = f"could not resolve both master keys: {type(exc).__name__}"
     checks.append(PreflightCheck("separate_master_keys", keys_differ, key_detail))

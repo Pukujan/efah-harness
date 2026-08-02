@@ -25,9 +25,10 @@ They are safe to show an agent.
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Sequence
+from typing import TYPE_CHECKING, Any
 
 from governance.envelope import utc_now
 from models.errors import FailedOracleError
@@ -131,7 +132,7 @@ class AvailabilityProbe:
 
     def __init__(
         self,
-        gateway: "LiteLLMGateway",
+        gateway: LiteLLMGateway,
         policy: ModelPolicy | None = None,
         registry: CapabilityRegistry | None = None,
     ) -> None:
@@ -162,7 +163,7 @@ class AvailabilityProbe:
                 max_tokens=self.probe_max_tokens,
                 tools=[PROBE_TOOL] if include_tool else None,
             )
-        except Exception as exc:  # noqa: BLE001 - every outcome is a recorded fact
+        except Exception as exc:
             capability = ModelCapability(
                 alias=row.alias,
                 gateway=row.gateway,

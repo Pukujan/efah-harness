@@ -7,7 +7,7 @@
     "A1": {
       "claim": "responds with Anthropic credentials unset",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.46s"
+      "detail": "1 passed, 30 deselected, 1 warning in 0.52s"
     },
     "A2": {
       "claim": "no Anthropic import in any surface code path",
@@ -17,22 +17,22 @@
     "A3": {
       "claim": "owner reads project and task state",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.43s"
+      "detail": "1 passed, 30 deselected, 1 warning in 0.47s"
     },
     "A4": {
       "claim": "owner answers an open typed blocker",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.42s"
+      "detail": "1 passed, 30 deselected, 1 warning in 0.45s"
     },
     "A5": {
       "claim": "owner can resume, retry, cancel",
       "passed": true,
-      "detail": "4 passed, 27 deselected, 1 warning in 0.53s"
+      "detail": "4 passed, 27 deselected, 1 warning in 0.55s"
     },
     "A6": {
       "claim": "scope expansion rejected, not executed",
       "passed": true,
-      "detail": "6 passed, 25 deselected, 1 warning in 0.58s"
+      "detail": "6 passed, 25 deselected, 1 warning in 0.62s"
     },
     "A7": {
       "claim": "cannot bypass a gate or self-approve",
@@ -42,17 +42,17 @@
     "A8": {
       "claim": "cannot reach protected assets",
       "passed": true,
-      "detail": "6 passed, 25 deselected, 1 warning in 0.61s"
+      "detail": "6 passed, 25 deselected, 1 warning in 0.62s"
     },
     "A9": {
       "claim": "usable from a mobile viewport, self-contained",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.42s"
+      "detail": "1 passed, 30 deselected, 1 warning in 0.40s"
     },
     "A10": {
       "claim": "routes through the production gateway",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.44s"
+      "detail": "1 passed, 30 deselected, 1 warning in 0.38s"
     }
   }
 }

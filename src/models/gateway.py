@@ -35,10 +35,11 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import httpx
 
@@ -277,7 +278,7 @@ class LiteLLMGateway:
         try:
             production = self.api_key(GatewayClass.PRODUCTION)
             evaluation = self.api_key(GatewayClass.EVAL)
-        except Exception:  # noqa: BLE001 - a missing credential is reported at call time
+        except Exception:
             return
         if production == evaluation:
             raise FailedProvenanceError(
@@ -323,7 +324,7 @@ class LiteLLMGateway:
             await client.aclose()
         self._clients.clear()
 
-    async def __aenter__(self) -> "LiteLLMGateway":
+    async def __aenter__(self) -> LiteLLMGateway:
         return self
 
     async def __aexit__(self, *exc) -> None:

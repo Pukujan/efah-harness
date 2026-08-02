@@ -9,6 +9,7 @@ recorded as a model failure is fabricated evidence.
 
 from __future__ import annotations
 
+import itertools
 import json
 import subprocess
 import sys
@@ -78,11 +79,11 @@ def test_the_window_is_shared_across_processes(tmp_path):
     state = tmp_path / "shared.json"
     script = (
         "import json,sys;"
-        "sys.path.insert(0, %r);"
+        f"sys.path.insert(0, {str(REPO_ROOT / 'src')!r});"
         "from models.throttle import GlobalThrottle;"
-        "t=GlobalThrottle(max_requests_per_minute=90, min_interval_seconds=0.9, state_path=%r);"
+        "t=GlobalThrottle(max_requests_per_minute=90, min_interval_seconds=0.9, "
+        f"state_path={str(state)!r});"
         "print(json.dumps([t.reserve().scheduled_at for _ in range(3)]))"
-        % (str(REPO_ROOT / "src"), str(state))
     )
 
     def run() -> list[float]:
@@ -94,7 +95,7 @@ def test_the_window_is_shared_across_processes(tmp_path):
     first = run()
     second = run()
     combined = sorted(first + second)
-    gaps = [b - a for a, b in zip(combined, combined[1:])]
+    gaps = [b - a for a, b in itertools.pairwise(combined)]
     assert all(gap >= 0.89 for gap in gaps), gaps
     # A per-process limiter would have produced two independent ladders that
     # interleave with ~0s gaps; a shared one produces a single ladder.

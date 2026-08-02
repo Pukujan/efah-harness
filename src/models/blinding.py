@@ -24,8 +24,9 @@ This module owns three things:
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from governance.envelope import utc_now
 from models.errors import BlindingViolationError, ProtectedAccessError

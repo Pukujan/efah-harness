@@ -216,7 +216,7 @@ class ModelPolicy:
 
     # -- construction -------------------------------------------------------
     @classmethod
-    def load(cls, path: Path | str | None = None) -> "ModelPolicy":
+    def load(cls, path: Path | str | None = None) -> ModelPolicy:
         path = Path(path) if path is not None else DEFAULT_POLICY_PATH
         raw_bytes = path.read_bytes()
         data = yaml.safe_load(raw_bytes.decode("utf-8"))

@@ -67,7 +67,7 @@ class ClaudeCodeWorkerAdapter:
         try:
             env = load_environments()["environments"]["dev"]["litellm_production"]
             return str(env["base_url"]).rstrip("/")
-        except Exception:  # noqa: BLE001 - absence is reported by unavailable_reason()
+        except Exception:
             return ""
 
     def is_enabled(self) -> bool:

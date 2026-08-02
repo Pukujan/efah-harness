@@ -73,7 +73,7 @@ class WorkerSession:
         self._turns: list[dict[str, Any]] = []
 
     @classmethod
-    def open(cls, work_unit: WorkUnit, *, alias: str, session_policy: SessionPolicy | None = None) -> "WorkerSession":
+    def open(cls, work_unit: WorkUnit, *, alias: str, session_policy: SessionPolicy | None = None) -> WorkerSession:
         return cls(work_unit, alias=alias, session_policy=session_policy)
 
     def messages(self) -> list[dict[str, Any]]:

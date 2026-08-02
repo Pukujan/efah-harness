@@ -144,7 +144,7 @@ def test_the_transcript_is_not_retained_after_close(work_unit):
     session = WorkerSession.open(work_unit, alias="implementer-i12")
     session.record_turn("assistant", "secret reasoning")
     session.close()
-    assert session._turns == []  # noqa: SLF001 - the point of the assertion
+    assert session._turns == []
 
 
 def test_disabling_fresh_sessions_in_the_pack_is_refused(work_unit, policy):

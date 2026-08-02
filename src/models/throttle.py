@@ -80,7 +80,7 @@ class GlobalThrottle:
     @classmethod
     def from_policy(
         cls, policy: ModelPolicy | None = None, *, state_path: Path | str | None = None
-    ) -> "GlobalThrottle":
+    ) -> GlobalThrottle:
         policy = policy or load_model_policy()
         rp = policy.request_policy
         if not rp.global_throttle_required:  # pragma: no cover - pack asserts True
@@ -155,7 +155,7 @@ class GlobalThrottle:
             self._handle = None
 
         def __enter__(self):
-            self._handle = open(self._path, "a+")  # noqa: SIM115 - closed in __exit__
+            self._handle = open(self._path, "a+")
             fcntl.flock(self._handle.fileno(), fcntl.LOCK_EX)
             self._handle.seek(0)
             text = self._handle.read()
@@ -172,7 +172,7 @@ class GlobalThrottle:
             self._handle.close()
             self._handle = None
 
-    def _locked_state(self) -> "GlobalThrottle._LockedState":
+    def _locked_state(self) -> GlobalThrottle._LockedState:
         return self._LockedState(self.state_path)
 
     @staticmethod

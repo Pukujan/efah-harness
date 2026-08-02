@@ -134,7 +134,7 @@ def test_the_failure_message_names_the_silent_corruption(policy):
 
 def test_client_for_role_cannot_be_pointed_at_the_wrong_gateway(tmp_path):
     gateway = make_gateway(tmp_path)
-    client, endpoint = gateway.client_for_role("judge")
+    _client, endpoint = gateway.client_for_role("judge")
     assert endpoint.gateway_class is GatewayClass.EVAL
     assert "eval" in endpoint.base_url
     with pytest.raises(FailedProvenanceError):
