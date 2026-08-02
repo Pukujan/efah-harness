@@ -19,6 +19,7 @@ from gold.promotion import (
 from governance.envelope import TRUSTED_KNOWLEDGE_FLOOR, KnowledgeTier
 from governance.states import DriftFinding
 from knowledge.tiers import (
+    CITATION_VERDICT_SUPPORTED,
     GOLD_PROMOTION_STEPS,
     PromotionRejected,
     Verification,
@@ -40,6 +41,13 @@ def _verified_item(item_id: str = "K-1"):
     )
     item.reproduction_runs = 2
     item.verifications = [Verification("critic-c08", "xai", "independent rerun", True)]
+    # FINDING-007: promotion above T2 now also requires that the statement's
+    # §7.3 citations were validated and held. This fixture exists to exercise
+    # the *other* promotion rules, so it satisfies the citation gate explicitly
+    # rather than by omission — an item with no verdict is blocked, and
+    # test_an_item_whose_citations_were_never_checked_cannot_be_promoted covers
+    # that path directly.
+    item.citation_verdict = CITATION_VERDICT_SUPPORTED
     return item
 
 
@@ -212,3 +220,85 @@ def test_a_refused_promotion_leaves_the_tier_untouched():
     result = promote_to_hard_gold(candidate)
     assert not result.allowed
     assert candidate.knowledge_item.tier is before
+
+
+# --- FINDING-007: citation validation gates promotion above T2 -------------
+#
+# Tiers already stopped unverified agent output being *presented* as trusted.
+# They did not stop it being *fabricated*, because nothing checked that a cited
+# source says what the citation claims it says. These tests pin the coupling.
+
+def test_an_item_whose_citations_were_never_checked_cannot_be_promoted():
+    """An absent verdict is not a passing one.
+
+    This is the FINDING-004 error in a different place: counting a missing
+    signal as success. An item nobody checked must block, not sail through.
+    """
+    item = _verified_item()
+    item.citation_verdict = None
+    outcome = evaluate_promotion(item, KnowledgeTier.T3_TESTED)
+    assert not outcome.allowed
+    assert any("citation validation has not been run" in b for b in outcome.blockers)
+
+
+@pytest.mark.parametrize(
+    "verdict", ["INSUFFICIENT_EVIDENCE", "UNSUPPORTED", "STALE"]
+)
+def test_a_claim_its_sources_do_not_support_cannot_become_knowledge(verdict):
+    item = _verified_item()
+    item.citation_verdict = verdict
+    outcome = evaluate_promotion(item, KnowledgeTier.T3_TESTED)
+    assert not outcome.allowed
+    assert any(verdict in b for b in outcome.blockers)
+
+
+def test_citation_validation_does_not_gate_at_or_below_t2():
+    """T2 is where a hypothesis lives. A hypothesis is allowed to be uncited —
+    it just may not be called knowledge."""
+    item = admit_agent_output(
+        item_id="K-hyp",
+        statement="the gateway might retry",
+        producer_alias="researcher-r17",
+        producer_family="openai",
+        claimed_tier=KnowledgeTier.T0_RAW,
+    )
+    item.citation_verdict = None
+    outcome = evaluate_promotion(item, KnowledgeTier.T2_HYPOTHESIS)
+    assert not any("citation" in b for b in outcome.blockers)
+
+
+def test_the_supported_verdict_string_matches_the_research_plane():
+    """The two modules are deliberately decoupled; this stops them drifting.
+
+    knowledge.tiers spells the verdict as a literal so it does not depend on
+    research.claims. That decoupling is only safe if something pins the string.
+    """
+    from research.claims import ClaimVerdict
+
+    assert ClaimVerdict.SUPPORTED.value == CITATION_VERDICT_SUPPORTED
+
+
+def test_a_validated_claim_flows_into_a_promotable_item():
+    """End to end: validate a real citation, carry the verdict, promote."""
+    from research.claims import Claim, cite_repo_file, validate_claim
+
+    citation = cite_repo_file(
+        source_id="CONTRACT-15.5",
+        path="project-pack/contract.md",
+        quote="Unverified agent output MUST NOT be presented as trusted knowledge",
+        exact_location="§15.5 Knowledge tiers",
+        applicability="EFAH-CONTRACT-001 v1.1",
+    )
+    validation = validate_claim(
+        Claim(
+            claim_id="C-TIER",
+            statement="unverified agent output is not trusted knowledge",
+            citations=[citation],
+            affected_requirement="REQ-KNOWLEDGE-TIERS",
+        )
+    )
+    assert validation.supported
+
+    item = _verified_item("K-flow")
+    item.citation_verdict = validation.verdict.value
+    assert evaluate_promotion(item, KnowledgeTier.T3_TESTED).allowed

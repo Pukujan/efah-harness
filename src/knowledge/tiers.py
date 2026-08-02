@@ -47,6 +47,11 @@ MAX_TIER_FOR_AGENT_OUTPUT = KnowledgeTier.T2_HYPOTHESIS
 #: GATE-D2-18 A2. Above this, a different vendor family must have verified it.
 INDEPENDENT_VERIFICATION_REQUIRED_ABOVE = KnowledgeTier.T4_REPRODUCIBLE
 
+#: The one :class:`research.claims.ClaimVerdict` value that permits promotion
+#: above T2. Spelled as a literal rather than imported so this module does not
+#: depend on the research plane; the test suite pins the two to each other.
+CITATION_VERDICT_SUPPORTED = "SUPPORTED"
+
 #: Contract Section 15.6. All five, recorded, or no hard-gold promotion.
 GOLD_PROMOTION_STEPS: tuple[str, ...] = (
     "quarantine",
@@ -93,6 +98,15 @@ class KnowledgeItem:
     reproduction_runs: int = 0
     gold_steps_recorded: set[str] = field(default_factory=set)
     created_at: str = field(default_factory=utc_now)
+    #: The §7.3 citation verdict for this item's statement, from
+    #: :func:`research.claims.validate_claim`. ``None`` means citation validation
+    #: was never run — which is *not* the same as "it passed", and
+    #: :func:`evaluate_promotion` treats it as the block that it is.
+    #:
+    #: Carried as a plain string rather than importing the enum, so this module
+    #: stays free of a dependency on the research plane. The permitted values
+    #: are :class:`research.claims.ClaimVerdict`.
+    citation_verdict: str | None = None
 
     @property
     def trusted(self) -> bool:
@@ -179,6 +193,30 @@ def evaluate_promotion(item: KnowledgeItem, to_tier: KnowledgeTier) -> Promotion
     ):
         blockers.append("no passing verification recorded; T3_TESTED requires a test")
         failure_state = TaskState.FAILED_ORACLE
+
+    # Section 7.3 / 15.4, wired in by FINDING-007. Tiers stopped an unverified
+    # claim being *presented* as trusted; they did not stop it being fabricated,
+    # because nothing checked that a cited source says what the citation says.
+    # Above T2 a statement is being treated as knowledge, so its citations must
+    # have been validated and must have held.
+    #
+    # ``None`` blocks. An item whose citations were never checked is not a
+    # passing item — treating an absent verdict as success is the FINDING-004
+    # error of counting a missing signal as evidence.
+    if rank(to_tier) > rank(MAX_TIER_FOR_AGENT_OUTPUT):
+        if item.citation_verdict is None:
+            blockers.append(
+                f"citation validation has not been run; promotion above "
+                f"{MAX_TIER_FOR_AGENT_OUTPUT.value} requires a Section 7.3 source record "
+                "that was checked, and an unchecked claim is not a passing one"
+            )
+            failure_state = failure_state or TaskState.FAILED_ORACLE
+        elif item.citation_verdict != CITATION_VERDICT_SUPPORTED:
+            blockers.append(
+                f"citation validation returned {item.citation_verdict}; a claim whose "
+                "sources do not support it cannot become knowledge"
+            )
+            failure_state = failure_state or TaskState.FAILED_ORACLE
 
     if rank(to_tier) >= rank(KnowledgeTier.T4_REPRODUCIBLE) and item.reproduction_runs < 2:
         blockers.append(
