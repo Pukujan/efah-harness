@@ -1,6 +1,8 @@
 """GATE-D1-01 A2 and GATE-D1-02: the pack parses and is version-bound."""
 from pathlib import Path
+
 import pytest
+
 from integrations.pack import REQUIRED_FILES, PackValidationError, load_pack
 
 PACK = Path(__file__).resolve().parents[2] / "project-pack"

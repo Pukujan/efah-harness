@@ -1,5 +1,6 @@
 """DEC-003: env:NAME and env:NAME_PATH resolve interchangeably."""
 import pytest
+
 from integrations.secrets import MissingRequiredCredential, SecretRef, SecretResolver
 
 

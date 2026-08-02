@@ -1,5 +1,4 @@
 """Contract Section 8 envelope and Section 18 content binding."""
-import pytest
 from governance.envelope import CONTRACT_ID, CONTRACT_VERSION, CompiledObject, content_hash
 
 

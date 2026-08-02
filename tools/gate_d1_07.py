@@ -15,7 +15,6 @@ from __future__ import annotations
 import ast
 import json
 import os
-import sys
 from pathlib import Path
 
 SRC = Path("src")
@@ -89,7 +88,7 @@ def a4_ci_has_no_claude_step() -> tuple[bool, list[str]]:
             # An empty-string assignment is the credential being *removed*,
             # which is the gate working, not a violation.
             if "anthropic" in lowered or "claude" in lowered:
-                if lowered.endswith(': ""') or lowered.endswith(": ''"):
+                if lowered.endswith((': ""', ": ''")):
                     continue
                 findings.append(f"{path}:{line_no}: {stripped}")
     return not findings, findings

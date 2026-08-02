@@ -97,7 +97,7 @@ class Envelope(BaseModel):
     created_by_alias: str
     created_at: str = Field(default_factory=utc_now)
 
-    def sealed(self, body: Any) -> "Envelope":
+    def sealed(self, body: Any) -> Envelope:
         """Return a copy whose ``content_hash`` binds envelope *and* body."""
         base = self.model_dump(exclude={"content_hash"})
         return self.model_copy(update={"content_hash": content_hash({"envelope": base, "body": body})})
@@ -127,7 +127,7 @@ class CompiledObject(BaseModel):
         terminus_database: str | None = None,
         terminus_branch: str | None = None,
         terminus_commit: str | None = None,
-    ) -> "CompiledObject":
+    ) -> CompiledObject:
         env = Envelope(
             schema_id=schema_id,
             schema_version=schema_version,
