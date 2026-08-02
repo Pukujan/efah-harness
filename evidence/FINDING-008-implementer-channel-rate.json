@@ -1,0 +1,68 @@
+{
+  "finding": "FINDING-008",
+  "subject": "implementer-i12 / gpt-5.6-luna on the production gateway",
+  "measured_at": "2026-08-02T14:45:00Z",
+  "oracle_type": "reproducible_empirical_benchmark",
+  "model_judge_in_verdict_path": false,
+  "evidence_tier": "INDEPENDENTLY_REPRODUCED",
+  "hypotheses": [
+    {
+      "id": "H-001",
+      "claim": "transient upstream outage",
+      "status": "supported_then_refined",
+      "note": "not a plain outage; the failure is load-shaped, see H-006"
+    },
+    {
+      "id": "H-002",
+      "claim": "the codex-pro channel is dead",
+      "status": "refuted",
+      "discriminating_test": "3 consecutive raw calls returned 200"
+    },
+    {
+      "id": "H-003",
+      "claim": "the production gateway itself is degraded",
+      "status": "refuted",
+      "discriminating_test": "5 other production-side roles probed UP in the same run"
+    },
+    {
+      "id": "H-004",
+      "claim": "the model is not configured on the gateway",
+      "status": "refuted",
+      "discriminating_test": "a 400 would be returned, not a 503"
+    },
+    {
+      "id": "H-005",
+      "claim": "the tool-call payload triggers it",
+      "status": "refuted",
+      "discriminating_test": "the exact probe tool payload returned 200 with and without tool_choice"
+    },
+    {
+      "id": "H-006",
+      "claim": "the channel rate-limits closely-spaced requests",
+      "status": "supported",
+      "discriminating_test": "12/12 success at 15s spacing; 503 when issued back to back"
+    }
+  ],
+  "measurements": {
+    "spaced_15s": {
+      "attempts": 12,
+      "ok": 12,
+      "failed": 0,
+      "availability": 1.0
+    },
+    "back_to_back": {
+      "observed": "503 ServiceUnavailableError on consecutive calls"
+    },
+    "availability_probe_burst": {
+      "note": "the probe issues 15 role probes at the 0.9s global-throttle floor; implementer-i12 fails in that burst every time",
+      "runs": 2,
+      "failures": 2
+    }
+  },
+  "upstream_error": "litellm.ServiceUnavailableError: OpenAIException - Service temporarily unavailable. Received Model Group=gpt-5.6-luna, Available Model Group Fallbacks=None",
+  "consequences": [
+    "the availability probe records implementer-i12 DOWN, so the router substitutes a different alias for the highest-volume role in the system",
+    "the global throttle's 0.9s floor is account-wide and correct; it is too fast for this one channel",
+    "Available Model Group Fallbacks=None means a cooled-down deployment has nowhere to fall back to"
+  ]
+}
