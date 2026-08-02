@@ -1492,6 +1492,26 @@ CHECKS: dict[tuple[str, str], Check] = {
     ("GATE-D3-26", "A5"): _d3_26_a5,
 }
 
+# ---------------------------------------------------------------------------
+# Per-gate check modules
+# ---------------------------------------------------------------------------
+# Checks written after the 2026-08-02 gate audit live in their own module per
+# gate rather than in this file. Two reasons, one practical and one structural.
+#
+# Practical: the audit found 44 assertions whose subject was already built and
+# merely unchecked, and they were written in parallel. A dozen authors editing
+# one registry file collide on every merge; a module each collides never.
+#
+# Structural: this file had grown to the point where the registry at the bottom
+# was the only place a reader could see what is covered. Keeping the map here
+# and the checks next door preserves that one-screen view.
+from evaluation.checks_d1_03 import CHECKS_D1_03  # noqa: E402
+from evaluation.checks_d2_12 import CHECKS_D2_12  # noqa: E402
+
+CHECKS.update(CHECKS_D1_03)
+CHECKS.update(CHECKS_D2_12)
+
+
 #: Why an assertion has no check, so "not executable" is a statement with a
 #: reason rather than a shrug. Contract Section 18: honest debt is recorded.
 NOT_EXECUTABLE_REASONS: dict[tuple[str, str], str] = {
