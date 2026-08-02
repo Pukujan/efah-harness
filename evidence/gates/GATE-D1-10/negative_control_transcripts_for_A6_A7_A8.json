@@ -1,0 +1,79 @@
+{
+  "A6_scope_expansion": {
+    "accepted": false,
+    "verb": "INSTRUCT",
+    "message": "Refused: UNAPPROVED_SCOPE_EXPANSION. The surface holds no authority the contract does not already grant. A material change needs the \u00a71.3 amendment process \u2014 exact clause, impact analysis, owner approval, new version, TerminusDB commit, recompiled gates, revalidation.",
+    "rejection_reason": "UNAPPROVED_SCOPE_EXPANSION",
+    "drift_finding": "UNAPPROVED_SCOPE_EXPANSION",
+    "record_id": "09317549b6045fa5",
+    "terminus_commit": null,
+    "entered_gate_path": true,
+    "view": null
+  },
+  "A6_requirement_weakening": {
+    "accepted": false,
+    "verb": "INSTRUCT",
+    "message": "Refused: UNAPPROVED_SCOPE_EXPANSION. The surface holds no authority the contract does not already grant. A material change needs the \u00a71.3 amendment process \u2014 exact clause, impact analysis, owner approval, new version, TerminusDB commit, recompiled gates, revalidation.",
+    "rejection_reason": "UNAPPROVED_SCOPE_EXPANSION",
+    "drift_finding": "UNAPPROVED_SCOPE_EXPANSION",
+    "record_id": "00fbf01e0dfa6a05",
+    "terminus_commit": null,
+    "entered_gate_path": true,
+    "view": null
+  },
+  "A7_gate_bypass": {
+    "accepted": false,
+    "verb": "INSTRUCT",
+    "message": "Refused: the surface cannot bypass a gate or self-approve. The gate is still required. CI performs the merge and the implementing agent does not self-certify (contract \u00a721.2).",
+    "rejection_reason": "GATE_BYPASS_ATTEMPTED",
+    "drift_finding": null,
+    "record_id": "3ce7f92a5203bfd0",
+    "terminus_commit": null,
+    "entered_gate_path": true,
+    "view": null
+  },
+  "A7_self_approve": {
+    "accepted": false,
+    "verb": "INSTRUCT",
+    "message": "Refused: the surface cannot bypass a gate or self-approve. The gate is still required. CI performs the merge and the implementing agent does not self-certify (contract \u00a721.2).",
+    "rejection_reason": "GATE_BYPASS_ATTEMPTED",
+    "drift_finding": null,
+    "record_id": "b19d53f6e25c6b29",
+    "terminus_commit": null,
+    "entered_gate_path": true,
+    "view": null
+  },
+  "A8_sealed_repo": {
+    "accepted": false,
+    "verb": "INSTRUCT",
+    "message": "Refused: 'sealed holdout' is sealed-side. The builder submits candidates and receives verdict shapes; it never reads protected content (contract \u00a717.2).",
+    "rejection_reason": "PROTECTED_ASSET_ACCESS",
+    "drift_finding": "PROTECTED_ASSET_ACCESS",
+    "record_id": "64cb8e8e4d2c7e2e",
+    "terminus_commit": null,
+    "entered_gate_path": true,
+    "view": null
+  },
+  "A8_protected_store": {
+    "accepted": false,
+    "verb": "INSTRUCT",
+    "message": "Refused: 'terminusdb_protected' is sealed-side. The builder submits candidates and receives verdict shapes; it never reads protected content (contract \u00a717.2).",
+    "rejection_reason": "PROTECTED_ASSET_ACCESS",
+    "drift_finding": "PROTECTED_ASSET_ACCESS",
+    "record_id": "e3199869e7a7ccd9",
+    "terminus_commit": null,
+    "entered_gate_path": true,
+    "view": null
+  },
+  "stale_contract_version": {
+    "accepted": false,
+    "verb": "OBSERVE",
+    "message": "Refused: command is bound to contract 1.0, the governing version is 1.1.",
+    "rejection_reason": "STALE_CONTRACT_VERSION",
+    "drift_finding": "STALE_CONTRACT_VERSION",
+    "record_id": "5f61c624abb28586",
+    "terminus_commit": null,
+    "entered_gate_path": true,
+    "view": null
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "scanned": 8,
+  "imports": {
+    "src/owner_surface/__init__.py": [],
+    "src/owner_surface/app.py": [
+      "__future__",
+      "fastapi",
+      "governance"
+    ],
+    "src/owner_surface/domain.py": [
+      "__future__",
+      "enum",
+      "governance",
+      "pydantic"
+    ],
+    "src/owner_surface/gateway.py": [
+      "__future__",
+      "asyncio",
+      "governance",
+      "httpx",
+      "json",
+      "os",
+      "pathlib",
+      "typing"
+    ],
+    "src/owner_surface/graph.py": [
+      "__future__",
+      "governance",
+      "langgraph",
+      "re",
+      "typing"
+    ],
+    "src/owner_surface/policy.py": [
+      "__future__",
+      "governance",
+      "re"
+    ],
+    "src/owner_surface/router.py": [
+      "__future__",
+      "fastapi",
+      "governance",
+      "pydantic",
+      "typing"
+    ],
+    "src/owner_surface/web.py": [
+      "__future__"
+    ]
+  },
+  "offenders": {},
+  "zero_anthropic_imports": true
+}

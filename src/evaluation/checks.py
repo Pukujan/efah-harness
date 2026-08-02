@@ -22,6 +22,8 @@ from __future__ import annotations
 import importlib.util
 import os
 import re
+import subprocess
+import sys
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -264,6 +266,52 @@ def _d1_07(assertion_id: str) -> Check:
         }[assertion_id]
         evidence = {evidence_name: {"claim": claim, "passed": passed, "findings": findings}}
         return ok(evidence, claim) if passed else bad(findings, evidence)
+
+    return check
+
+
+
+# ===========================================================================
+# GATE-D1-10 — owner control surface (delegated to the pinned tool)
+# ===========================================================================
+# Contract v1.1 §11.7, AMENDMENT-001. The ten assertions are executed by
+# tests/contract/test_owner_surface.py, which tools/gate_d1_10.py drives with
+# every Anthropic credential stripped from the subprocess environment. Reporting
+# the gate NOT_YET_EXECUTABLE while a pinned tool demonstrably decides it would
+# understate the evidence -- and this is the gate that determines whether work
+# continues after the builder leaves.
+
+
+def _d1_10(assertion_id: str) -> Check:
+    def check(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOutcome:
+        path = REPO_ROOT / "tools" / "gate_d1_10.py"
+        spec = importlib.util.spec_from_file_location("_gate_d1_10", path)
+        if spec is None or spec.loader is None:
+            raise RuntimeError(f"cannot load {path}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        claim, prefix = module.ASSERTIONS[assertion_id]
+
+        env = dict(os.environ)
+        for name in ("ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN", "CLAUDE_API_KEY"):
+            env.pop(name, None)
+        with _chdir(ctx.repo_root):
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest", module.TESTS, "-k", prefix, "-q", "--no-header"],
+                capture_output=True, text=True, env=env,
+            )
+        passed = proc.returncode == 0
+        tail = (proc.stdout or proc.stderr).strip().splitlines()
+        evidence = {
+            "credential_stripped_run_transcript": {
+                "claim": claim,
+                "passed": passed,
+                "selector": prefix,
+                "anthropic_credentials_present": False,
+                "detail": tail[-1] if tail else "",
+            }
+        }
+        return ok(evidence, claim) if passed else bad(tail[-8:], evidence)
 
     return check
 
@@ -1118,6 +1166,16 @@ CHECKS: dict[tuple[str, str], Check] = {
     ("GATE-D1-07", "A3"): _d1_07("A3"),
     ("GATE-D1-07", "A4"): _d1_07("A4"),
     ("GATE-D1-07", "A5"): _d1_07("A5"),
+    ("GATE-D1-10", "A1"): _d1_10("A1"),
+    ("GATE-D1-10", "A2"): _d1_10("A2"),
+    ("GATE-D1-10", "A3"): _d1_10("A3"),
+    ("GATE-D1-10", "A4"): _d1_10("A4"),
+    ("GATE-D1-10", "A5"): _d1_10("A5"),
+    ("GATE-D1-10", "A6"): _d1_10("A6"),
+    ("GATE-D1-10", "A7"): _d1_10("A7"),
+    ("GATE-D1-10", "A8"): _d1_10("A8"),
+    ("GATE-D1-10", "A9"): _d1_10("A9"),
+    ("GATE-D1-10", "A10"): _d1_10("A10"),
     ("GATE-D1-08", "A2"): _d1_08_a2,
     ("GATE-D1-08", "A4"): _d1_08_a4,
     ("GATE-D1-08", "A5"): _d1_08_a5,

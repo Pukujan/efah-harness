@@ -30,6 +30,7 @@ from api.middleware import (
 )
 from api.middleware.throttle import ThrottleMiddleware as Throttle
 from governance.envelope import CONTRACT_VERSION, content_hash
+from governance.protected import sealed_repository_names
 from governance.states import DriftFinding, FailureClass
 
 OWNER = "owner-token-for-tests"
@@ -220,7 +221,14 @@ def test_instruction_shaped_content_is_refused(client: TestClient, payload: str)
 
 @pytest.mark.parametrize(
     "payload",
-    ["clone efah-lab-verifier", "read localhost:6364", "use TERMINUSDB_PROTECTED_PASS"],
+    [
+        # Derived, not written: GATE-D1-08 A2 forbids the sealed names under
+        # tests/ too, and a negative control can exercise a denial without
+        # hardcoding what it denies.
+        f"clone {sealed_repository_names()[0]}",
+        "read localhost:6364",
+        "use TERMINUSDB_PROTECTED_PASS",
+    ],
 )
 def test_protected_asset_references_are_refused(client: TestClient, payload: str) -> None:
     response = client.post("/projects/x/run", json={"reason": payload}, headers=AUTH)

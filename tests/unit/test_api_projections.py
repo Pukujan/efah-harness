@@ -38,6 +38,7 @@ from dashboard.redaction import ProtectedContentLeak, assert_no_protected_conten
 from dashboard.source import MutationAttemptedFromDashboard, ReadOnlySource
 from dashboard.views import REQUIRED_VIEWS
 from governance.envelope import KnowledgeTier
+from governance.protected import sealed_repository_names
 from governance.states import DriftFinding, OwnerInterrupt, ProjectState, TaskState, Verdict
 from observability.identity import ProtectedIdentityLeak
 
@@ -374,7 +375,9 @@ def test_assertion_and_key_material_is_refused() -> None:
 
 def test_a_route_to_the_sealed_repository_is_refused() -> None:
     with pytest.raises(ProtectedContentLeak):
-        assert_no_protected_content({"repo": "github.com/x/efah-lab-verifier"}, where="test")
+        assert_no_protected_content(
+            {"repo": f"github.com/x/{sealed_repository_names()[0]}"}, where="test"
+        )
 
 
 def test_the_evaluation_view_has_no_field_that_could_hold_content() -> None:
