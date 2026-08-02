@@ -82,7 +82,10 @@ TIMEOUT_SECONDS = 120
 #: The account-wide upstream ceiling is 100 rpm and the harness throttles to 90.
 #: This process is serial and slow by construction, but it shares the account
 #: with the builder, so it takes the same file lock.
-THROTTLE_STATE = Path(os.environ.get("EFAH_THROTTLE_STATE", "/tmp/efah-global-throttle.json"))
+#: The *shared* limiter, writable by both the builder and this identity. If it
+#: is missing the generator refuses rather than pacing itself alone: an
+#: unshared throttle on an account-wide limit is not a throttle.
+THROTTLE_STATE = Path(os.environ.get("EFAH_THROTTLE_STATE", "/var/lib/efah-throttle/state.json"))
 MIN_INTERVAL_SECONDS = 0.9
 
 
@@ -175,7 +178,11 @@ def throttle() -> None:
     """
     import fcntl
 
-    THROTTLE_STATE.parent.mkdir(parents=True, exist_ok=True)
+    if not THROTTLE_STATE.is_file():
+        raise RuntimeError(
+            f"shared throttle state {THROTTLE_STATE} is absent; refusing to generate "
+            "unthrottled against an account-wide rate limit"
+        )
     with open(THROTTLE_STATE, "a+", encoding="utf-8") as fh:
         fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
         try:
@@ -282,9 +289,9 @@ def main() -> int:
 
     try:
         SEALED_STORE.mkdir(parents=True, exist_ok=True)
-        holdouts = generate_holdouts(api_key, args, log)
-        mutants = generate_mutants(api_key, args, log)
-        killed = run_mutation_gate(holdouts, mutants, log)
+        subject, holdouts = generate_subject_and_holdouts(api_key, args, log)
+        mutants = generate_mutants(api_key, args, subject, log)
+        killed, gate_problems = run_mutation_gate(subject, holdouts, mutants, log)
     except Exception as exc:  # noqa: BLE001 - the class is the channel, not the text
         # The message may quote generated content, so it goes to the sealed log
         # and the builder receives a typed class only.
@@ -292,7 +299,17 @@ def main() -> int:
         return failure(request_id, 1, _classify(exc), store_content_hash())
 
     kill_rate = (len(killed) / len(mutants)) if mutants else 0.0
-    accepted = bool(holdouts) and bool(mutants) and kill_rate >= 1.0
+    # A gate problem voids the score outright. DEC-006's mint rule is that a
+    # holdout set below 1.0 is refused; a set whose *gate* could not decide is
+    # not at 1.0 either, and reporting it as such would be the manufactured
+    # confidence the rule exists to prevent.
+    accepted = (
+        bool(holdouts) and bool(mutants) and kill_rate >= 1.0 and not gate_problems
+    )
+
+    if gate_problems:
+        for problem in gate_problems:
+            log.write(f"gate problem: {problem}")
 
     if not accepted:
         # DEC-006: the mint refuses a set below 1.0. The generated files stay in
@@ -343,61 +360,220 @@ def _write(directory: str, name: str, content: str) -> Path:
     return path
 
 
-def generate_holdouts(api_key: str, args: argparse.Namespace, log: Log) -> list[Path]:
+def generate_subject_and_holdouts(api_key: str, args: argparse.Namespace, log: Log) -> tuple[Path, list[Path]]:
+    """Author a reference implementation and the holdouts that pin it.
+
+    The reference exists so the mutation gate has a **baseline**. Without one,
+    a holdout that fails unconditionally kills every mutant and reports a
+    perfect score — which is precisely the manufactured confidence DEC-006 says
+    is worse than having no holdouts at all. The first run of this generator did
+    exactly that and reported ``kill_rate: 1.0`` on a set that tested nothing.
+    """
     prompt = (
-        "You are authoring SEALED RELEASE HOLDOUT tests for a Python control-plane "
-        "harness. The implementer will never see them. Write pytest tests that a "
-        "plausible-but-wrong implementation would fail and a correct one would pass. "
-        "Target behaviours that are easy to fake: exit codes that must be non-zero "
-        "mid-run, state transitions that must be refused, evidence that must be "
-        "absent rather than empty. Output only Python, no prose, no code fences.\n\n"
-        f"Candidate commit: {args.candidate_commit}\n"
-        f"Contract version: {args.contract_version}\n"
-        f"Produce {args.target_count} independent test functions."
+        "Author a SEALED RELEASE HOLDOUT exercise in Python. Output exactly two files, "
+        "each fenced and preceded by its filename on its own line as `# FILE: name.py`.\n\n"
+        "1. `subject.py` — a small, correct module for a control-plane concern where a "
+        "plausible-but-wrong implementation is easy to write. Prefer behaviours that are "
+        "easy to fake: a state machine that must REFUSE certain transitions, an exit code "
+        "that must be non-zero mid-run, a check that must report absent rather than empty. "
+        "Pure functions and simple classes only; no I/O, no network, no clock.\n\n"
+        f"2. `test_holdout.py` — {args.target_count} pytest tests importing `subject`. They must "
+        "all PASS against the correct implementation, and each must FAIL loudly if the "
+        "behaviour is subtly wrong. Assert on specific values, not on truthiness.\n\n"
+        "No prose outside the two fenced blocks.\n"
+        f"Candidate commit: {args.candidate_commit}\nContract version: {args.contract_version}"
     )
     text = call_model(api_key, HOLDOUT_AUTHOR_MODEL, prompt, log)
-    path = _write("holdouts", f"holdout_{args.candidate_commit[:12]}.py", text)
-    log.write(f"wrote {path.name} ({len(text)} chars)")
-    return [path]
+    files = _split_files(text)
+    log.write(f"holdout author produced files: {sorted(files)}")
+    if "subject.py" not in files or "test_holdout.py" not in files:
+        raise RuntimeError(f"holdout author returned {sorted(files)}, expected subject.py and test_holdout.py")
+
+    subject = _write("reference", "subject.py", files["subject.py"])
+    holdout = _write("holdouts", "test_holdout.py", files["test_holdout.py"])
+    log.write(f"reference {len(files['subject.py'])} chars; holdouts {len(files['test_holdout.py'])} chars")
+    return subject, [holdout]
 
 
-def generate_mutants(api_key: str, args: argparse.Namespace, log: Log) -> list[Path]:
+def generate_mutants(api_key: str, args: argparse.Namespace, subject: Path, log: Log) -> list[Path]:
+    """Seed known-bad variants of the *same* module the holdouts import.
+
+    Coupling matters: the first version of this generator produced free-standing
+    "mutant" files that nothing imported, so running the holdouts near them
+    measured nothing. A mutant must be a drop-in replacement for the subject or
+    it is not a mutant.
+    """
+    count = max(int(args.target_count), 3)
     prompt = (
-        "You are authoring KNOWN-BAD MUTANTS: small, plausible defects that a weak "
-        "test suite would miss. Each mutant is a self-contained Python module with a "
-        "single seeded defect. Output only Python, no prose, no code fences.\n\n"
-        f"Candidate commit: {args.candidate_commit}\n"
-        f"Produce {max(args.target_count, 1)} mutants."
+        "Here is a correct Python module.\n\n```python\n" + subject.read_text() + "\n```\n\n"
+        f"Produce {count} MUTANTS: complete copies of this module, each with exactly ONE "
+        "small seeded defect that a weak test suite would miss. Keep every public name and "
+        "signature identical — a mutant must be a drop-in replacement. Prefer off-by-one, "
+        "inverted conditions, a swallowed error, a wrong default, a state transition that "
+        "should be refused but is allowed.\n\n"
+        "Output each as a fenced block preceded by `# FILE: mutant_<n>.py`. No prose."
     )
     text = call_model(api_key, MUTANT_AUTHOR_MODEL, prompt, log)
-    path = _write("mutants", f"mutant_{args.candidate_commit[:12]}.py", text)
-    log.write(f"wrote {path.name} ({len(text)} chars)")
-    return [path]
+    files = _split_files(text, fallback_stem="mutant_")
+    # Filenames only -- metadata, not content. Enough to diagnose a format
+    # mismatch without the builder ever seeing a mutant.
+    log.write(f"mutant author produced files: {sorted(files)}")
+    mutants = [
+        _write("mutants", name, body)
+        for name, body in sorted(files.items())
+        if name.startswith("mutant")
+    ]
+    if not mutants:
+        raise RuntimeError(
+            f"mutant author returned no usable modules; parsed {sorted(files)} "
+            f"from {len(text)} chars"
+        )
+    log.write(f"wrote {len(mutants)} mutants")
+    return mutants
 
 
-def run_mutation_gate(holdouts: list[Path], mutants: list[Path], log: Log) -> list[Path]:
-    """Deterministic. No model participates in this verdict path (§17.4).
+#: Filename markers seen in practice. The holdout author honoured
+#: ``# FILE: name.py`` exactly; the mutant author did not, and a run died on the
+#: parser rather than on anything about the mutants. Models are asked for one
+#: shape and produce several, so the parser accepts the common ones instead of
+#: making instruction-following a precondition for assurance.
+_FENCE = re.compile(r"```(?:python|py)?\s*\n(.*?)```", re.S)
+_NAME_BEFORE = re.compile(
+    r"(?:#\s*FILE:\s*|#{1,6}\s*|\*\*)([A-Za-z0-9_./-]+\.py)\b[^\n]*\n+\s*$"
+)
+_NAME_INSIDE = re.compile(r"^\s*#\s*(?:FILE:\s*)?([A-Za-z0-9_./-]+\.py)\s*$")
 
-    Each mutant is run against the holdout set; a mutant the set does not kill is
-    recorded and the mint is refused. This is the only check that distinguishes a
-    holdout set from a plausible-looking file.
+
+def _split_files(text: str, *, fallback_stem: str | None = None) -> dict[str, str]:
+    """Pull ``name.py -> source`` pairs out of a completion.
+
+    Three shapes are accepted: a filename on the line before a fence (with or
+    without ``# FILE:``, with or without markdown heading or bold markers), a
+    filename as the first comment *inside* the fence, or — when a fallback stem
+    is supplied and neither marker is present — positional naming, because a
+    model that emitted six unlabelled code blocks when asked for six mutants has
+    still done the work.
     """
+    files: dict[str, str] = {}
+    for index, match in enumerate(_FENCE.finditer(text), start=1):
+        body = match.group(1)
+        before = text[: match.start()]
+        name = None
+
+        head = _NAME_BEFORE.search(before[-200:])
+        if head:
+            name = head.group(1)
+        else:
+            first_line = body.splitlines()[0] if body.splitlines() else ""
+            inside = _NAME_INSIDE.match(first_line)
+            if inside:
+                name = inside.group(1)
+        if name is None and fallback_stem:
+            name = f"{fallback_stem}{index}.py"
+        if name:
+            files[Path(name).name] = body
+    return files
+
+
+#: A root-owned interpreter with pytest installed. Not ``sys.executable``: the
+#: system python this program runs under has no pytest, and ``python -m pytest``
+#: without it exits **1** -- indistinguishable from "tests failed". That single
+#: collision produced a fabricated ``kill_rate: 1.0`` on a set that ran no tests
+#: at all, because every mutant "died" of the runner being absent.
+TEST_RUNNER = Path("/opt/efah-verifier/venv/bin/python")
+
+
+def assert_runner_available() -> None:
+    """Prove the test runner exists before any verdict depends on it."""
     import subprocess
 
-    killed: list[Path] = []
-    for mutant in mutants:
-        result = subprocess.run(  # noqa: S603 - fixed argv
-            [sys.executable, "-m", "pytest", "-x", "-q", *[str(h) for h in holdouts]],
-            cwd=mutant.parent,
-            capture_output=True,
-            text=True,
-            timeout=600,
+    if not TEST_RUNNER.is_file():
+        raise RuntimeError(f"test runner {TEST_RUNNER} is absent; no verdict is possible")
+    probe = subprocess.run(  # noqa: S603 - fixed argv
+        [str(TEST_RUNNER), "-m", "pytest", "--version"],
+        capture_output=True, text=True, timeout=60,
+    )
+    if probe.returncode != 0:
+        raise RuntimeError(
+            f"{TEST_RUNNER} cannot run pytest (exit {probe.returncode}); a missing runner "
+            "exits 1 exactly like a failing test, so every mutant would score as killed"
         )
-        # A non-zero exit means the holdout set detected the seeded defect.
-        if result.returncode != 0:
-            killed.append(mutant)
-        log.write(f"mutant {mutant.name}: pytest exit {result.returncode}")
-    return killed
+
+
+def _run_pytest(directory: Path, holdouts: list[Path]) -> int:
+    import subprocess
+
+    result = subprocess.run(  # noqa: S603 - fixed argv
+        [str(TEST_RUNNER), "-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider",
+         *[h.name for h in holdouts]],
+        cwd=directory,
+        capture_output=True,
+        text=True,
+        timeout=600,
+        env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "PYTHONDONTWRITEBYTECODE": "1"},
+    )
+    return result.returncode
+
+
+def run_mutation_gate(
+    subject: Path, holdouts: list[Path], mutants: list[Path], log: Log
+) -> tuple[list[Path], list[str]]:
+    """Deterministic. No model participates in this verdict path (§17.4).
+
+    Sound version. Three things the first one got wrong:
+
+    * **A baseline is run first.** The holdouts must all pass against the correct
+      subject. A suite that fails on correct code kills every mutant and means
+      nothing, and the mint refuses the whole set rather than scoring it.
+    * **Exit codes are read, not merely compared to zero.** pytest returns 1 for
+      test failures and 2-5 for collection errors, internal errors, usage errors
+      and "no tests collected". Only **1** is a kill; anything else is a broken
+      run, and counting it would let a holdout with a syntax error score 1.0.
+    * **The mutant is actually installed.** Each mutant is copied over
+      ``subject.py`` in an isolated directory that the holdouts import, so a
+      failure is caused by the seeded defect rather than by proximity.
+    """
+    import shutil
+    import tempfile
+
+    problems: list[str] = []
+    assert_runner_available()
+
+    with tempfile.TemporaryDirectory(dir=str(SEALED_STORE)) as tmp:
+        base = Path(tmp) / "baseline"
+        base.mkdir()
+        shutil.copy(subject, base / "subject.py")
+        for h in holdouts:
+            shutil.copy(h, base / h.name)
+        baseline_code = _run_pytest(base, holdouts)
+        log.write(f"baseline (correct subject): pytest exit {baseline_code}")
+        if baseline_code != 0:
+            problems.append(
+                f"holdouts do not pass against the correct implementation (pytest exit "
+                f"{baseline_code}); a suite that fails on correct code kills every mutant "
+                "and tests nothing"
+            )
+            return [], problems
+
+        killed: list[Path] = []
+        for mutant in mutants:
+            work = Path(tmp) / f"m-{mutant.stem}"
+            work.mkdir()
+            shutil.copy(mutant, work / "subject.py")   # the mutant IS the subject
+            for h in holdouts:
+                shutil.copy(h, work / h.name)
+            code = _run_pytest(work, holdouts)
+            if code == 1:
+                killed.append(mutant)
+                verdict = "KILLED"
+            elif code == 0:
+                verdict = "SURVIVED"
+            else:
+                verdict = f"BROKEN_RUN(exit {code})"
+                problems.append(f"{mutant.name}: pytest exit {code} is not a verdict")
+            log.write(f"mutant {mutant.name}: {verdict}")
+
+    return killed, problems
 
 
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
+from api.routers.chat import create_chat_router
 from governance.envelope import CONTRACT_ID, CONTRACT_VERSION
 
 from .router import create_owner_router
@@ -31,6 +32,11 @@ def create_app() -> FastAPI:
         ),
     )
     app.include_router(create_owner_router())
+    # The OpenAI-compatible façade (BUILD_VS_INTEGRATE-001) rides on the same
+    # service as the control surface: one process, one tailnet route, one thing
+    # to keep alive. A chat client points at this host and gets the harness;
+    # /owner/ stays as the surface that still works when the client does not.
+    app.include_router(create_chat_router())
 
     @app.get("/", include_in_schema=False)
     async def root() -> RedirectResponse:

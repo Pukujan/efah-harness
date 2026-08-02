@@ -158,6 +158,40 @@ else
   exit 1
 fi
 
+# -- 5b. the shared throttle -------------------------------------------------
+# The upstream rate limit is ACCOUNT-WIDE, so the builder and the verifier must
+# share one limiter. Two identities each pacing to 90 rpm emit 180 and
+# self-inflict 429s indistinguishable from genuine model failure. The verifier
+# hitting a builder-owned file in /tmp is how that was found: PermissionError,
+# mid-generation, after the model calls had already been paid for.
+#
+# The file holds a single float — the next permissible dispatch instant. Mode
+# 0666 rather than 0660 because a group added now does not apply to sessions
+# already running, and a throttle one side cannot write is a throttle that
+# silently stops throttling. The directory stays root-owned so neither identity
+# can replace the file.
+groupadd -f efah-throttle
+usermod -aG efah-throttle "${VERIFIER_USER}"
+usermod -aG efah-throttle "${BUILDER_USER}"
+install -d -m 0755 -o root -g efah-throttle /var/lib/efah-throttle
+[ -f /var/lib/efah-throttle/state.json ] || echo '{}' > /var/lib/efah-throttle/state.json
+chown root:efah-throttle /var/lib/efah-throttle/state.json
+chmod 0666 /var/lib/efah-throttle/state.json
+echo "throttle: /var/lib/efah-throttle/state.json (shared, account-wide limit)"
+
+# -- 5c. a test runner the verifier can execute and cannot modify ------------
+# The generator's mutation gate is worthless without pytest, and the failure is
+# silent in the worst way: `python -m pytest` with no pytest exits 1, exactly
+# like a failing test. That collision produced a kill_rate of 1.0 on a holdout
+# set that ran no tests at all — every mutant "died" of the runner being absent.
+# Root-owned for the same reason the generator is: the account that runs the
+# tests must not be able to change the test runner.
+"${PYTHON_BIN}" -m venv /opt/efah-verifier/venv
+/opt/efah-verifier/venv/bin/pip install --quiet --disable-pip-version-check pytest
+chown -R root:root /opt/efah-verifier/venv
+chmod -R go-w /opt/efah-verifier/venv
+echo "test runner: $(/opt/efah-verifier/venv/bin/python -m pytest --version 2>&1)"
+
 # -- 6. the python the generator runs under ---------------------------------
 if [[ ! -x "${PYTHON_BIN}" ]]; then
   echo "REFUSING: ${PYTHON_BIN} is not executable; set EFAH_VERIFIER_PYTHON" >&2

@@ -37,9 +37,32 @@ from pathlib import Path
 from models.policy import ModelPolicy, load_model_policy
 
 #: Shared by every EFAH process on this host. Overridable for tests only.
-DEFAULT_STATE_PATH = Path(
-    os.environ.get("EFAH_THROTTLE_STATE", Path(tempfile.gettempdir()) / "efah-global-throttle.json")
-)
+#: Shared by every EFAH process on this host *and by the verifier identity*,
+#: which runs as a different OS user. A per-user throttle file is not an option:
+#: the limit is account-wide, so two identities each pacing themselves to 90 rpm
+#: would emit 180 and self-inflict 429s that are indistinguishable from genuine
+#: model failure. The verifier hitting a builder-owned file in /tmp is exactly
+#: how that was discovered -- PermissionError, mid-generation.
+_SHARED_STATE_PATH = Path("/var/lib/efah-throttle/state.json")
+
+
+def _default_state_path() -> Path:
+    override = os.environ.get("EFAH_THROTTLE_STATE")
+    if override:
+        return Path(override)
+    # The *file* must be writable, not the directory: the directory is
+    # root-owned so neither identity can replace the state file, which is the
+    # point. Checking the directory instead sent the builder back to /tmp while
+    # the verifier used the shared path -- two throttles, which is worse than
+    # none because each believes it is the only one.
+    if _SHARED_STATE_PATH.is_file() and os.access(_SHARED_STATE_PATH, os.W_OK):
+        return _SHARED_STATE_PATH
+    # Unprovisioned host (CI, a fresh clone): fall back rather than refuse. A
+    # single-identity machine has nothing to share the file with.
+    return Path(tempfile.gettempdir()) / "efah-global-throttle.json"
+
+
+DEFAULT_STATE_PATH = _default_state_path()
 
 _WINDOW_SECONDS = 60.0
 
