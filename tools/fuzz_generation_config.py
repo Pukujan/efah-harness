@@ -113,6 +113,35 @@ class Cell:
         }
 
 
+def _decode_stream(raw: str) -> tuple[str, str | None]:
+    """Reassemble an SSE stream into the message it carries.
+
+    Returns the concatenated content and the last non-null ``finish_reason``.
+    A streamed response is only comparable to a non-streamed one after this
+    step; comparing decoded content to raw wire bytes is what made every
+    streaming cell unfalsifiable.
+    """
+    parts: list[str] = []
+    finish: str | None = None
+    for line in raw.splitlines():
+        if not line.startswith("data:"):
+            continue
+        blob = line[5:].strip()
+        if not blob or blob == "[DONE]":
+            continue
+        try:
+            event = json.loads(blob)
+        except ValueError:
+            continue
+        for choice in event.get("choices") or []:
+            piece = (choice.get("delta") or {}).get("content")
+            if piece:
+                parts.append(piece)
+            if choice.get("finish_reason"):
+                finish = choice["finish_reason"]
+    return "".join(parts), finish
+
+
 def run_cell(client, key, model, max_tokens, stream, size, attempt, throttle) -> Cell:
     throttle.acquire()
     body: dict[str, Any] = {
@@ -139,12 +168,21 @@ def run_cell(client, key, model, max_tokens, stream, size, attempt, throttle) ->
                     latency=latency, error=f"HTTP {r.status_code}: {r.text[:160]}")
 
     if stream:
-        text = r.text
-        # Crude but sufficient: we are asking "did content come back at all",
-        # not reconstructing the message.
-        chars = len(text)
-        finish = "length" if '"finish_reason":"length"' in text else "stop"
-        blocks = text.count("# FILE:")
+        # This branch used to read `r.text` directly and count "# FILE:" in the
+        # RAW SSE. It could not work: token streaming splits that marker across
+        # deltas ("#", " FILE", ":"), each in its own JSON envelope, so the
+        # substring never appeared and `blocks` was always 0. With
+        # `ok = chars > 200 and blocks >= 1 and ...`, EVERY streaming cell failed
+        # for EVERY model, always — a systematic false negative on the transport
+        # DEC-008 makes the default, inside the tool built to prevent false
+        # negatives. It recorded kimi-k3 as having no working configuration while
+        # the model was returning complete generations.
+        #
+        # The stream is now decoded into the message it actually carries, and the
+        # markers are counted in that.
+        content, finish = _decode_stream(r.text)
+        chars = len(content)
+        blocks = content.count("# FILE:")
     else:
         try:
             payload = r.json()

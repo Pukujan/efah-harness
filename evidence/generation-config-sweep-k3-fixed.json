@@ -1,0 +1,76 @@
+{
+  "check": "generation_config_sweep",
+  "rule_ref": "DEC-008 \u2014 a failure is a configuration finding, not a verdict",
+  "oracle_type": "reproducible_empirical_benchmark",
+  "probed_at": "2026-08-02T21:15:11Z",
+  "working_configuration_per_model": {
+    "kimi-k3": {
+      "model": "kimi-k3",
+      "max_tokens": 6000,
+      "stream": true,
+      "task_size": 5,
+      "attempt": 1,
+      "ok": true,
+      "chars": 2146,
+      "finish_reason": "stop",
+      "fenced_blocks": 5,
+      "latency_seconds": 127.14,
+      "error": null
+    }
+  },
+  "models_with_no_working_configuration": [],
+  "cells": [
+    {
+      "model": "kimi-k3",
+      "max_tokens": 6000,
+      "stream": false,
+      "task_size": 3,
+      "attempt": 1,
+      "ok": false,
+      "chars": 0,
+      "finish_reason": null,
+      "fenced_blocks": 0,
+      "latency_seconds": 120.14,
+      "error": "HTTP 408: {\"error\":{\"message\":\"litellm.Timeout: APITimeoutError - Request timed out. Error_str: Request timed out. - timeout value=120.0, time taken=120.0 seconds\\n\\nDepl"
+    },
+    {
+      "model": "kimi-k3",
+      "max_tokens": 6000,
+      "stream": false,
+      "task_size": 5,
+      "attempt": 1,
+      "ok": false,
+      "chars": 0,
+      "finish_reason": null,
+      "fenced_blocks": 0,
+      "latency_seconds": 31.73,
+      "error": "HTTP 500: {\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - litellm.APIError: LiteLLM: provider returned a response with no 'choice"
+    },
+    {
+      "model": "kimi-k3",
+      "max_tokens": 6000,
+      "stream": true,
+      "task_size": 3,
+      "attempt": 1,
+      "ok": false,
+      "chars": 806,
+      "finish_reason": "length",
+      "fenced_blocks": 2,
+      "latency_seconds": 199.37,
+      "error": "chars=806 blocks=2 finish=length"
+    },
+    {
+      "model": "kimi-k3",
+      "max_tokens": 6000,
+      "stream": true,
+      "task_size": 5,
+      "attempt": 1,
+      "ok": true,
+      "chars": 2146,
+      "finish_reason": "stop",
+      "fenced_blocks": 5,
+      "latency_seconds": 127.14,
+      "error": null
+    }
+  ]
+}
