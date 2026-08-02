@@ -97,7 +97,28 @@ the builder runs as `yoav`, which holds **passwordless sudo** and is in the
 against a deliberate builder. Option A remains the durable path. Do not claim
 otherwise in the evidence package; put it in honest debt.
 
-### 2. FINDING-003 — assurance tier labels contradict their models
+### 2. FINDING-005 — assurance models come from resold subscription pools ⚠️ BIGGEST OPEN ITEM
+
+`docs/decisions/FINDING-005-*.md`. **Measured from the owner's own ckff account
+log, not inferred.** `claude-opus-4-8` (sealed holdout author), `claude-opus-4-7`
+and `claude-sonnet-5` are all served by **channel 234, group `kiro-pro`** — AWS
+Kiro coding-agent accounts. `gemini-3.5-flash` (mutant author) comes from
+`gemini-cli` quota.
+
+One channel serves several "different" models, so the family separation the
+harness enforces by alias may be fictional at the transport. Official (`官转`)
+channels do exist on the platform; the assurance roles are not on them.
+
+**Resolve this before building the sealed verifier.** Holdouts generated through
+an unverifiable transport are worth less than the effort of generating them.
+Owner options A–D are in the finding; recommendation is A (official credentials
+for the nine gate-bearing roles) plus a private mutant corpus regardless.
+
+The ckff account token is at `~/.efah/ckff.env` (mode 0600) if further probing is
+needed. `GET https://ckff.dev/api/log/self?p=0&page_size=100&type=0` with
+`Authorization: Bearer $CKFF_TOKEN` returns the per-request channel and group.
+
+### 3. FINDING-003 — assurance tier labels contradict their models
 
 `docs/decisions/FINDING-003-*.md`. The owner spotted that `gemini-3.5-flash`
 (mutant_author), `glm-5-turbo` (release_verifier) and `claude-sonnet-5`
@@ -112,7 +133,7 @@ are live on the eval gateway and assigned to no role.
 adjudication; route it through the control surface rather than opening a second
 question round (`autonomy-policy.yaml` forbids drip questions).
 
-### 3. Remaining contract work
+### 4. Remaining contract work
 
 - §27 evidence package (GATE-D3-26) and honest-debt ledger.
 - 18 gates are `NOT_YET_EXECUTABLE` — mostly Day 2/3 subjects.
@@ -155,7 +176,11 @@ Continue the EFAH build under contract EFAH-CONTRACT-001 v1.1. DEC-001, DEC-002,
 DEC-005 and DEC-006 are signed and bind you. delivery_priority is binding and may
 not be reordered.
 
-Next: implement DEC-006 option B — the verifier service identity and sealed
+FIRST read FINDING-005: the assurance models are served from resold subscription
+pools (measured, not inferred), and that decision gates whether sealed-holdout
+work is worth doing. Do not start generating holdouts before it is resolved.
+
+Then: implement DEC-006 option B — the verifier service identity and sealed
 store, with generation running inside that identity, never in the builder
 process. Then the Section 27 evidence package.
 
