@@ -1,0 +1,54 @@
+# GATE-D3-26 — VERIFIED_COMPLETE evidence package
+# Contract acceptance_check: verified_complete_evidence_package
+# Contract refs: Section 27
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D3-26
+name: VERIFIED_COMPLETE evidence package
+day: 3
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove the final package contains every field from contract Section 27, that every acceptance check has named evidence, and that honest debt is stated rather than omitted.
+
+assertions:
+  - id: A1
+    claim: All twenty-three Section 27 package fields are present and non-empty.
+    method: package_schema_assert
+    expected: all_fields_present
+    failure_state: FAILED_CONTRACT
+  - id: A2
+    claim: Every one of the contract's acceptance_checks has a named evidence artifact.
+    method: coverage_cross_reference
+    expected: zero_checks_without_evidence
+    failure_state: FAILED_ASSURANCE
+  - id: A3
+    claim: Honest debt and deliberately deferred non-goals are stated explicitly.
+    method: debt_section_presence
+    expected: non_empty
+    failure_state: FAILED_CONTRACT
+  - id: A4
+    claim: Project status is VERIFIED_COMPLETE, not a prose summary.
+    method: status_field_assert
+    expected: status == VERIFIED_COMPLETE
+    failure_state: FAILED_CONTRACT
+  - id: A5
+    claim: Model aliases and protected audit references are present without exposing real identities.
+    method: alias_and_audit_ref_check
+    expected: aliases_present and real_identities_absent
+    failure_state: FAILED_PROVENANCE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

@@ -1,0 +1,77 @@
+# GATE-D1-08 — Protected verifier isolation
+# Contract acceptance_check: protected_verifier_isolation
+# Contract refs: Sections 12.2, 17.2 · role_separation.implementer_no_sealed_holdout_access
+#
+# This is the gate that must NOT be made to pass by granting access. It passes
+# by proving access is impossible. A builder that "fixes" a failure here by
+# wiring credentials has inverted the gate.
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D1-08
+name: Protected verifier isolation
+day: 1
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove that the builder identity cannot read, list, clone, query, or modify
+  the sealed verifier repository or service, and that no build-side artifact
+  contains a usable route to it.
+
+assertions:
+  - id: A1
+    claim: Builder identity receives 401, 403, or 404 for the sealed repository.
+    method: authenticated_request_under_builder_identity
+    expected: http_status in [401, 403, 404]
+    failure_state: PROTECTED_ASSET_ACCESS
+    note: A 200 here is a hard failure, not a convenience.
+
+  - id: A2
+    claim: No build-side file contains the sealed repository URL, token, or DB credential.
+    method: static_scan
+    scope: ["project-pack/", "src/", "tests/", ".github/", "docker/", "*.env.example"]
+    forbidden_patterns: [efah-lab-verifier, Eval-lab-verifier, verifier_token, holdout_db, sealed_holdout_path]
+    expected: zero_matches_outside_declared_sealed_repos_block
+    failure_state: PROTECTED_ASSET_ACCESS
+
+  - id: A3
+    claim: The builder token scope excludes every sealed repository.
+    method: token_scope_introspection
+    expected: sealed_repos_absent_from_scope
+    failure_state: PROTECTED_ASSET_ACCESS
+
+  - id: A4
+    claim: The verifier runs under a service identity distinct from the builder's.
+    method: compare_actor_identifiers
+    expected: builder_identity != verifier_identity
+    failure_state: ROLE_CONFLICT
+
+  - id: A5
+    claim: The verifier response contains only the contract-approved result shape.
+    method: schema_assert_on_verdict_payload
+    permitted_fields: [evaluation_request_id, verdict, oracle_version, oracle_health, failure_class]
+    forbidden_content: [hidden_assertion_text, private_fixture_content, mutant_source, holdout_case_body]
+    expected: no_forbidden_field_present
+    failure_state: FAILED_PROVENANCE
+
+  - id: A6
+    claim: The implementer alias is neither the sealed-holdout-author nor the adjudicator.
+    method: compare_model_policy_aliases
+    expected: implementer differs from sealed_holdout_author and judge by both alias and family
+    failure_state: ROLE_CONFLICT
+
+evidence_required:
+  - request_transcript_with_actor_identity
+  - static_scan_report_with_content_hash
+  - token_scope_dump_redacted
+  - verdict_payload_sample_and_schema_result
+
+on_fail:
+  action: halt_and_raise
+  state: FAILED_ASSURANCE
+  remediation_must_not_include: granting_builder_access_to_sealed_side

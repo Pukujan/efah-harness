@@ -1,0 +1,50 @@
+# GATE-D1-05 — Fresh worker sessions execute bounded tasks through LiteLLM
+# Contract acceptance_check: fresh_litellm_worker_sessions
+# Contract refs: Sections 10.5, 26
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D1-05
+name: Fresh worker sessions execute bounded tasks through LiteLLM
+day: 1
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove each worker invocation starts a fresh session with no carried conversational memory, and that all model access flows through the existing LiteLLM proxy.
+
+assertions:
+  - id: A1
+    claim: Each worker invocation opens a new session with empty prior history.
+    method: session_history_length_probe
+    expected: prior_turn_count == 0 at invocation
+    failure_state: CONTRACT_DRIFT
+  - id: A2
+    claim: No model call bypasses the LiteLLM proxy.
+    method: egress_inspection
+    expected: zero_direct_provider_calls
+    failure_state: CONTRACT_DRIFT
+  - id: A3
+    claim: Worker context is bounded by the work unit, not the project.
+    method: context_payload_audit
+    expected: payload_scope == work_unit_inputs_only
+    failure_state: CONTRACT_DRIFT
+  - id: A4
+    claim: Durable state survives the worker session ending.
+    method: post_session_state_query
+    expected: state_present_in_terminusdb_and_git
+    failure_state: FAILED_PROVENANCE
+
+evidence_required:
+  - session_initialization_logs
+  - litellm_request_log
+  - context_payload_sample
+  - post_session_state_dump
+
+on_fail:
+  action: rework
+  state: FAILED_IMPLEMENTATION

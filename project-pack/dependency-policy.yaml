@@ -1,0 +1,120 @@
+# dependency-policy.yaml — integrate by default, pin everything, prove it
+# Contract: EFAH-CONTRACT-001 v1.0 · Sections 4, 14.2, 16, 28
+
+schema_id: efah.dependency_policy
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+policy:
+  integrate_by_default: true
+  # Contract Section 0: MUST NOT rebuild a mature dependency without a
+  # recorded, evidence-backed BUILD_VS_INTEGRATE decision.
+  reimplementation_requires: recorded_evidence_backed_blocker
+  context7_snapshot_required: true
+  pin_versions: true
+  adapter_required_for_all_external_systems: true
+
+# Contract Section 4 selected stack. Replacing any of these with a custom
+# equivalent is an explicit non-goal (Section 28) and fails the scope gate.
+# Versions are TODO_builder_probe, NOT TODO_owner. Contract Section 29:
+# "dependency versions ... must be inspected rather than asked about." The
+# builder resolves each version at install, records it with its lockfile
+# source and image digest per Section 16.3, and pins it. Asking the owner
+# would waste the one permitted question round on a discoverable fact.
+selected_stack:
+  workflow_runtime:        {component: langgraph,      version: TODO_builder_probe, replaceable: false}
+  checkpoint_store:        {component: langgraph_async_sqlite_saver, version: TODO_builder_probe, replaceable: true, behind_adapter: true}
+  model_gateway:           {component: litellm,        version: TODO_builder_probe, replaceable: false, use_existing_config: true}
+  authoritative_graph:     {component: terminusdb,     version: TODO_builder_probe, replaceable: false}
+  pm_projection:           {component: plane,          version: TODO_builder_probe, replaceable: false}
+  api:                     {component: fastapi,        version: TODO_builder_probe, replaceable: false}
+  schemas:                 {component: pydantic,       version: TODO_builder_probe, replaceable: false}
+  document_ingestion:      {component: docling,        version: TODO_builder_probe, replaceable: false}
+  retrieval_index:         {component: lancedb,        version: TODO_builder_probe, replaceable: false}
+  rag_components:          {component: llamaindex,     version: TODO_builder_probe, replaceable: false, scope: ingestion_and_retrieval_only}
+  evaluation_runtime:      {component: inspect_ai,     version: TODO_builder_probe, replaceable: false}
+  adversarial_evaluation:  {component: promptfoo,      version: TODO_builder_probe, replaceable: false}
+  tracing:                 {component: opentelemetry,  version: TODO_builder_probe, replaceable: false}
+  experiments:             {component: phoenix,        version: TODO_builder_probe, replaceable: false}
+  documentation:           {component: context7,       version: n/a,        replaceable: false}
+  language:                {component: python,         version: "3.12",     replaceable: false}
+
+code_intelligence:
+  - git
+  - ripgrep
+  - tree_sitter
+  - language_servers
+
+# Contract Section 4.1 explicit exclusions — a builder proposing any of these
+# is drifting, not optimizing.
+prohibited:
+  - {component: temporal,          reason: contract_non_goal_temporal_initial_runtime}
+  - {component: claude_agent_sdk,  reason: contract_non_goal_claude_sdk_runtime}
+  - {component: custom_workflow_engine,      reason: duplicates_langgraph}
+  - {component: custom_graph_database,       reason: duplicates_terminusdb}
+  - {component: custom_provider_router,      reason: duplicates_litellm}
+  - {component: custom_vector_index,         reason: duplicates_lancedb}
+  - {component: custom_eval_runner,          reason: duplicates_inspect_ai}
+  - {component: custom_project_management_ui, reason: duplicates_plane_and_delays_e2e}
+
+# Contract Section 16.3 — every dependency records these or the provenance
+# gate fails.
+registry_required_fields:
+  - exact_version_and_lockfile_source
+  - image_digest_where_applicable
+  - documentation_snapshot_id
+  - configuration_hash
+  - modules_and_contracts_using_it
+  - known_compatibility_constraints
+  - last_verified_run
+  - update_and_rollback_policy
+  - affected_gold_and_integration_tests
+
+# Contract Section 16.1 — every Context7 retrieval is hashed and linked.
+context7_snapshot_fields:
+  - snapshot_id
+  - credential_alias          # primary | secondary
+  - library_id
+  - library_version_or_branch
+  - query
+  - retrieved_at
+  - raw_response_hash
+  - normalized_response_hash
+  - source_locations
+  - affected_dependencies
+  - affected_decisions
+
+# Contract Section 16.2 version-diff loop
+version_diff_loop:
+  automatic_discovery: allowed
+  automatic_candidate_preparation: allowed
+  automatic_merge: allowed_only_under_risk_and_gate_policy
+  sequence:
+    - detect_new_version
+    - refresh_pinned_documentation
+    - cache_and_hash_snapshot
+    - diff_api_config_behavior
+    - query_dependency_graph
+    - create_dependency_update_task
+    - update_isolated_branch
+    - run_unit_integration_mutation_gold_shadow_gates
+    - merge_or_reject_with_evidence
+
+risk_policy:
+  # Recorded 2026-08-01: none. Do not let a dependency bump auto-merge into a
+  # build with a 48-hour window. Discovery and candidate preparation continue;
+  # only the merge is withheld.
+  auto_merge_dependency_updates: none
+
+vendor_neutrality:
+  # Contract product.vendor_neutral_after_deadline: true
+  # Phrased as a prohibition, not a permission. An earlier draft of this block
+  # read "essential_runtime_may_depend_on_claude_after: 2026-08-03", which a
+  # compiler consuming the field would read as permission where the contract
+  # gives prohibition.
+  essential_runtime_may_depend_on_claude: false
+  claude_access_expires: "2026-08-03"
+  assertion: no_essential_delivered_component_requires_anthropic_sdk_or_claude_code
+  claude_code_role: optional_worker_adapter_and_temporary_builder_only
+  verification_gate: acceptance/visible/GATE-D1-07-vendor-neutrality-after-2026-08-03.yaml

@@ -1,0 +1,492 @@
+contract:
+  id: EFAH-CONTRACT-001
+  version: '1.1'
+  status: final_execution_candidate
+  prepared_at: '2026-08-01'
+  target_deadline: '2026-08-03'
+  execution_authorization: Supplying this contract to Claude Code with an instruction
+    to execute it authorizes implementation without additional scope confirmation,
+    except for typed genuine blockers defined by this contract.
+product:
+  name: Evidence-First Cross-Vendor Long-Running Software Engineering Harness and
+    Eval Lab
+  initial_task_families:
+  - software_engineering
+  - devops
+  architecture: modular_monolith_control_plane_with_distributed_integrations
+  permanent_runtime: langgraph
+  temporary_builder: claude_code
+  vendor_neutral_after_deadline: true
+  non_goals:
+  - claude_sdk_runtime
+  - temporal_initial_runtime
+  - free_form_llm_orchestrator
+  - model_voting_as_correctness
+  - unverified_agent_memory_as_trusted_knowledge
+  - fully_scaled_universal_enterprise_platform_within_deadline
+selected_stack:
+  workflow_runtime: langgraph
+  model_gateway: existing_litellm_proxy
+  authoritative_graph: terminusdb
+  project_management_projection: plane
+  api: fastapi
+  schemas: pydantic
+  document_ingestion: docling
+  retrieval_index: lancedb
+  rag_components: llamaindex_ingestion_and_retrieval_only
+  code_intelligence:
+  - git
+  - ripgrep
+  - tree_sitter
+  - language_servers
+  documentation: context7
+  evaluation_runtime: inspect_ai
+  adversarial_evaluation: promptfoo
+  observability:
+  - opentelemetry
+  - phoenix
+  release_authority: existing_ci_or_github_actions
+  artifacts:
+  - git
+  - content_addressed_object_storage
+  hidden_verification: separate_repository_and_service_identity
+  workflow_checkpoint_store: langgraph_async_sqlite_saver_single_host_initial
+  checkpoint_store_authoritative: false
+project_pack:
+  required_files:
+  - contract.md
+  - contract.yaml
+  - project.yaml
+  - repositories.yaml
+  - environments.yaml
+  - model-policy.yaml
+  - methodology-policy.yaml
+  - dependency-policy.yaml
+  - autonomy-policy.yaml
+  - plane.yaml
+  - secrets.refs.yaml
+  optional_directories:
+  - acceptance/visible
+  - acceptance/oracle-definitions
+  - evidence/owner-documents
+  - evidence/context7-snapshots
+  command: harness project run ./project-pack --mode autonomous
+  max_initial_owner_question_rounds: 1
+terminal_project_states:
+  success: VERIFIED_COMPLETE
+  blockers:
+  - BLOCKED_OWNER_DECISION
+  - BLOCKED_EXTERNAL_ACCESS
+  failures:
+  - FAILED_CONTRACT
+  - FAILED_ASSURANCE
+  - FAILED_INFRASTRUCTURE
+  - CANCELED
+control_plane_entities:
+- Project
+- ProjectVersion
+- ProjectPack
+- Contract
+- ContractVersion
+- Requirement
+- Methodology
+- MethodologyVersion
+- Workstream
+- Milestone
+- Phase
+- Task
+- WorkUnit
+- Assignment
+- AssignmentLease
+- Dependency
+- Blocker
+- Decision
+- Assumption
+- Risk
+- ChangeRequest
+- Artifact
+- SchemaVersion
+- ConfigurationVersion
+- DependencyVersion
+- Environment
+- ModelAlias
+- ModelCapability
+- ModelRun
+- EvaluationRun
+- Oracle
+- OracleVersion
+- Holdout
+- Mutant
+- GoldCandidate
+- GoldCase
+- KnowledgeCandidate
+- ContractReview
+- ReleaseCandidate
+- DeploymentRun
+task_states:
+  normal:
+  - PROPOSED
+  - READY
+  - CLAIMED
+  - RUNNING
+  - CANDIDATE_COMPLETE
+  - VERIFYING
+  - PASSED
+  - MERGED
+  - CLOSED
+  exceptional:
+  - BLOCKED_DEPENDENCY
+  - BLOCKED_OWNER_DECISION
+  - BLOCKED_EXTERNAL_ACCESS
+  - FAILED_IMPLEMENTATION
+  - FAILED_WIRING
+  - FAILED_VISIBLE_TEST
+  - FAILED_HOLDOUT
+  - FAILED_MUTATION
+  - FAILED_ORACLE
+  - FAILED_SCOPE
+  - FAILED_PROVENANCE
+  - STALE_ASSIGNMENT
+  - REWORK_REQUIRED
+  - QUARANTINED
+  - CANCELED
+  worker_terminal_submission: CANDIDATE_COMPLETE
+  gate_terminal_pass: PASSED
+assignment_policy:
+  lease_required: true
+  lease_generation_fencing: true
+  worktree_or_branch_ownership_required: true
+  stale_submission_result: STALE_ASSIGNMENT
+contract_compiler_outputs:
+- requirements
+- acceptance_criteria
+- phases_and_transitions
+- workstreams_milestones_tasks_work_units
+- dependencies_and_critical_path
+- methodologies_by_task_and_risk
+- role_separation
+- model_capability_requirements
+- artifact_schemas
+- allowed_and_prohibited_paths
+- source_and_evidence_rules
+- visible_and_hidden_test_obligations
+- oracle_routes
+- success_and_failure_conditions
+- contract_review_triggers
+- auto_merge_conditions
+- human_escalation_conditions
+- completion_conditions
+langgraph:
+  graphs:
+  - project_graph
+  - intake_graph
+  - research_graph
+  - contract_graph
+  - planning_graph
+  - build_graph
+  - task_graph
+  - evaluation_graph
+  - deployment_graph
+  - closeout_graph
+  - contract_revalidation_graph
+  - dependency_update_graph
+  fresh_per_invocation_worker_sessions: true
+  persistent_model_conversation_memory_default: false
+  checkpoint_references:
+  - project_id
+  - project_version
+  - contract_version
+  - terminus_database
+  - terminus_branch
+  - terminus_commit
+  - work_unit_id
+  - graph_node
+  - lease_generation
+  - input_hashes
+  - output_hashes
+  - pending_gates
+  idempotent_external_side_effects_required: true
+  initial_checkpoint_profile:
+    backend: AsyncSqliteSaver
+    scope: single_host_deadline_build
+    behind_adapter: true
+    safe_serialization_required: true
+    authoritative_project_state: false
+    replace_when_multi_process_concurrency_requires: true
+model_router:
+  deterministic_policy: true
+  uses_existing_litellm_config: true
+  availability_requires_empirical_probe: true
+  blinded_aliases: true
+  protected_identity_database: separate_terminusdb_database_or_instance
+  factors:
+  - required_role
+  - capabilities
+  - calibration
+  - family_separation
+  - role_conflicts
+  - risk
+  - context_requirement
+  - tool_requirement
+  - retry_and_fallback_policy
+role_separation:
+  rules:
+  - builder_ne_holdout_author
+  - builder_ne_final_adjudicator
+  - implementer_no_sealed_holdout_access
+  - producer_not_sole_reviewer
+  - deterministic_oracle_preferred_over_model_judge
+  - cross_family_validation_when_material_and_available
+  cross_vendor_agreement_is_proof: false
+resolver_choice:
+  order:
+  - recorded_decision_search
+  - safe_objective_measurement
+  - primary_or_official_external_research
+  - low_consequence_reversible_derivation_with_disclosure
+  - owner_question
+  owner_question_rounds_after_intake: 1
+knowledge:
+  tiers:
+  - T0_RAW
+  - T1_OBSERVATION
+  - T2_HYPOTHESIS
+  - T3_TESTED
+  - T4_REPRODUCIBLE
+  - T5_INDEPENDENTLY_VERIFIED
+  - T6_APPROVED_OPERATIONAL_KNOWLEDGE
+  - T7_HARD_GOLD
+  unverified_agent_output_trusted: false
+  hard_gold_promotion:
+  - quarantine
+  - reproducibility
+  - independent_verification
+  - mutant_validation
+  - contamination_review
+rag:
+  authority: terminusdb
+  derived_index: lancedb
+  separate_planes:
+  - research_evidence
+  - code_intelligence
+  - operational_kedb
+  - project_contract_knowledge
+  - gold_calibration
+  - diagnostic_holdouts
+  - release_holdouts
+  required_index_lineage:
+  - terminus_database
+  - terminus_branch
+  - terminus_commit
+  - document_id
+  - document_version
+  - content_hash
+  - visibility_class
+  - trust_tier
+  - embedding_model
+  - embedding_version
+  - parser_version
+context7:
+  credentials: 2
+  credentials_are_independent_sources: false
+  cache_and_hash_snapshots: true
+  pin_versions_or_branches: true
+  dependency_diff_and_impact: true
+evaluation:
+  runtime: inspect_ai
+  protected_verifier: true
+  sets:
+  - development_tests
+  - visible_contract_tests
+  - diagnostic_hidden_tests
+  - sealed_release_holdouts
+  - hard_gold
+  - fresh_challenges
+  - implementation_mutants
+  - test_mutants
+  - evaluator_mutants
+  - workflow_governance_mutants
+  oracle_hierarchy:
+  - deterministic_execution_or_state
+  - static_ast_type_policy
+  - property_differential_metamorphic
+  - reference_implementation
+  - reproducible_benchmark
+  - calibrated_model_judge
+  - owner_adjudication
+  oracle_health_required: true
+  uncalibrated_judge_is_gate: false
+scope_drift:
+  continuous: true
+  finding_types:
+  - UNLINKED_TASK
+  - UNAPPROVED_SCOPE_EXPANSION
+  - REQUIREMENT_WEAKENING
+  - REDEFINED_SUCCESS
+  - OUTSIDE_ALLOWED_PATHS
+  - STALE_CONTRACT_VERSION
+  - STALE_INPUT_ARTIFACT
+  - DUPLICATE_OR_CONFLICTING_WORK
+  - ROLE_CONFLICT
+  - PROTECTED_ASSET_ACCESS
+  - MISSING_WIRING
+  - UNSUPPORTED_REIMPLEMENTATION
+  - OUT_OF_SCOPE_SECURITY_EXPANSION
+contract_review:
+  project_pack_field: contract_review_interval_phases
+  default_interval_material_phases: 3
+  event_triggers:
+  - before_implementation
+  - after_walking_skeleton
+  - before_sealed_evaluation
+  - before_shadow_canary_pilot
+  - before_release
+  - material_dependency_change
+  - material_source_change
+  - material_schema_change
+  - material_risk_change
+  - oracle_change
+  - repeated_failures_indicating_wrong_plan
+  - holdout_exposure
+  - role_separation_violation
+  outcomes:
+  - CONTRACT_REAFFIRMED
+  - DRIFT_DETECTED
+  - EVIDENCE_STALE
+  - RISK_CHANGED
+  - CONTRACT_AMBIGUITY
+  - AMENDMENT_REQUIRED
+autonomy:
+  continue_without_human_confirmation: true
+  auto_open_pr: true
+  auto_repair_ci: true
+  auto_merge: true
+  human_interrupts_only:
+  - OWNER_SCOPE_DECISION
+  - OWNER_PRIORITY_DECISION
+  - OWNER_RISK_ACCEPTANCE
+  - MISSING_REQUIRED_CREDENTIAL
+  - IRREVERSIBLE_EXTERNAL_ACTION
+  - CONTRACT_AMENDMENT_REQUIRED
+  - IRRESOLVABLE_EVIDENCE_CONFLICT
+auto_merge_requirements:
+  contract_unchanged_or_approved: true
+  unresolved_scope_drift: 0
+  visible_tests: PASS
+  integration_tests: PASS
+  composition_test: PASS
+  hidden_holdout: PASS
+  mutation_gate: PASS
+  oracle_health: PASS
+  provenance_gate: PASS
+  dependency_policy: PASS
+  unresolved_high_risk_findings: 0
+  protected_assets_accessed: false
+  branch_up_to_date: true
+three_day_plan:
+  day_1:
+  - modular_monolith_structure
+  - terminusdb_schemas
+  - project_task_dependency_ledgers
+  - langgraph_skeletons
+  - plane_projection
+  - context7_cache
+  - model_router_path
+  - ci_skeleton
+  - first_walking_skeleton
+  day_2:
+  - fresh_worker_adapters
+  - code_intelligence
+  - rag_ingestion_and_retrieval
+  - task_leases_and_worktrees
+  - inspect_and_protected_verifier
+  - visible_hidden_mutation_oracle_lane
+  - observability
+  - scope_drift_and_contract_review
+  - automatic_pr_and_ci_repair
+  day_3:
+  - representative_project_end_to_end
+  - multivendor_roles
+  - wiring_omission_rejection
+  - stale_worker_rejection
+  - scope_drift_rejection
+  - holdout_isolation
+  - mutant_rejection
+  - checkpoint_resume
+  - green_auto_merge
+  - kedb_and_gold_candidate_promotion
+  - final_evidence_package
+acceptance_checks:
+- project_pack_imports_to_terminusdb_branch
+- schemas_validate_and_are_version_bound
+- questions_are_bounded_and_batched
+- contract_compiles_to_project_task_dependency_graph
+- langgraph_resumes_without_restart
+- fresh_litellm_worker_sessions
+- blinded_model_identity
+- plane_project_and_assurance_views
+- leases_worktrees_and_stale_worker_rejection
+- missing_wiring_fails
+- mature_dependency_integration_and_reimplementation_rejection
+- competing_hypotheses_and_discriminating_test
+- context7_snapshot_hash_and_dependency_link
+- dependency_change_impact_and_revalidation
+- rag_result_resolves_to_terminus_commit
+- unverified_knowledge_not_promoted
+- protected_verifier_isolation
+- visible_hidden_mutant_same_candidate_commit
+- known_bad_mutant_rejected
+- oracle_health_and_no_judge_in_deterministic_path
+- scope_and_security_expansion_blocked
+- periodic_and_event_contract_review
+- mechanical_commit_trace_artifact_binding
+- green_pr_auto_merged
+- verified_complete_evidence_package
+- owner_control_surface_vendor_neutral   # AMENDMENT-001, contract v1.1 §11.7
+# Derived directly from product.vendor_neutral_after_deadline. It was absent
+# from the numbered list in v1.0, which meant the gate existed and nothing
+# obliged the builder to satisfy it. Listed explicitly as of v1.1.
+- vendor_neutral_after_deadline
+phase_gates:
+- phase: project_pack_validation
+  pass: all required schemas and references validate
+  fail: typed missing_or_invalid_input blocker
+- phase: repository_preflight
+  pass: fresh live state and recorded decisions linked
+  fail: reconcile stale or contradictory state
+- phase: research_and_hypotheses
+  pass: material questions have resolvers and discriminating tests
+  fail: insufficient evidence or genuine blocker
+- phase: contract_freeze
+  pass: exact owner-authorized contract committed
+  fail: ambiguity or amendment blocks implementation
+- phase: project_compilation
+  pass: tasks link to requirements and role/dependency graph validates
+  fail: unlinked work or circular role/dependency fails
+- phase: architecture_sdd
+  pass: dependency-first architecture satisfies contract
+  fail: custom reimplementation or boundary gap
+- phase: walking_skeleton
+  pass: real user-to-verifier path traced
+  fail: placeholder or unwired component
+- phase: visible_convergence
+  pass: visible and contract tests pass
+  fail: classified implementation/test rework
+- phase: integration_composition
+  pass: startup and e2e composition pass
+  fail: unit-only or unregistered module
+- phase: independent_evaluation
+  pass: holdout, mutation, oracle health pass
+  fail: implementation or oracle repair
+- phase: contract_revalidation
+  pass: CONTRACT_REAFFIRMED
+  fail: typed drift/evidence/risk/amendment remediation
+- phase: deployment_validation
+  pass: risk-selected rollout gates pass
+  fail: rollback or quarantine
+- phase: release_merge
+  pass: all auto-merge gates pass
+  fail: automatic CI rework or typed block
+- phase: closeout_learning
+  pass: VERIFIED_COMPLETE evidence package
+  fail: missing evidence or invalid promotion

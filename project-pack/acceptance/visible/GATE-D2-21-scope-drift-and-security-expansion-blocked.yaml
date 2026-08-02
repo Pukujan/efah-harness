@@ -1,0 +1,54 @@
+# GATE-D2-21 — Scope drift and security expansion blocked
+# Contract acceptance_check: scope_and_security_expansion_blocked
+# Contract refs: Sections 19.1, 19.2, 19.5
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-21
+name: Scope drift and security expansion blocked
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove the drift engine detects all thirteen finding types and that an out-of-scope security finding becomes an observation rather than expanding the build.
+
+assertions:
+  - id: A1
+    claim: An injected unlinked task is detected as UNLINKED_TASK.
+    method: negative_control_inject_unlinked_task
+    expected: detected
+    failure_state: UNLINKED_TASK
+  - id: A2
+    claim: An injected requirement weakening is detected and blocked.
+    method: negative_control_weaken_requirement
+    expected: detected_and_blocked
+    failure_state: REQUIREMENT_WEAKENING
+  - id: A3
+    claim: A change outside allowed paths is rejected.
+    method: negative_control_write_outside_allowed_paths
+    expected: rejected
+    failure_state: OUTSIDE_ALLOWED_PATHS
+  - id: A4
+    claim: A security finding not mapped to an approved requirement becomes OUT_OF_SCOPE_OBSERVATION.
+    method: security_finding_classification_probe
+    expected: classified_as_observation_and_does_not_block
+    failure_state: OUT_OF_SCOPE_SECURITY_EXPANSION
+  - id: A5
+    claim: A blocking security finding carries evidence or an executable probe and the smallest compliant remediation.
+    method: blocking_finding_schema_assert
+    expected: all_three_present
+    failure_state: OUT_OF_SCOPE_SECURITY_EXPANSION
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

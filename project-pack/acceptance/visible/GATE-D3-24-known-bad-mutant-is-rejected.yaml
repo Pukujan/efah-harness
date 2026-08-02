@@ -1,0 +1,54 @@
+# GATE-D3-24 — Known-bad mutant is rejected
+# Contract acceptance_check: known_bad_mutant_rejected
+# Contract refs: Sections 17.1, 24
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D3-24
+name: Known-bad mutant is rejected
+day: 3
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Seed a known-bad implementation mutant and a workflow/governance mutant and prove the assurance path rejects both. A mutation gate that never kills anything is not a gate.
+
+assertions:
+  - id: A1
+    claim: A seeded implementation mutant is killed.
+    method: seed_and_run_implementation_mutant
+    expected: mutant_killed
+    failure_state: FAILED_MUTATION
+  - id: A2
+    claim: A seeded workflow/governance mutant is killed.
+    method: seed_and_run_governance_mutant
+    expected: mutant_killed
+    failure_state: FAILED_MUTATION
+  - id: A3
+    claim: A seeded test mutant that weakens an assertion is killed.
+    method: seed_and_run_test_mutant
+    expected: mutant_killed
+    failure_state: FAILED_MUTATION
+  - id: A4
+    claim: Mutation kill rate meets the required threshold for trust-critical work units.
+    method: kill_rate_compute
+    expected: kill_rate >= required_kill_rate
+    failure_state: FAILED_MUTATION
+  - id: A5
+    claim: Mutant implementation details are not revealed to the implementer.
+    method: implementer_visibility_probe
+    expected: mutant_source_not_accessible
+    failure_state: PROTECTED_ASSET_ACCESS
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

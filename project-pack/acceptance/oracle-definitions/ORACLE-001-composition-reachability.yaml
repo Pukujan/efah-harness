@@ -1,0 +1,98 @@
+# ORACLE-001 — Composition reachability
+# Contract refs: Sections 5.1, 5.2, 14.4, 17.4 · failure addressed: "modules
+# built but not wired" (Section 26)
+
+schema_id: efah.oracle
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+oracle_id: ORACLE-001
+name: Composition reachability
+oracle_version: "1.0.0"
+hierarchy_level: 1                 # exact deterministic execution/state
+deterministic_verdict_path: true
+model_call_in_verdict_path: false
+judge_participates: false
+
+question: >
+  Is every declared domain module constructed at the composition root and
+  reachable through at least one approved user-to-result execution path?
+
+method:
+  - parse_composition_root_and_build_construction_graph
+  - load_module_wiring_manifests            # the nine fields from Section 5.2
+  - compute_reachability_from_declared_entry_points
+  - assert_every_module_reachable
+  - assert_every_manifest_field_populated
+  - assert_no_prohibited_import_or_cycle
+
+verdict_values: [PASS, FAIL, UNVERIFIABLE]
+
+unverifiable_when:
+  - composition_root_not_parseable
+  - entry_points_undeclared
+  - wiring_manifest_absent_for_one_or_more_modules
+# Note: UNVERIFIABLE is NOT a soft pass. It routes to the next hierarchy level
+# and, failing that, to owner adjudication as a typed blocker.
+
+fixtures:
+  known_good:
+    - id: KG-001
+      description: All modules registered and reachable from the API entry point.
+      expected: PASS
+  known_bad:
+    - id: KB-001
+      description: Module with passing unit tests but absent from the composition root.
+      expected: FAIL
+      failure_state: FAILED_WIRING
+    - id: KB-002
+      description: Module registered but unreachable from any declared entry point.
+      expected: FAIL
+      failure_state: FAILED_WIRING
+    - id: KB-003
+      description: Module importing another module's infrastructure implementation directly.
+      expected: FAIL
+      failure_state: FAILED_SCOPE
+    - id: KB-004
+      description: Circular dependency between two domain modules.
+      expected: FAIL
+      failure_state: FAILED_SCOPE
+
+gaming_probes:
+  # Each probe is a way a builder could make this oracle green without the
+  # underlying property being true. The oracle must defeat all of them.
+  - id: GP-001
+    attempt: Register the module at the composition root but never call it.
+    must_still: FAIL     # registration alone is not reachability
+  - id: GP-002
+    attempt: Add a test-only entry point that reaches the module.
+    must_still: FAIL     # entry points must be approved user-to-result paths
+  - id: GP-003
+    attempt: Declare the wiring manifest fields with empty or placeholder values.
+    must_still: FAIL     # fields must resolve to real health checks and e2e paths
+  - id: GP-004
+    attempt: Mark the module as excluded from reachability analysis.
+    must_still: FAIL     # exclusions require a recorded owner decision
+
+mutants_killed:
+  - remove_module_from_composition_root
+  - replace_health_check_with_constant_true
+  - point_e2e_path_at_a_stub
+  - break_entry_point_edge_while_keeping_registration
+
+independent_second_checker:
+  available: true
+  method: architecture_test_suite_computed_independently_from_import_graph
+  disagreement_result: UNVERIFIABLE
+
+health_emitted_with_every_result:
+  - oracle_version
+  - content_hash
+  - fixture_suite_result
+  - last_audit_date
+  - checker_test_suite_result
+
+pinned_checker_test_suite: tests/architecture/test_oracle_001_composition.py
+last_audit_date: TODO_computed_at_mint        # set at first mint; refresh on every change
+content_hash: TODO_computed_at_mint

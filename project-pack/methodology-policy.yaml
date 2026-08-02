@@ -1,0 +1,129 @@
+# methodology-policy.yaml — versioned methodology catalog and applicability
+# Contract: EFAH-CONTRACT-001 v1.0 · Sections 13, 14
+#
+# Contract Section 13.3: the contract compiler selects required methodologies
+# from task class and risk. Agents shall NOT manually decide which methods
+# "feel relevant."
+
+schema_id: efah.methodology_policy
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+methodology_catalog_version: "1.0.0"
+
+defaults:
+  walking_skeleton_first: true
+  dependency_first: true
+  oracle_hierarchy: contract          # contract Section 17.3 order is binding
+  deterministic_oracle_preferred: true
+  hypothesis_based_research: true
+  test_first_when_risk_requires: true
+  evidence_required_for_done: true    # "done" without named evidence is invalid
+
+# Contract Section 13.1 — every adopted method carries a category. The stale
+# Cortex map is a candidate source, not authority; entries are normalized here.
+categories:
+  - contractual_invariant
+  - operating_procedure
+  - configurable_policy
+  - measured_capability_rule
+  - experimental_recommendation
+  - obsolete_or_superseded
+
+# Contract Section 13.2 — the initial catalog MUST cover these themes.
+catalog:
+  - {id: M-01, theme: mechanism_over_memory,               category: contractual_invariant}
+  - {id: M-02, theme: bounded_recorded_decision_search,    category: operating_procedure}
+  - {id: M-03, theme: resolver_choice,                     category: contractual_invariant}
+  - {id: M-04, theme: decision_shaped_owner_elicitation,   category: contractual_invariant}
+  - {id: M-05, theme: blind_implementation_test_convergence, category: operating_procedure}
+  - {id: M-06, theme: sealed_holdout_and_mutant_verification, category: contractual_invariant}
+  - {id: M-07, theme: multi_model_critique_and_adjudication, category: operating_procedure}
+  - {id: M-08, theme: governed_amendment_and_freeze,       category: contractual_invariant}
+  - {id: M-09, theme: closeout_and_durable_capture,        category: operating_procedure}
+  - {id: M-10, theme: deterministic_model_dispatch_policy, category: contractual_invariant}
+  - {id: M-11, theme: measured_not_guessed_benchmarking,   category: measured_capability_rule}
+  - {id: M-12, theme: honest_debt_and_provenance,          category: contractual_invariant}
+  - {id: M-13, theme: subagent_briefing_and_independence,  category: operating_procedure}
+  - {id: M-14, theme: blocked_state_behavior,              category: contractual_invariant}
+  - {id: M-15, theme: fresh_observation_reporting,         category: operating_procedure}
+  - {id: M-16, theme: handoff_reconciliation,              category: operating_procedure}
+  - {id: M-17, theme: one_step_refutation,                 category: operating_procedure}
+  - {id: M-18, theme: convenience_gradient_correction,     category: operating_procedure}
+  - {id: M-19, theme: error_to_mechanism_conversion,       category: contractual_invariant}
+  - {id: M-20, theme: per_model_judge_calibration,         category: measured_capability_rule}
+  - {id: M-21, theme: oracle_minting,                      category: contractual_invariant}
+  - {id: M-22, theme: deep_audit,                          category: operating_procedure}
+  - {id: M-23, theme: citation_discipline,                 category: contractual_invariant}
+  - {id: M-24, theme: question_quality,                    category: contractual_invariant}
+  - {id: M-25, theme: legible_output,                      category: operating_procedure}
+
+# Contract Section 13.3 applicability compiler
+applicability:
+  - task_class: trust_critical_code_change
+    risk: high
+    required: [M-02, M-05, M-06, M-09, M-12, M-21]
+    conditional:
+      external_research: [M-22]
+      disputed_design: [M-07]
+      tunable_selection: [M-11]
+
+  - task_class: infrastructure_integration
+    risk: medium
+    required: [M-02, M-12]
+    conditional:
+      new_dependency: [M-23]
+      disputed_design: [M-07]
+
+  - task_class: research_or_debugging
+    risk: any
+    required: [M-03, M-15, M-17, M-23]
+    conditional:
+      competing_causes: [M-07]
+
+  - task_class: evaluation_or_oracle_authoring
+    risk: high
+    required: [M-06, M-20, M-21, M-12]
+
+  - task_class: routine_repair
+    risk: low
+    required: [M-15, M-12]
+    # Contract Section 20.3: ordinary test/integration/CI failure repair is
+    # routed automatically and MUST NOT create an owner interrupt.
+    owner_interrupt_permitted: false
+
+# Contract Section 14.2 — dependency-first gate is not optional.
+build_vs_integrate_gate:
+  required_before_custom_implementation: true
+  record_fields:
+    - capability
+    - existing_candidates
+    - selected_dependency
+    - version
+    - why_adapter_is_sufficient
+    - custom_code_required
+    - rejected_reimplementation
+  custom_duplicate_of_selected_dependency: fails_scope_gate
+
+# Contract Section 14.3
+test_first:
+  visible_assertions_hashed_before_convergence: true
+  assertion_change_requires_linked_test_amendment: true
+
+# Contract Section 7.4 — no agent may implement the first plausible fix merely
+# because it was found first.
+hypothesis_discipline:
+  minimum_hypotheses_when_multiple_causes_credible: 2
+  discriminating_test_required: true
+  required_fields:
+    [hypothesis_id, claim, supporting_evidence, contradicting_evidence,
+     discriminating_tests, expected_observations, confidence, status]
+
+# Contract Section 13.4 mechanization rule
+mechanization:
+  on_owner_correction_or_repeated_failure_create:
+    - governing_artifact
+    - task_dispatch_pointer
+    - schema_gate_hook_or_policy
+    - incident_or_error_class_record
+    - regression_test_or_hard_gold_candidate

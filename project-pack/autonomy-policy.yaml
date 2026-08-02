@@ -1,0 +1,122 @@
+# autonomy-policy.yaml — continue without asking; stop only where typed
+# Contract: EFAH-CONTRACT-001 v1.0 · Sections 10.7, 20, 21
+
+schema_id: efah.autonomy_policy
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+autonomy:
+  continue_without_human_confirmation: true
+  auto_open_pr: true
+  auto_repair_ci: true
+  auto_merge: true
+
+# Contract Section 10.7 — LangGraph interrupts MAY occur ONLY for these.
+# This list is closed. Anything else asking for permission is drift.
+human_interrupts_only:
+  - OWNER_SCOPE_DECISION
+  - OWNER_PRIORITY_DECISION
+  - OWNER_RISK_ACCEPTANCE
+  - MISSING_REQUIRED_CREDENTIAL
+  - IRREVERSIBLE_EXTERNAL_ACTION
+  - CONTRACT_AMENDMENT_REQUIRED
+  - IRRESOLVABLE_EVIDENCE_CONFLICT
+
+# Contract Sections 20.3, 21 — explicitly enumerated so a builder cannot
+# reinterpret politeness as a required checkpoint.
+must_not_interrupt_for:
+  - ordinary_test_failure
+  - integration_failure
+  - ci_failure_repair
+  - retry_or_fallback_selection
+  - pr_creation
+  - green_auto_merge
+  - implementation_choices_within_contract
+  - refactoring_within_allowed_paths
+  - permission_to_continue
+
+# Contract Section 20.2 question budget
+question_policy:
+  max_initial_owner_question_rounds: 1
+  batched: true
+  drip_questions_across_phases: forbidden
+  # Contract Section 7.1 — the system MUST NOT ask the owner to resolve these.
+  must_not_ask_about:
+    - repository_structure
+    - dependency_versions
+    - existing_test_or_code_behavior
+    - ci_state
+    - existing_configuration
+    - anything_safely_measurable_by_probe
+    - anything_already_in_the_decision_ledger
+  # Contract Section 20.2 — each question must carry all of these or it is
+  # not a well-formed question and must be resolved another way.
+  required_question_fields:
+    - what_it_blocks
+    - concrete_options            # 2 to 4
+    - consequence_of_each_option
+    - evidence
+    - recommendation_and_confidence   # shown AFTER neutral options
+  # Recorded 2026-08-01. One GitHub issue on efah-harness carrying the whole
+  # batched round. Durable and timestamped, and it does not idle the project:
+  # after the SLA the builder records BLOCKED_OWNER_DECISION on the blocked
+  # tasks only and continues everything else. Contract Section 20.3.
+  delivery_channel: github_issue
+  delivery_target: efah-harness
+  owner_response_sla_hours: 4
+  on_timeout: continue_unblocked_work_and_hold_blocked_tasks
+  on_timeout_must_not: halt_entire_project
+
+# Contract Section 21.2 — ALL must hold. CI or an approved service identity
+# performs the merge; the implementing agent does not self-certify.
+auto_merge_requirements:
+  contract_unchanged_or_approved: true
+  unresolved_scope_drift: 0
+  visible_tests: PASS
+  integration_tests: PASS
+  composition_test: PASS
+  hidden_holdout: PASS
+  mutation_gate: PASS
+  oracle_health: PASS
+  provenance_gate: PASS
+  dependency_policy: PASS
+  unresolved_high_risk_findings: 0
+  protected_assets_accessed: false
+  branch_up_to_date: true
+
+merge_authority:
+  performed_by: ci_service_identity
+  implementing_agent_may_self_certify: false
+  green_pr_waits_for_human_message: false
+
+# Contract Section 6.2 — the run ends only here.
+terminal_project_states:
+  success: VERIFIED_COMPLETE
+  blockers: [BLOCKED_OWNER_DECISION, BLOCKED_EXTERNAL_ACCESS]
+  failures: [FAILED_CONTRACT, FAILED_ASSURANCE, FAILED_INFRASTRUCTURE, CANCELED]
+  not_terminal:
+    - worker_completed_a_task
+    - pr_opened
+    - visible_tests_passed
+    - "mostly done"
+
+# Contract Section 0 / Section 26 — restart discipline.
+failure_posture:
+  restart_repository_on_single_worker_failure: forbidden
+  restart_repository_on_provider_failure: forbidden
+  silent_defer_to_phase_2: forbidden
+  isolated_branches_and_worktrees: required
+  checkpoint_recovery_preferred_over_reset: true
+
+# Contract Section 9.5 — stale worker fencing.
+assignment_policy:
+  lease_required: true
+  lease_generation_fencing: true
+  worktree_or_branch_ownership_required: true
+  stale_submission_result: STALE_ASSIGNMENT
+  # Recorded 2026-08-01. Long enough for a real work unit, short enough that a
+  # dead worker frees its worktree within the hour. Six heartbeats per lease
+  # gives an unambiguous liveness signal.
+  lease_duration_seconds: 1800
+  lease_renewal_heartbeat_seconds: 300

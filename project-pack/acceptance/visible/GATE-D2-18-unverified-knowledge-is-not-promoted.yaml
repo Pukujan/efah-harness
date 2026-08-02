@@ -1,0 +1,49 @@
+# GATE-D2-18 — Unverified knowledge is not promoted
+# Contract acceptance_check: unverified_knowledge_not_promoted
+# Contract refs: Sections 15.5, 15.6
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-18
+name: Unverified knowledge is not promoted
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove unverified agent output stays below trusted tiers and that hard-gold promotion requires the full five-step path.
+
+assertions:
+  - id: A1
+    claim: Agent-generated content enters at or below T2_HYPOTHESIS.
+    method: tier_assignment_check
+    expected: initial_tier <= T2_HYPOTHESIS
+    failure_state: FAILED_ORACLE
+  - id: A2
+    claim: Promotion above T4 requires independent verification by a different family.
+    method: promotion_path_assert
+    expected: independent_verifier_family != producer_family
+    failure_state: ROLE_CONFLICT
+  - id: A3
+    claim: Hard-gold promotion requires quarantine, reproducibility, independent verification, mutant validation, and contamination review.
+    method: promotion_checklist_assert
+    expected: all_five_steps_recorded
+    failure_state: FAILED_ORACLE
+  - id: A4
+    claim: A deliberately unverified item cannot be promoted to T6 or T7.
+    method: negative_control_promote_unverified
+    expected: promotion_rejected
+    failure_state: FAILED_ORACLE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

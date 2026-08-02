@@ -1,0 +1,49 @@
+# GATE-D1-01 — Project pack imports to isolated TerminusDB branch
+# Contract acceptance_check: project_pack_imports_to_terminusdb_branch
+# Contract refs: Sections 6.1, 15.2
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D1-01
+name: Project pack imports to isolated TerminusDB branch
+day: 1
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove `harness project run ./project-pack` validates and imports the pack into an ISOLATED TerminusDB branch, not main, and that the import is an attributable immutable commit.
+
+assertions:
+  - id: A1
+    claim: Import creates a new branch, not a write to main.
+    method: branch_list_diff_before_and_after
+    expected: new_branch_present and main_head_unchanged
+    failure_state: FAILED_PROVENANCE
+  - id: A2
+    claim: Every required file from contract Section 6 is present and parsed.
+    method: required_file_manifest_check
+    expected: all_11_required_files_parsed
+    failure_state: BLOCKED_OWNER_DECISION
+  - id: A3
+    claim: The import commit is attributable and immutable.
+    method: commit_metadata_inspect
+    expected: author_present and commit_is_immutable
+    failure_state: FAILED_PROVENANCE
+  - id: A4
+    claim: Contract id and version on the imported Contract entity match the pack.
+    method: field_compare
+    expected: contract_id == EFAH-CONTRACT-001 and contract_version == '1.0'
+    failure_state: STALE_CONTRACT_VERSION
+
+evidence_required:
+  - terminusdb_branch_name_and_commit_id
+  - import_log_with_file_manifest_and_hashes
+  - before_after_branch_listing
+
+on_fail:
+  action: halt_and_raise
+  state: FAILED_CONTRACT

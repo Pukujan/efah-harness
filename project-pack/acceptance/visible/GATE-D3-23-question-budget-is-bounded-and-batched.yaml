@@ -1,0 +1,49 @@
+# GATE-D3-23 — Question budget is bounded and batched
+# Contract acceptance_check: questions_are_bounded_and_batched
+# Contract refs: Sections 7.1, 20.2
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D3-23
+name: Question budget is bounded and batched
+day: 3
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove the system asked at most one batched owner question round, asked nothing discoverable by inspection, and dripped no questions across later phases.
+
+assertions:
+  - id: A1
+    claim: Total owner question rounds after intake is at most one.
+    method: question_round_counter
+    expected: rounds <= 1
+    failure_state: FAILED_CONTRACT
+  - id: A2
+    claim: No question asks about repository structure, dependency versions, code behavior, CI state, or existing configuration.
+    method: question_content_classification
+    expected: zero_discoverable_fact_questions
+    failure_state: FAILED_CONTRACT
+  - id: A3
+    claim: Every question carries what it blocks, 2-4 options, consequences, evidence, and a recommendation.
+    method: question_schema_assert
+    expected: all_five_fields_present
+    failure_state: FAILED_CONTRACT
+  - id: A4
+    claim: No owner interrupt was raised for test, integration, or CI repair.
+    method: interrupt_type_audit
+    expected: zero_interrupts_outside_human_interrupts_only
+    failure_state: FAILED_CONTRACT
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

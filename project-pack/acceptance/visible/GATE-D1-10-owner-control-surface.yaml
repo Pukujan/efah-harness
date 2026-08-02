@@ -1,0 +1,97 @@
+# GATE-D1-10 — Vendor-neutral owner control surface
+# Contract acceptance_check: owner_control_surface_vendor_neutral
+# Added by AMENDMENT-001, contract v1.1 · refs §11.7, §14.4, product.vendor_neutral_after_deadline
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.1"
+
+gate_id: GATE-D1-10
+name: Vendor-neutral owner control surface
+day: 1
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove the owner can observe, answer, resume, and instruct the harness from a
+  mobile device with every Anthropic credential removed. This is the capability
+  that determines whether work continues after 2026-08-03; if it is unproven,
+  the harness stops when the builder leaves.
+
+assertions:
+  - id: A1
+    claim: The control surface responds with all Anthropic credentials unset.
+    method: unset ANTHROPIC_API_KEY and ANTHROPIC_BASE_URL, restart, exercise surface
+    expected: full_request_response_cycle_completes
+    failure_state: FAILED_CONTRACT
+
+  - id: A2
+    claim: No code path in the surface imports the Anthropic SDK or a Claude client.
+    method: import_graph_scan
+    expected: zero_anthropic_imports
+    failure_state: CONTRACT_DRIFT
+
+  - id: A3
+    claim: The owner can read current project and task state through it.
+    method: query_state_and_compare_to_terminusdb
+    expected: surface_state == authoritative_state
+    failure_state: FAILED_PROVENANCE
+
+  - id: A4
+    claim: The owner can answer an open typed blocker and the answer is recorded.
+    method: raise_synthetic_BLOCKED_OWNER_DECISION_then_answer_via_surface
+    expected: answer_persisted_as_Decision_bound_to_contract_version and task_unblocked
+    failure_state: FAILED_IMPLEMENTATION
+
+  - id: A5
+    claim: The owner can resume, retry, or cancel a work unit.
+    method: exercise_each_verb_against_a_live_work_unit
+    expected: all_three_take_effect_in_terminusdb
+    failure_state: FAILED_IMPLEMENTATION
+
+  - id: A6
+    claim: An instruction that would expand scope is rejected, not executed.
+    method: negative_control_submit_out_of_scope_instruction
+    expected: rejected_with UNAPPROVED_SCOPE_EXPANSION
+    failure_state: FAILED_SCOPE
+    note: >
+      The surface is not a second orchestrator. It holds no authority the API
+      and contract do not already grant.
+
+  - id: A7
+    claim: The surface cannot bypass a gate or self-approve.
+    method: negative_control_attempt_gate_bypass
+    expected: rejected and gate_still_required
+    failure_state: FAILED_ASSURANCE
+
+  - id: A8
+    claim: The surface cannot reach protected assets.
+    method: attempt_sealed_side_access_through_surface
+    expected: denied
+    failure_state: PROTECTED_ASSET_ACCESS
+
+  - id: A9
+    claim: It is usable from a mobile viewport over the private network.
+    method: load_over_tailnet_at_390px_and_complete_one_full_task
+    expected: readable_and_operable
+    failure_state: FAILED_IMPLEMENTATION
+
+  - id: A10
+    claim: The surface routes through the production gateway, not eval.
+    method: inspect_gateway_binding
+    expected: gateway == production
+    failure_state: FAILED_PROVENANCE
+    note: It produces candidate work, not gate-bearing evidence. DEC-002.
+
+evidence_required:
+  - credential_stripped_run_transcript
+  - import_graph_report
+  - blocker_answer_round_trip_with_terminus_commit
+  - negative_control_transcripts_for_A6_A7_A8
+  - mobile_viewport_session_recording_or_screenshots
+
+on_fail:
+  action: halt_and_raise
+  state: FAILED_CONTRACT

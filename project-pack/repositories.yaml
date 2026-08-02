@@ -1,0 +1,130 @@
+# repositories.yaml — build side vs sealed side
+# Contract: EFAH-CONTRACT-001 v1.0 · Sections 4, 5, 17.2
+#
+# ISOLATION INVARIANT (contract acceptance_check: protected_verifier_isolation)
+# ---------------------------------------------------------------------------
+# Nothing in this file, in environments.yaml, or in secrets.refs.yaml may give
+# the builder identity a route to a repo listed under sealed_repos. The builder
+# submits a candidate commit and receives a verdict shape; it never reads
+# holdout content. An acceptance check will actively attempt to prove this
+# isolation — do not "help" by wiring shared access.
+
+schema_id: efah.repositories
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+build_repos:
+  - name: efah-harness
+    # Supplied by owner 2026-08-02. Created private with a README so `main`
+    # exists — branch protection cannot be applied to a branch that does not.
+    url: https://github.com/Pukujan/efah-harness
+    role: primary_build
+    default_branch: main
+    layout: contract_section_5_greenfield
+    builder_access: read_write
+    # Contract Section 21 — auto-merge cannot function without these.
+    branch_protection_required: true
+    # Live CI state — a repository fact the builder probes (Section 29), not an
+    # owner question. The OWNER still has to configure these on GitHub; the
+    # builder's job is to verify them and raise BLOCKED_EXTERNAL_ACCESS if
+    # absent, not to ask whether they were done.
+    required_status_checks_configured: TODO_builder_probe
+    auto_merge_enabled: TODO_builder_probe
+
+  - name: Eval-lab
+    url: https://github.com/Pukujan/Eval-lab
+    role: reusable_source
+    default_branch: TODO_builder_probe   # repository fact, inspected not asked
+    builder_access: read
+    # Prior art the builder is expected to port rather than reinvent
+    # (contract Section 14.2 dependency-first / BUILD_VS_INTEGRATE gate).
+    reuse_candidates:
+      - executable_gate_definitions
+      - evidence_dossier_format
+      - architecture_decision_records
+      - threat_model
+    # Contract non_goals: temporal_initial_runtime. Eval-lab's Temporal-based
+    # skeleton is pattern source and evidence, NOT the runtime base.
+    # See evidence/owner-documents/DEC-001-langgraph-supersedes-temporal.md
+    known_conflicts:
+      - id: temporal_skeleton
+        resolution: contract_supersedes__langgraph_is_permanent_runtime
+        decision_ref: DEC-001
+
+  - name: stupidly-simple-cortex
+    # OWNER DECISION 2026-08-02: OUT OF SCOPE for the deadline build.
+    # Handoff Section 2: "reference only unless declared in repositories.yaml".
+    # declared:false keeps it out, so no URL is required. Bringing it in would
+    # cost scope that does not exist inside a 48-hour window.
+    url: not_in_scope
+    role: reference_only
+    declared: false
+    decided_by: owner
+    decided_at: "2026-08-02"
+    builder_access: none
+    note: >
+      The Cortex methodology map is a candidate source, not contract authority
+      (contract Section 13). If declared true, adopted methods MUST be
+      normalized into the versioned methodology catalog before use.
+
+sealed_repos:
+  - name: efah-lab-verifier
+    # Deliberately NOT resolved here. The builder must never learn a usable
+    # route to this repo. A 404 from the builder's identity is CORRECT.
+    url: not_supplied_to_builder
+    role: protected_verifier
+    builder_access: forbidden
+    service_identity: separate
+    holds:
+      - sealed_release_holdouts
+      - private_mutants
+      - oracle_internals
+      - hard_gold_cases
+    # Contract Section 17.2: candidate submits only these; receives only the
+    # contract-approved result shape.
+    permitted_submission_fields:
+      - artifact_or_commit_identifier
+      - allowed_runtime_inputs
+      - evaluation_request_id
+      - required_contract_or_oracle_version
+    permitted_response_shape:
+      - evaluation_request_id
+      - verdict            # PASS | FAIL | UNVERIFIABLE
+      - oracle_version
+      - oracle_health
+      - failure_class      # typed class only, never hidden assertion content
+    # OWNER DECISION 2026-08-01: role-separated generation authorized.
+    # The sealed_holdout_author role (anthropic/claude-opus-4-8, alias
+    # holdout-h01) generates holdouts under the VERIFIER service identity and
+    # writes them into this repo. The builder never reads them. Separation is
+    # enforced by the alias map plus the identity boundary, not by hand.
+    bootstrap_mode: role_separated_generation_authorized
+    authorized_by: owner
+    authorized_at: "2026-08-01"
+    generating_role: sealed_holdout_author
+    generating_identity: verifier_service_identity
+    builder_may_read_generated_holdouts: false
+    # Named efah-lab-verifier, not Eval-lab-verifier: that name was already
+    # taken by an unrelated project. The unrelated repo is listed below as
+    # additionally forbidden — the builder has no business reaching either,
+    # and a name collision must not become an accidental route.
+
+  - name: Eval-lab-verifier
+    url: not_supplied_to_builder
+    role: unrelated_private_repo_of_another_project
+    builder_access: forbidden
+    service_identity: separate
+    note: >
+      Not this project's verifier. Listed so the isolation scan treats the
+      name as forbidden rather than merely unrecognised, and so a stale
+      reference in older handoff documents cannot be followed.
+
+isolation_assertions:
+  # These are machine-checkable by validate_pack.py and by the harness's own
+  # acceptance suite. Do not weaken them to make a gate go green.
+  - builder_token_scope_excludes_sealed_repos: true
+  - sealed_repo_url_absent_from_build_side_config: true
+  - verifier_runs_under_separate_service_identity: true
+  - builder_is_not_holdout_author: true
+  - builder_is_not_final_adjudicator: true

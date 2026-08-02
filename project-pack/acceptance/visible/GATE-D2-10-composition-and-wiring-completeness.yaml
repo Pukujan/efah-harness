@@ -1,0 +1,49 @@
+# GATE-D2-10 — Composition and wiring completeness
+# Contract acceptance_check: missing_wiring_fails
+# Contract refs: Sections 5.2, 14.4
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-10
+name: Composition and wiring completeness
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove a module with passing unit tests but no composition registration FAILS acceptance. Contract Section 5.2: a module is complete only when it declares and proves provides, consumes, startup_registration, configuration_schema, health_check, integration_test, e2e_path, telemetry_span, and dashboard_projection.
+
+assertions:
+  - id: A1
+    claim: A deliberately unregistered module fails the composition verifier.
+    method: negative_control_unregister_module
+    expected: composition_verifier_fails
+    failure_state: FAILED_WIRING
+  - id: A2
+    claim: Every module is reachable through an approved user-to-result execution path.
+    method: reachability_analysis_from_composition_root
+    expected: zero_unreachable_modules
+    failure_state: FAILED_WIRING
+  - id: A3
+    claim: Every module declares all nine Section 5.2 wiring fields.
+    method: wiring_manifest_assert
+    expected: all_nine_fields_present_per_module
+    failure_state: FAILED_WIRING
+  - id: A4
+    claim: Architecture tests reject prohibited imports and circular dependencies.
+    method: architecture_test_run
+    expected: zero_violations
+    failure_state: FAILED_SCOPE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

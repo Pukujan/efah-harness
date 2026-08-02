@@ -1,0 +1,55 @@
+# GATE-D1-04 — LangGraph resumes from checkpoint without restarting completed work
+# Contract acceptance_check: langgraph_resumes_without_restart
+# Contract refs: Sections 10.3, 10.4, 10.6
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D1-04
+name: LangGraph resumes from checkpoint without restarting completed work
+day: 1
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Kill the process mid-run and prove the project resumes from checkpoint, that completed parallel nodes are NOT rerun, and that the checkpoint is treated as rebuildable execution state rather than project authority.
+
+assertions:
+  - id: A1
+    claim: Process is killed mid-run and the project resumes without reset.
+    method: kill_and_restart_probe
+    expected: project_state_preserved and run_continues
+    failure_state: FAILED_INFRASTRUCTURE
+  - id: A2
+    claim: Nodes that completed before the kill are not re-executed.
+    method: node_execution_counter_compare
+    expected: completed_node_rerun_count == 0
+    failure_state: FAILED_INFRASTRUCTURE
+  - id: A3
+    claim: Every checkpoint references all twelve required fields.
+    method: checkpoint_schema_assert
+    expected: all_of checkpoint_references present
+    failure_state: FAILED_PROVENANCE
+  - id: A4
+    claim: Deleting the checkpoint store does not destroy project truth.
+    method: delete_checkpoints_then_query_terminusdb
+    expected: project_and_task_state_still_authoritative_in_terminusdb
+    failure_state: FAILED_CONTRACT
+  - id: A5
+    claim: The checkpointer is reached only through the adapter.
+    method: import_boundary_test
+    expected: zero_direct_asyncsqlitesaver_imports_outside_adapter
+    failure_state: FAILED_WIRING
+
+evidence_required:
+  - kill_restart_transcript
+  - node_execution_counters
+  - checkpoint_field_dump
+  - post_delete_terminusdb_query_result
+
+on_fail:
+  action: rework
+  state: FAILED_INFRASTRUCTURE

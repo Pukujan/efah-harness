@@ -1,0 +1,55 @@
+# GATE-D1-03 — Contract compiles to project/task/dependency graph
+# Contract acceptance_check: contract_compiles_to_project_task_dependency_graph
+# Contract refs: Sections 8, 9.6
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D1-03
+name: Contract compiles to project/task/dependency graph
+day: 1
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove the contract compiler emits all seventeen outputs and that the resulting graph is acyclic where required with every task linked to a requirement.
+
+assertions:
+  - id: A1
+    claim: All seventeen contract_compiler_outputs are produced.
+    method: output_manifest_check
+    expected: all_seventeen_present
+    failure_state: FAILED_CONTRACT
+  - id: A2
+    claim: Every Task links to at least one Requirement.
+    method: graph_query_unlinked_tasks
+    expected: zero_unlinked_tasks
+    failure_state: UNLINKED_TASK
+  - id: A3
+    claim: The dependency graph is acyclic where the contract requires it.
+    method: cycle_detection
+    expected: zero_cycles_in_task_and_role_graphs
+    failure_state: FAILED_CONTRACT
+  - id: A4
+    claim: A critical path is computed and non-empty.
+    method: critical_path_extract
+    expected: path_length > 0
+    failure_state: FAILED_CONTRACT
+  - id: A5
+    claim: Every task carries its compiler-selected methodologies, not agent-chosen ones.
+    method: methodology_provenance_check
+    expected: methodology_source == applicability_compiler
+    failure_state: FAILED_SCOPE
+
+evidence_required:
+  - compiler_output_manifest
+  - graph_export_with_edge_types
+  - cycle_detection_report
+  - critical_path_listing
+
+on_fail:
+  action: halt_and_raise
+  state: FAILED_CONTRACT

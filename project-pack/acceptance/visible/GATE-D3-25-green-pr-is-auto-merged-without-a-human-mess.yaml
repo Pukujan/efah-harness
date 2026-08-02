@@ -1,0 +1,54 @@
+# GATE-D3-25 — Green PR is auto-merged without a human message
+# Contract acceptance_check: green_pr_auto_merged
+# Contract refs: Sections 21.1, 21.2
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D3-25
+name: Green PR is auto-merged without a human message
+day: 3
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove a PR with all thirteen auto-merge requirements green is merged by CI without waiting for an additional human message, and that a PR missing any one of them is not.
+
+assertions:
+  - id: A1
+    claim: All thirteen auto_merge_requirements are evaluated and recorded per PR.
+    method: requirement_evaluation_record
+    expected: all_thirteen_recorded
+    failure_state: FAILED_CONTRACT
+  - id: A2
+    claim: A fully green PR merges without human interaction.
+    method: green_pr_probe
+    expected: merged_without_human_message
+    failure_state: FAILED_CONTRACT
+  - id: A3
+    claim: A PR failing any single requirement does not merge.
+    method: negative_control_fail_one_requirement
+    expected: merge_blocked
+    failure_state: FAILED_CONTRACT
+  - id: A4
+    claim: The merge is performed by CI or an approved service identity, not the implementing agent.
+    method: merge_actor_check
+    expected: actor != implementing_agent
+    failure_state: ROLE_CONFLICT
+  - id: A5
+    claim: CI actually ran on the agent-opened PR.
+    method: ci_trigger_check
+    expected: checks_present_on_pr
+    failure_state: FAILED_INFRASTRUCTURE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

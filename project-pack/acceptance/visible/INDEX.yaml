@@ -1,0 +1,113 @@
+# Visible acceptance gates — index and coverage map
+# Contract: EFAH-CONTRACT-001 v1.0 · Sections 8.1, 21.1, 25
+#
+# Every one of the contract's 25 acceptance_checks is mapped to a gate here.
+# A check with no gate file is an acceptance check with no evidence path, which
+# is exactly the failure mode Section 27 forbids ("done" without named
+# evidence is invalid).
+#
+# Day 1 gates are executable against the walking skeleton. Day 2/3 gates are
+# declared now so the builder cannot discover them late and defer them.
+
+schema_id: efah.acceptance_index
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+coverage:
+  - check: project_pack_imports_to_terminusdb_branch
+    gate: GATE-D1-01-project-pack-imports-to-isolated-terminusdb.yaml
+    day: 1
+  - check: schemas_validate_and_are_version_bound
+    gate: GATE-D1-02-schemas-validate-and-are-version-bound.yaml
+    day: 1
+  - check: contract_compiles_to_project_task_dependency_graph
+    gate: GATE-D1-03-contract-compiles-to-project-task-dependency.yaml
+    day: 1
+  - check: langgraph_resumes_without_restart
+    gate: GATE-D1-04-langgraph-resumes-from-checkpoint-without-re.yaml
+    day: 1
+  - check: fresh_litellm_worker_sessions
+    gate: GATE-D1-05-fresh-worker-sessions-execute-bounded-tasks.yaml
+    day: 1
+  - check: blinded_model_identity
+    gate: GATE-D1-06-blinded-model-identity.yaml
+    day: 1
+  - check: protected_verifier_isolation
+    gate: GATE-D1-08-protected-verifier-isolation.yaml
+    day: 1
+  - check: mechanical_commit_trace_artifact_binding
+    gate: GATE-D1-09-mechanical-commit-trace-artifact-binding.yaml
+    day: 1
+  - check: missing_wiring_fails
+    gate: GATE-D2-10-composition-and-wiring-completeness.yaml
+    day: 2
+  - check: plane_project_and_assurance_views
+    gate: GATE-D2-11-plane-projection-completeness.yaml
+    day: 2
+  - check: leases_worktrees_and_stale_worker_rejection
+    gate: GATE-D2-12-leases-worktrees-and-stale-worker-rejection.yaml
+    day: 2
+  - check: mature_dependency_integration_and_reimplementation_rejection
+    gate: GATE-D2-13-build-vs-integrate-enforcement.yaml
+    day: 2
+  - check: competing_hypotheses_and_discriminating_test
+    gate: GATE-D2-14-competing-hypotheses-and-discriminating-test.yaml
+    day: 2
+  - check: context7_snapshot_hash_and_dependency_link
+    gate: GATE-D2-15-context7-snapshot-hash-and-dependency-link.yaml
+    day: 2
+  - check: dependency_change_impact_and_revalidation
+    gate: GATE-D2-16-dependency-change-impact-and-revalidation.yaml
+    day: 2
+  - check: rag_result_resolves_to_terminus_commit
+    gate: GATE-D2-17-rag-lineage-resolves-to-a-terminusdb-commit.yaml
+    day: 2
+  - check: unverified_knowledge_not_promoted
+    gate: GATE-D2-18-unverified-knowledge-is-not-promoted.yaml
+    day: 2
+  - check: visible_hidden_mutant_same_candidate_commit
+    gate: GATE-D2-19-visible-hidden-and-mutant-suites-run-against.yaml
+    day: 2
+  - check: oracle_health_and_no_judge_in_deterministic_path
+    gate: GATE-D2-20-oracle-health-and-no-judge-in-the-determinis.yaml
+    day: 2
+  - check: scope_and_security_expansion_blocked
+    gate: GATE-D2-21-scope-drift-and-security-expansion-blocked.yaml
+    day: 2
+  - check: periodic_and_event_contract_review
+    gate: GATE-D2-22-periodic-and-event-triggered-contract-review.yaml
+    day: 2
+  - check: questions_are_bounded_and_batched
+    gate: GATE-D3-23-question-budget-is-bounded-and-batched.yaml
+    day: 3
+  - check: known_bad_mutant_rejected
+    gate: GATE-D3-24-known-bad-mutant-is-rejected.yaml
+    day: 3
+  - check: green_pr_auto_merged
+    gate: GATE-D3-25-green-pr-is-auto-merged-without-a-human-mess.yaml
+    day: 3
+  - check: verified_complete_evidence_package
+    gate: GATE-D3-26-verified-complete-evidence-package.yaml
+    day: 3
+
+# Additional gate not in the contract's numbered list but required by
+# product.vendor_neutral_after_deadline — the single most consequential
+# property of this build, and the one that is easiest to silently violate.
+  - check: vendor_neutral_after_deadline
+    gate: GATE-D1-07-vendor-neutrality-after-2026-08-03.yaml
+    day: 1
+    contract_ref: product.vendor_neutral_after_deadline
+
+  - check: owner_control_surface_vendor_neutral
+    gate: GATE-D1-10-owner-control-surface.yaml
+    day: 1
+    contract_ref: AMENDMENT-001 / contract v1.1 section 11.7
+
+# Contract Section 14.3: visible behavioral assertions MUST be hashed before
+# convergence. A change to any assertion requires an explicit test amendment
+# linked to the contract — a builder cannot weaken a gate to make it pass.
+assertion_integrity:
+  hash_before_convergence: true
+  hash_manifest: acceptance/visible/ASSERTION_HASHES.txt
+  unauthorized_assertion_change: FAILED_SCOPE

@@ -1,0 +1,49 @@
+# GATE-D1-02 — Schemas validate and are version-bound
+# Contract acceptance_check: schemas_validate_and_are_version_bound
+# Contract refs: Sections 8, 8.1
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D1-02
+name: Schemas validate and are version-bound
+day: 1
+blocking: true
+oracle_type: static_ast_type_policy
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove every compiled object carries the full version-binding header from contract Section 8 and that a missing or stale field fails rather than defaulting.
+
+assertions:
+  - id: A1
+    claim: Every compiled object carries all ten required header fields.
+    method: schema_assert_on_every_compiled_object
+    expected: all_of [schema_id, schema_version, contract_id, contract_version, methodology_version, terminus_database, terminus_branch, terminus_commit, content_hash, created_by_alias, created_at] present
+    failure_state: FAILED_PROVENANCE
+  - id: A2
+    claim: An object bearing a stale contract_version is rejected, not migrated silently.
+    method: negative_control_inject_stale_version
+    expected: rejected_with STALE_CONTRACT_VERSION
+    failure_state: STALE_CONTRACT_VERSION
+  - id: A3
+    claim: No material field is populated by a silent default.
+    method: default_injection_probe
+    expected: material_field_absence_raises_typed_blocker
+    failure_state: BLOCKED_OWNER_DECISION
+  - id: A4
+    claim: content_hash matches recomputed hash of the object body.
+    method: recompute_and_compare
+    expected: hashes_equal
+    failure_state: FAILED_PROVENANCE
+
+evidence_required:
+  - schema_validation_report
+  - negative_control_transcript
+  - hash_recomputation_log
+
+on_fail:
+  action: halt_and_raise
+  state: FAILED_CONTRACT

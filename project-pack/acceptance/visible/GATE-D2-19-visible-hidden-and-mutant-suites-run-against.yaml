@@ -1,0 +1,44 @@
+# GATE-D2-19 — Visible, hidden, and mutant suites run against the same candidate commit
+# Contract acceptance_check: visible_hidden_mutant_same_candidate_commit
+# Contract refs: Sections 17.1, 18
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-19
+name: Visible, hidden, and mutant suites run against the same candidate commit
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove all three evaluation lanes target one identical candidate commit, closing the gap where a builder passes visible tests on one commit and holdouts on another.
+
+assertions:
+  - id: A1
+    claim: Visible, hidden, and mutant runs record the same candidate commit SHA.
+    method: commit_sha_compare_across_lanes
+    expected: all_three_equal
+    failure_state: FAILED_PROVENANCE
+  - id: A2
+    claim: The verifier receives only the commit identifier and permitted inputs.
+    method: submission_field_assert
+    expected: permitted_submission_fields_only
+    failure_state: PROTECTED_ASSET_ACCESS
+  - id: A3
+    claim: A commit change between lanes invalidates the evaluation set.
+    method: negative_control_change_commit_mid_run
+    expected: evaluation_invalidated
+    failure_state: FAILED_PROVENANCE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

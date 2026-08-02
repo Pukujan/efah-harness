@@ -1,0 +1,37 @@
+# ASSERTION_HASHES — visible behavioural assertions, hashed before convergence
+# Contract: EFAH-CONTRACT-001 v1.0 Section 14.3
+#
+# A change to any assertion requires an explicit test amendment linked to the
+# contract. Without this baseline there is nothing to stop a builder weakening
+# a gate to make it green, so a missing manifest is itself a finding.
+#
+# Regenerate:  python3 hash_assertions.py
+# Verify:      python3 hash_assertions.py --check
+
+sha256:fa377fea660aa1897670836f0d689c5da5feb243765e1f2d90b6506a603844eb  GATE-D1-01-project-pack-imports-to-isolated-terminusdb.yaml
+sha256:f18654ed19c982df5e269014f8368cc5054cdab475dc83d0a6bbab5515d2572e  GATE-D1-02-schemas-validate-and-are-version-bound.yaml
+sha256:bf1b2d276b4dedd84fde849ee5d7cc394c30098202780f1b3c7f88d2afdb43e0  GATE-D1-03-contract-compiles-to-project-task-dependency.yaml
+sha256:dde424a334d289a5eaba24de9b83c78c728e58c001c2f707d80a8dfca7efbe47  GATE-D1-04-langgraph-resumes-from-checkpoint-without-re.yaml
+sha256:80aec46ae79e0de1db329c387b3603a324e1ac3fea7e477a12f46867e8fff025  GATE-D1-05-fresh-worker-sessions-execute-bounded-tasks.yaml
+sha256:a68c7dc7b99d811b092a67731b1a88f089fb997c3473c4dce7cb78ff0e3b202f  GATE-D1-06-blinded-model-identity.yaml
+sha256:d1f9717b9f9f07b8763f680eeec4384d1382e208c8a42d2c70b5d88cdedaa3e1  GATE-D1-07-vendor-neutrality-after-2026-08-03.yaml
+sha256:7f3bd89785472a31b26ea7b073c0d4a58d8728bfe92b5322c6b67895994cedc8  GATE-D1-08-protected-verifier-isolation.yaml
+sha256:332b97d3cb9813e5661e5b3c5cfe9f016c016249a960e0c6d7e48385b0b88cf8  GATE-D1-09-mechanical-commit-trace-artifact-binding.yaml
+sha256:78cf26b4c55a05aa101d94f875c309277215c204158d33dfcc7395dfce0b725b  GATE-D1-10-owner-control-surface.yaml
+sha256:ea811e1a568030ff860542a1c76f868a5f0b8d318587e4f2604f9ff4509eeed2  GATE-D2-10-composition-and-wiring-completeness.yaml
+sha256:1f00f713c2dd98134bfc3dde270da81a568582d7f7a46593acad2a131138a97a  GATE-D2-11-plane-projection-completeness.yaml
+sha256:0e12dda60fcefa7687c9f72aadabf1f40c1fc6fbb5b0c62dd03ce2863ffd1562  GATE-D2-12-leases-worktrees-and-stale-worker-rejection.yaml
+sha256:0c1e3360040aaeeb49b7ee86a484bb29385a8bdca90b68ca2d987183fcaa4715  GATE-D2-13-build-vs-integrate-enforcement.yaml
+sha256:3e3eae1d5785978b84b9d6e3cfc785b77cabd917de3022ceb93c320dd153a06b  GATE-D2-14-competing-hypotheses-and-discriminating-test.yaml
+sha256:822d77c65a19cb41d9434519d4ce5e393adca28621ed5d6f9e01f718ea4a64cf  GATE-D2-15-context7-snapshot-hash-and-dependency-link.yaml
+sha256:b487f7cffa400c1eb6e8a27a1272adc5297fa6ae95901991b11922a1eec772f0  GATE-D2-16-dependency-change-impact-and-revalidation.yaml
+sha256:75c32b9fcd5fc9c0d444e8ae3fea136e459e43bc89bdab360315e3a8ba501df1  GATE-D2-17-rag-lineage-resolves-to-a-terminusdb-commit.yaml
+sha256:3d50afe180c1cba5b0fd7079183deaaeb6dd526026c29c44bdb4b8acf70c5221  GATE-D2-18-unverified-knowledge-is-not-promoted.yaml
+sha256:cf1b588a1fc47de1d1fc41b8f581556ba6f0a08f13793d2440af479e2516cd35  GATE-D2-19-visible-hidden-and-mutant-suites-run-against.yaml
+sha256:b0d90649f5595dfdfdc09184919fb2f8f81a5d9ba6418e6b5663f3333a02b926  GATE-D2-20-oracle-health-and-no-judge-in-the-determinis.yaml
+sha256:e05cdb54c3562262a1dc7ed350a736368d979440325ae6697b106f83c75a422f  GATE-D2-21-scope-drift-and-security-expansion-blocked.yaml
+sha256:c3375a100b942dfda0a202270aca750dece82276da930fff1001873fb92a1793  GATE-D2-22-periodic-and-event-triggered-contract-review.yaml
+sha256:ff04c7c231e83d90a5fad0f3ad0e3731918b8fe288ebf7bc79477342a1fd4341  GATE-D3-23-question-budget-is-bounded-and-batched.yaml
+sha256:b9d5449a6d63688e1901ff18f50d999d6ceff96012d2f0fcfc2ffcfd8a726252  GATE-D3-24-known-bad-mutant-is-rejected.yaml
+sha256:e52054a5a3af2e8e05966b7c6230580906245ef2d1d6f23b1ffe8d9569832bfc  GATE-D3-25-green-pr-is-auto-merged-without-a-human-mess.yaml
+sha256:f3778732f015c85fad6bdca867b53151871bae83b3b17dc13feb6aefce6b2036  GATE-D3-26-verified-complete-evidence-package.yaml

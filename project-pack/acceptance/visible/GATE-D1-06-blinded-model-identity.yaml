@@ -1,0 +1,54 @@
+# GATE-D1-06 — Blinded model identity
+# Contract acceptance_check: blinded_model_identity
+# Contract refs: Sections 11.2, 12.3
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D1-06
+name: Blinded model identity
+day: 1
+blocking: true
+oracle_type: static_ast_type_policy
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove task participants see aliases only, that real vendor identity lives in a separate protected database, and that the owner audit path can still reveal the mapping.
+
+assertions:
+  - id: A1
+    claim: No agent-visible payload contains a vendor or model name.
+    method: payload_scan_for_vendor_strings
+    expected: zero_matches
+    failure_state: ROLE_CONFLICT
+  - id: A2
+    claim: Task and audit records reference aliases, not real identities.
+    method: record_field_scan
+    expected: alias_only_in_task_records
+    failure_state: ROLE_CONFLICT
+  - id: A3
+    claim: Real identity mapping resides in the separate protected database.
+    method: database_location_assert
+    expected: mapping_db != main_project_db
+    failure_state: FAILED_PROVENANCE
+  - id: A4
+    claim: The owner audit path can reveal the mapping with owner credentials.
+    method: owner_reveal_probe
+    expected: mapping_resolvable_under_owner_identity_only
+    failure_state: FAILED_PROVENANCE
+  - id: A5
+    claim: No agent receives another agent's prestige ranking or cost tier.
+    method: payload_scan_for_ranking_fields
+    expected: zero_matches
+    failure_state: ROLE_CONFLICT
+
+evidence_required:
+  - payload_scan_report
+  - protected_db_location_proof
+  - owner_reveal_transcript_redacted
+
+on_fail:
+  action: halt_and_raise
+  state: FAILED_ASSURANCE

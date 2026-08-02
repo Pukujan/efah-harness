@@ -1,0 +1,55 @@
+# GATE-D1-07 — Vendor neutrality after 2026-08-03
+# Contract acceptance_check: vendor_neutral_after_deadline
+# Contract refs: product.vendor_neutral_after_deadline; Section 0; Section 4.1
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D1-07
+name: Vendor neutrality after 2026-08-03
+day: 1
+blocking: true
+oracle_type: static_ast_type_policy
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove no essential delivered runtime path requires Claude Code, the Anthropic SDK, or any Claude-specific credential. This is the property with the hardest deadline and the quietest failure mode: it breaks only after the builder is gone.
+
+assertions:
+  - id: A1
+    claim: No essential module imports the Anthropic SDK or a Claude-specific client.
+    method: import_graph_scan_of_essential_paths
+    expected: zero_anthropic_sdk_imports_in_essential_modules
+    failure_state: CONTRACT_DRIFT
+  - id: A2
+    claim: The full walking skeleton runs with every Claude credential removed from the environment.
+    method: run_with_claude_credentials_unset
+    expected: walking_skeleton_completes
+    failure_state: FAILED_CONTRACT
+  - id: A3
+    claim: Claude Code appears only as an optional worker adapter behind the worker interface.
+    method: adapter_boundary_check
+    expected: claude_code_adapter_is_optional_and_swappable
+    failure_state: CONTRACT_DRIFT
+  - id: A4
+    claim: CI pipelines contain no step requiring Claude access.
+    method: ci_workflow_scan
+    expected: zero_claude_dependent_ci_steps
+    failure_state: CONTRACT_DRIFT
+  - id: A5
+    claim: Disabling the Claude worker adapter leaves at least one working worker adapter.
+    method: adapter_removal_probe
+    expected: alternate_worker_adapter_completes_a_work_unit
+    failure_state: FAILED_CONTRACT
+
+evidence_required:
+  - import_graph_report
+  - credential_stripped_run_transcript
+  - ci_workflow_scan_output
+  - adapter_removal_run_log
+
+on_fail:
+  action: halt_and_raise
+  state: FAILED_CONTRACT

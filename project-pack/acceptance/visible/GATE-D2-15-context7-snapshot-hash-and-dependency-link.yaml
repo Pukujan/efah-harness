@@ -1,0 +1,49 @@
+# GATE-D2-15 — Context7 snapshot hash and dependency link
+# Contract acceptance_check: context7_snapshot_hash_and_dependency_link
+# Contract refs: Sections 16.1, 16.3
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-15
+name: Context7 snapshot hash and dependency link
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove every Context7 retrieval is cached, hashed, version-pinned, and linked to the dependency decision it supports.
+
+assertions:
+  - id: A1
+    claim: Every snapshot records all eleven required fields.
+    method: snapshot_schema_assert
+    expected: all_eleven_fields_present
+    failure_state: FAILED_PROVENANCE
+  - id: A2
+    claim: Every snapshot is version- or branch-pinned.
+    method: pin_presence_check
+    expected: library_version_or_branch_non_empty
+    failure_state: FAILED_PROVENANCE
+  - id: A3
+    claim: Every load-bearing dependency decision links to at least one snapshot.
+    method: decision_to_snapshot_link_check
+    expected: zero_unlinked_decisions
+    failure_state: FAILED_PROVENANCE
+  - id: A4
+    claim: Two retrievals using the two credentials are not counted as independent corroboration.
+    method: corroboration_logic_check
+    expected: credential_alias_does_not_increase_source_diversity
+    failure_state: FAILED_ORACLE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

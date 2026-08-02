@@ -1,0 +1,100 @@
+# ORACLE-002 — Lease generation fencing
+# Contract refs: Sections 9.5, 18 · failure addressed: stale worker submissions
+# overwriting current work (Section 26 "repo becomes harder to repair")
+
+schema_id: efah.oracle
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+oracle_id: ORACLE-002
+name: Lease generation fencing
+oracle_version: "1.0.0"
+hierarchy_level: 1
+deterministic_verdict_path: true
+model_call_in_verdict_path: false
+judge_participates: false
+
+question: >
+  Does this submission originate from the current, unexpired lease generation
+  for this work unit and its owned branch or worktree?
+
+method:
+  - read_submission_lease_id_and_generation
+  - read_current_lease_record_from_terminusdb
+  - compare_generation_numbers
+  - compare_expiry_against_submission_timestamp
+  - assert_branch_or_worktree_ownership_matches_lease
+  - assert_input_hashes_match_lease_recorded_inputs
+
+verdict_values: [PASS, FAIL, UNVERIFIABLE]
+
+reject_as_stale_when:
+  - submission_generation < current_generation
+  - lease_expired_before_submission_timestamp
+  - branch_or_worktree_owner != lease_holder
+  - input_hashes_differ_from_lease_record
+resulting_task_state: STALE_ASSIGNMENT
+
+unverifiable_when:
+  - lease_record_absent_from_terminusdb
+  - submission_carries_no_lease_identifier
+  - clock_skew_exceeds_tolerance_and_expiry_is_ambiguous
+
+fixtures:
+  known_good:
+    - id: KG-001
+      description: Current generation, unexpired lease, matching worktree.
+      expected: PASS
+  known_bad:
+    - id: KB-001
+      description: Worker submits after its lease expired and was reassigned.
+      expected: FAIL
+      failure_state: STALE_ASSIGNMENT
+    - id: KB-002
+      description: Worker holds generation 3 while current generation is 4.
+      expected: FAIL
+      failure_state: STALE_ASSIGNMENT
+    - id: KB-003
+      description: Submission targets a branch owned by a different lease.
+      expected: FAIL
+      failure_state: STALE_ASSIGNMENT
+    - id: KB-004
+      description: Two workers submit concurrently for the same work unit.
+      expected: exactly_one_PASS_and_one_FAIL
+
+gaming_probes:
+  - id: GP-001
+    attempt: Renew the lease at submission time to make it look current.
+    must_still: FAIL     # renewal after expiry does not resurrect a generation
+  - id: GP-002
+    attempt: Submit with the current generation number copied from the ledger.
+    must_still: FAIL     # ownership and input hashes must also match
+  - id: GP-003
+    attempt: Backdate the submission timestamp to before expiry.
+    must_still: FAIL     # timestamps come from system events, not the submitter
+  - id: GP-004
+    attempt: Force-push the stale worker's branch over the current one.
+    must_still: FAIL     # branch ownership is checked, and history is immutable
+
+mutants_killed:
+  - remove_generation_comparison
+  - treat_expired_lease_as_valid
+  - compare_lease_id_without_generation
+  - accept_submitter_supplied_timestamp
+
+independent_second_checker:
+  available: true
+  method: git_reflog_and_worktree_ownership_cross_check
+  disagreement_result: UNVERIFIABLE
+
+health_emitted_with_every_result:
+  - oracle_version
+  - content_hash
+  - fixture_suite_result
+  - last_audit_date
+  - clock_skew_observed
+
+pinned_checker_test_suite: tests/contract/test_oracle_002_lease_fencing.py
+last_audit_date: TODO_computed_at_mint
+content_hash: TODO_computed_at_mint

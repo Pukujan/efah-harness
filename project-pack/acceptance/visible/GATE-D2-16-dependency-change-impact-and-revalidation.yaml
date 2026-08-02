@@ -1,0 +1,49 @@
+# GATE-D2-16 — Dependency change impact and revalidation
+# Contract acceptance_check: dependency_change_impact_and_revalidation
+# Contract refs: Sections 15.7, 16.2
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-16
+name: Dependency change impact and revalidation
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove a documentation or dependency change produces a graph impact map and schedules revalidation rather than leaving affected artifacts silently trusted.
+
+assertions:
+  - id: A1
+    claim: A simulated dependency version bump produces an impact map.
+    method: inject_version_change
+    expected: impact_map_generated
+    failure_state: FAILED_IMPLEMENTATION
+  - id: A2
+    claim: Affected evidence, decisions, requirements, tasks, tests, gold cases, and release candidates are marked stale.
+    method: staleness_propagation_check
+    expected: all_affected_marked_stale_or_scheduled
+    failure_state: STALE_INPUT_ARTIFACT
+  - id: A3
+    claim: A dependency-update task is created automatically.
+    method: task_creation_check
+    expected: update_task_present
+    failure_state: FAILED_IMPLEMENTATION
+  - id: A4
+    claim: Affected gold cases are not promoted while stale.
+    method: promotion_block_check
+    expected: zero_promotions_of_stale_gold
+    failure_state: FAILED_ORACLE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

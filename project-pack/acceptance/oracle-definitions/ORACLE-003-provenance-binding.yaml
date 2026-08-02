@@ -1,0 +1,112 @@
+# ORACLE-003 — Provenance binding
+# Contract refs: Sections 8, 18, 23 · enforces "'done' without named evidence
+# is invalid"
+
+schema_id: efah.oracle
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+oracle_id: ORACLE-003
+name: Provenance binding
+oracle_version: "1.0.0"
+hierarchy_level: 2                 # static / AST / type / policy checker
+deterministic_verdict_path: true
+model_call_in_verdict_path: false
+judge_participates: false
+
+question: >
+  Is every claimed result mechanically bound to an exact contract version,
+  TerminusDB commit, repository commit, and named evidence artifact whose
+  content hash recomputes correctly?
+
+method:
+  - enumerate_claimed_results_for_the_work_unit
+  - assert_each_carries_the_ten_field_version_header
+  - recompute_content_hash_and_compare
+  - resolve_terminus_commit_and_repository_commit
+  - assert_evidence_artifact_exists_and_is_readable
+  - assert_evidence_tier_is_one_of_the_five_permitted
+  - assert_contract_version_is_current_not_stale
+
+verdict_values: [PASS, FAIL, UNVERIFIABLE]
+
+permitted_evidence_tiers:
+  - OWNER_VERIFIED
+  - DETERMINISTIC_ORACLE
+  - INDEPENDENTLY_REPRODUCED
+  - CALIBRATED_MODEL_VERIFIED
+  - AI_DISCOVERED_UNVERIFIED
+
+unverifiable_when:
+  - terminus_commit_unreachable_due_to_service_outage
+  - evidence_artifact_storage_unavailable
+# Deliberately narrow. A missing hash is a FAIL, not an UNVERIFIABLE — absence
+# of provenance is a determinate answer, not an unknown.
+
+fixtures:
+  known_good:
+    - id: KG-001
+      description: Result with full header, matching hash, resolvable commits, readable evidence.
+      expected: PASS
+  known_bad:
+    - id: KB-001
+      description: Result claiming success with no named evidence artifact.
+      expected: FAIL
+      failure_state: FAILED_PROVENANCE
+    - id: KB-002
+      description: content_hash does not match the recomputed object body.
+      expected: FAIL
+      failure_state: FAILED_PROVENANCE
+    - id: KB-003
+      description: Result bound to contract version 0.2 while 1.0 is current.
+      expected: FAIL
+      failure_state: STALE_CONTRACT_VERSION
+    - id: KB-004
+      description: Test record with no command, exit status, or commit binding.
+      expected: FAIL
+      failure_state: FAILED_PROVENANCE
+    - id: KB-005
+      description: Evidence tier field absent or outside the permitted five.
+      expected: FAIL
+      failure_state: FAILED_PROVENANCE
+
+gaming_probes:
+  - id: GP-001
+    attempt: Point the evidence field at a file that does not exist.
+    must_still: FAIL     # existence and readability are checked
+  - id: GP-002
+    attempt: Copy a valid content_hash from a different artifact.
+    must_still: FAIL     # the hash is recomputed from this object's body
+  - id: GP-003
+    attempt: Claim DETERMINISTIC_ORACLE tier for a model-judged result.
+    must_still: FAIL     # tier is cross-checked against the verdict path
+  - id: GP-004
+    attempt: Re-run tests on a different commit than the one submitted.
+    must_still: FAIL     # commit binding is compared across all evaluation lanes
+  - id: GP-005
+    attempt: Write a prose summary in place of the evidence package.
+    must_still: FAIL     # evidence must be a structured, hashed artifact
+
+mutants_killed:
+  - skip_hash_recomputation
+  - accept_missing_evidence_field
+  - accept_any_string_as_evidence_tier
+  - ignore_contract_version_staleness
+  - resolve_commit_without_verifying_existence
+
+independent_second_checker:
+  available: true
+  method: recompute_hashes_from_git_object_store_independently
+  disagreement_result: UNVERIFIABLE
+
+health_emitted_with_every_result:
+  - oracle_version
+  - content_hash
+  - fixture_suite_result
+  - last_audit_date
+  - unresolvable_reference_count
+
+pinned_checker_test_suite: tests/contract/test_oracle_003_provenance.py
+last_audit_date: TODO_computed_at_mint
+content_hash: TODO_computed_at_mint

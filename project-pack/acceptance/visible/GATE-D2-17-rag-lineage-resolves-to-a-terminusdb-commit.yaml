@@ -1,0 +1,54 @@
+# GATE-D2-17 — RAG lineage resolves to a TerminusDB commit
+# Contract acceptance_check: rag_result_resolves_to_terminus_commit
+# Contract refs: Sections 15.1, 15.3, 15.4
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-17
+name: RAG lineage resolves to a TerminusDB commit
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove every retrieval result resolves to an authoritative commit and source hash, that retrieval planes are separated, and that the retriever can honestly return INSUFFICIENT_EVIDENCE.
+
+assertions:
+  - id: A1
+    claim: Every LanceDB row carries all eleven lineage fields.
+    method: row_schema_assert
+    expected: all_eleven_fields_present
+    failure_state: FAILED_PROVENANCE
+  - id: A2
+    claim: Every retrieval result resolves to a reachable TerminusDB commit.
+    method: resolve_probe
+    expected: all_results_resolve
+    failure_state: FAILED_PROVENANCE
+  - id: A3
+    claim: The index rebuilds from authoritative documents alone.
+    method: rebuild_from_scratch_probe
+    expected: rebuilt_index_matches
+    failure_state: FAILED_PROVENANCE
+  - id: A4
+    claim: A query with no supporting evidence returns INSUFFICIENT_EVIDENCE rather than a confident answer.
+    method: negative_control_unanswerable_query
+    expected: returns INSUFFICIENT_EVIDENCE
+    failure_state: FAILED_ORACLE
+  - id: A5
+    claim: The implementer has no retrieval route into protected evaluation planes.
+    method: plane_access_probe_under_implementer_identity
+    expected: access_denied
+    failure_state: PROTECTED_ASSET_ACCESS
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

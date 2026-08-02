@@ -1,0 +1,77 @@
+# project.yaml — EFAH project identity and review cadence
+# Contract: EFAH-CONTRACT-001 v1.0 · Section 6 required file
+# Fields marked TODO_owner are owner-material: contract Section 8.1 forbids
+# silent defaults for material fields. Leaving one unresolved produces a typed
+# blocker, not a guess.
+
+schema_id: efah.project
+schema_version: "1.0"
+
+project:
+  id: EFAH-001
+  name: Evidence-First Engineering Harness and Eval Lab
+  contract_id: EFAH-CONTRACT-001
+  contract_version: "1.1"   # AMENDMENT-001, owner-approved 2026-08-02
+  target_deadline: "2026-08-03"
+
+  # Contract Section 19.3: default is 3 material phases if omitted.
+  # Stated explicitly so the value is a recorded decision, not a fallback.
+  contract_review_interval_phases: 3
+
+  # Contract Section 2 / product.initial_task_families
+  initial_task_families:
+    - software_engineering
+    - devops
+
+  # Contract product.vendor_neutral_after_deadline: true
+  # After this date no essential runtime path may require Claude access.
+  vendor_neutral_after_deadline: true
+  claude_access_expires: "2026-08-03"
+
+owner:
+  # TODO_owner: the human who holds the seven human_interrupts_only decisions.
+  # Owner fact class (Section 7.2) — cannot be discovered by inspection.
+  name: Kujan
+  github: Pukujan
+  contact: pujan3645@gmail.com
+  # How the builder reaches the owner for the single batched question round.
+  # Options: github_issue | plane_work_item | email | claude_code_interrupt
+  question_round_channel: github_issue   # one issue on efah-harness, 4h SLA
+
+representative_project:
+  # Contract Section 24 Day 3: "run one representative project through the
+  # whole system". This is the project the harness itself will carry
+  # end-to-end to prove the path. It must be real, small, and have a
+  # deterministic oracle.
+  # OWNER DECISION 2026-08-01: builder selects and records.
+  selection_mode: builder_selects_and_records
+  target: builder_selected
+  constraints:
+    - must_be_real_not_synthetic
+    - must_have_a_deterministic_oracle
+    - must_be_completable_within_the_day_3_window
+    - must_exercise_the_full_path_not_a_subset
+  record_choice_as: Decision bound to contract v1.0
+
+# Compressed-window priority. The deadline is when Claude Code access ends,
+# not when the project must be perfect. What survives 2026-08-03 is what the
+# owner can still run and still drive. If time forces a choice, this order is
+# binding and the builder does NOT get to reorder it.
+delivery_priority:
+  - complete_walking_skeleton_end_to_end_no_placeholders
+  - vendor_neutrality_proven_with_anthropic_credentials_removed   # GATE-D1-07
+  - owner_control_surface                                          # GATE-D1-10
+  - everything_else
+priority_rationale: >
+  Items 1 to 3 are what the owner still has on 2026-08-04. Item 4 is what the
+  owner can build themselves using 1 to 3. A half-built Day-2 feature set with
+  no end-to-end path and no way to drive it is worth less than a thin path that
+  runs and can be steered from a phone.
+silent_reordering: forbidden
+
+deadline_posture:
+  # Contract Section 24 delivery rule + Section 28 non-goals.
+  # Recorded so the builder does not treat depth as optional at its discretion.
+  optimize_for: end_to_end_path_over_module_count
+  ui_polish_may_delay_end_to_end: false
+  defer_to_phase_2_permitted: false

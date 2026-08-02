@@ -1,0 +1,49 @@
+# GATE-D2-13 — Build-vs-integrate enforcement
+# Contract acceptance_check: mature_dependency_integration_and_reimplementation_rejection
+# Contract refs: Sections 14.2, 28
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-13
+name: Build-vs-integrate enforcement
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove a mature dependency is integrated through an adapter and that an equivalent custom reimplementation is rejected by the scope gate.
+
+assertions:
+  - id: A1
+    claim: A selected dependency is reached only through an adapter.
+    method: adapter_boundary_check
+    expected: zero_direct_dependency_imports_outside_adapters
+    failure_state: FAILED_SCOPE
+  - id: A2
+    claim: A deliberately introduced custom duplicate of a selected dependency fails the scope gate.
+    method: negative_control_inject_custom_duplicate
+    expected: rejected_with UNSUPPORTED_REIMPLEMENTATION
+    failure_state: UNSUPPORTED_REIMPLEMENTATION
+  - id: A3
+    claim: Every custom implementation carries a BUILD_VS_INTEGRATE record with all seven fields.
+    method: record_schema_assert
+    expected: all_seven_fields_present
+    failure_state: FAILED_SCOPE
+  - id: A4
+    claim: No prohibited component from dependency-policy.yaml appears in the dependency graph.
+    method: prohibited_component_scan
+    expected: zero_matches
+    failure_state: FAILED_SCOPE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

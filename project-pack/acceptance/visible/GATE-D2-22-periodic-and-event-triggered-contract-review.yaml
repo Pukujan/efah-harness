@@ -1,0 +1,49 @@
+# GATE-D2-22 — Periodic and event-triggered contract review
+# Contract acceptance_check: periodic_and_event_contract_review
+# Contract refs: Sections 19.3, 19.4
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-22
+name: Periodic and event-triggered contract review
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove a conformance review runs at the configured phase interval AND at an event trigger, and that only CONTRACT_REAFFIRMED advances automatically.
+
+assertions:
+  - id: A1
+    claim: A review fires after contract_review_interval_phases material phases.
+    method: phase_counter_probe
+    expected: review_fired_at_interval
+    failure_state: FAILED_CONTRACT
+  - id: A2
+    claim: A review fires at an event trigger such as after_walking_skeleton.
+    method: event_trigger_probe
+    expected: review_fired_on_event
+    failure_state: FAILED_CONTRACT
+  - id: A3
+    claim: An outcome other than CONTRACT_REAFFIRMED halts automatic advance.
+    method: negative_control_inject_drift
+    expected: advance_halted_and_typed_remediation_raised
+    failure_state: DRIFT_DETECTED
+  - id: A4
+    claim: Review does not add optional improvements to scope.
+    method: review_output_scope_diff
+    expected: zero_new_requirements_from_review
+    failure_state: UNAPPROVED_SCOPE_EXPANSION
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

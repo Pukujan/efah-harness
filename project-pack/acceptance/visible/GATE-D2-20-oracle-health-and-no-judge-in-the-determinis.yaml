@@ -1,0 +1,59 @@
+# GATE-D2-20 — Oracle health and no judge in the deterministic path
+# Contract acceptance_check: oracle_health_and_no_judge_in_deterministic_path
+# Contract refs: Sections 17.3, 17.4, 17.5
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-20
+name: Oracle health and no judge in the deterministic path
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove every oracle emits version and health with each result and that no model judge participates in a deterministic verdict path.
+
+assertions:
+  - id: A1
+    claim: Every oracle result carries version, content hash, and health.
+    method: oracle_result_schema_assert
+    expected: all_present
+    failure_state: FAILED_ORACLE
+  - id: A2
+    claim: No model call occurs inside a deterministic oracle's verdict path.
+    method: call_graph_analysis
+    expected: zero_model_calls_in_verdict_path
+    failure_state: FAILED_ORACLE
+  - id: A3
+    claim: Each oracle has known-good and known-bad fixtures and kills its declared mutants.
+    method: fixture_and_mutant_run
+    expected: known_good_pass and known_bad_fail and mutants_killed
+    failure_state: FAILED_ORACLE
+  - id: A4
+    claim: An oracle that cannot decide returns UNVERIFIABLE rather than guessing.
+    method: ambiguous_input_probe
+    expected: returns UNVERIFIABLE
+    failure_state: FAILED_ORACLE
+  - id: A5
+    claim: An uncalibrated judge result cannot pass a gate.
+    method: negative_control_uncalibrated_judge
+    expected: result_is_advisory_only
+    failure_state: FAILED_ORACLE
+  - id: A6
+    claim: A higher deterministic oracle is not replaced by a lower subjective one where available.
+    method: oracle_route_audit
+    expected: route_selects_highest_available_level
+    failure_state: FAILED_ORACLE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

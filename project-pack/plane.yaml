@@ -1,0 +1,102 @@
+# plane.yaml — human-readable projection, never project truth
+# Contract: EFAH-CONTRACT-001 v1.0 · Sections 4, 4.1, 10.1, 11.6, 23
+#
+# Contract Section 10.1 responsibility boundary:
+#   TerminusDB answers  — what is true, authorized, linked, versioned?
+#   LangGraph answers   — what contract-approved step runs next?
+#   Plane answers       — what does the human need to see and control?
+#   CI/verifier answers — did the candidate objectively pass?
+
+schema_id: efah.plane
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+plane:
+  workspace: efah                  # https://app.plane.so/efah/
+  # Plane identifies projects by UUID, not a human slug. This is the id from
+  # https://app.plane.so/efah/projects/<id>/ — the value the API needs as
+  # {project_id}.
+  project_id: 0f843a48-6969-498c-9d60-64f41147bbb2
+  project_name: EFAH
+  # Plane auto-created this project with sample cycles/modules/work items.
+  # They are harmless but will appear in the projection alongside real tasks.
+  contains_plane_sample_data: true
+  base_url_ref: environments.dev.plane.base_url
+  api_key_ref: secrets.plane_api_key
+  mode: projection_only
+
+authority:
+  is_source_of_truth: false
+  may_mutate_authoritative_state: false
+  dashboard_consumes: read_projections_only
+  writes_flow: terminusdb_to_plane_one_way
+  # Controlled commands may be accepted from Plane, but they are REQUESTS that
+  # enter the normal gate path — they never bypass the contract.
+  accepts_controlled_commands: true
+  controlled_commands_bypass_gates: false
+
+# Contract Section 11.6 — the dashboard MUST show all thirteen.
+required_views:
+  - project_and_milestone_status
+  - task_ledger_and_critical_path
+  - task_ownership_leases_worktrees_and_stale_sessions
+  - contract_and_requirement_traceability
+  - scope_drift_findings
+  - model_run_aliases_and_role_history
+  - visible_and_hidden_evaluation_status   # without exposing protected content
+  - oracle_health_and_mutant_results
+  - dependency_versions_and_impact_maps
+  - knowledge_and_hard_gold_promotion_state
+  - provenance_graph
+  - release_readiness
+  - exact_typed_blocker_and_requested_owner_decision
+
+projection_mapping:
+  # How control-plane entities surface as Plane objects.
+  Workstream: module
+  Milestone: cycle
+  Phase: module_or_label
+  Task: work_item
+  WorkUnit: sub_work_item
+  Blocker: work_item_with_blocked_state
+  Decision: work_item_comment_and_link
+  EvaluationRun: work_item_property
+  ReleaseCandidate: work_item
+
+# Contract Section 9.8 — time is measured from system events, never agent
+# estimates. Plane worklogs display the DERIVED values only.
+worklog:
+  source: system_events_only
+  agent_estimates_permitted: false
+  derived_durations:
+    - queue_duration
+    - active_duration
+    - blocked_duration
+    - model_call_duration
+    - tool_duration
+    - evaluation_duration
+    - human_wait_duration
+    - rework_duration
+    - total_wall_clock
+
+protected_content_rule:
+  # Contract Section 17.2 — the projection must not leak holdout internals.
+  # Evaluation status is shown as verdict + oracle health + typed failure
+  # class. Hidden assertions, private fixtures, and mutant implementations
+  # never reach Plane.
+  expose_holdout_assertions: false
+  expose_private_fixtures: false
+  expose_mutant_implementations: false
+  expose_real_model_identity: false        # aliases only, Section 11.2
+
+sync:
+  # Recorded 2026-08-01: poll. Webhooks need a publicly reachable endpoint the
+  # single-host build does not have. 30s is well inside human attention span
+  # and costs nothing against the model rate cap (Plane is not a model call).
+  mode: poll
+  poll_interval_seconds: 30
+  # If Plane is unreachable, the project MUST continue — Plane is a
+  # projection, and its outage is not FAILED_INFRASTRUCTURE.
+  outage_blocks_project: false
+  outage_state: degraded_projection

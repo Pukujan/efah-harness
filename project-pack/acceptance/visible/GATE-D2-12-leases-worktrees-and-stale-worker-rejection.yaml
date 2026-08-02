@@ -1,0 +1,49 @@
+# GATE-D2-12 — Leases, worktrees, and stale worker rejection
+# Contract acceptance_check: leases_worktrees_and_stale_worker_rejection
+# Contract refs: Section 9.5
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-12
+name: Leases, worktrees, and stale worker rejection
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove parallel agents hold separate leases and worktrees, and that a submission from an expired or superseded lease generation is rejected as stale rather than merged.
+
+assertions:
+  - id: A1
+    claim: Two parallel work units hold distinct leases and distinct worktrees.
+    method: concurrent_assignment_probe
+    expected: distinct_lease_ids and distinct_worktrees
+    failure_state: FAILED_IMPLEMENTATION
+  - id: A2
+    claim: A submission from an expired lease is rejected.
+    method: expire_lease_then_submit
+    expected: rejected_with STALE_ASSIGNMENT
+    failure_state: STALE_ASSIGNMENT
+  - id: A3
+    claim: A submission from a superseded lease generation is rejected.
+    method: increment_generation_then_submit_old
+    expected: rejected_with STALE_ASSIGNMENT
+    failure_state: STALE_ASSIGNMENT
+  - id: A4
+    claim: A rejected stale submission does not corrupt the winning worker's branch.
+    method: branch_integrity_check
+    expected: winning_branch_unmodified
+    failure_state: FAILED_PROVENANCE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

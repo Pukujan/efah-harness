@@ -1,0 +1,211 @@
+# environments.yaml — service endpoints per environment
+# Contract: EFAH-CONTRACT-001 v1.0 · Sections 3.2, 4
+#
+# Endpoints only. NO secret values appear in this file — credentials are
+# referenced by name from secrets.refs.yaml (contract Section 6 file list).
+#
+# Contract Section 7.1: the system MUST NOT ask the owner to resolve safely
+# measurable current state. Reachability is a live empirical fact — the builder
+# probes it. The URL itself is an owner fact and must be supplied here.
+
+schema_id: efah.environments
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+default_environment: dev
+
+environments:
+  dev:
+    description: Single-host deadline build environment (2026-08-01 to 08-03)
+
+    # Authoritative graph — contract Section 15.2. Docker is acceptable.
+    terminusdb:
+      url: http://localhost:6363
+      auth_ref: secrets.terminusdb_auth
+      main_database: efah
+      startup_probe_required: true
+      # NOT the protected identity store. See terminusdb_protected below.
+      holds_protected_identity_mappings: false
+
+    # Contract Section 11.2 permits "a separate protected TerminusDB database
+    # OR isolated instance". Measured 2026-08-02: a separate DATABASE is not a
+    # boundary on this image. User/admin holds Capability/server_access, which
+    # is server-wide root — a canary written by the protected user was readable
+    # by admin (200, contents visible). Separate credentials do not help when
+    # one of them is root over the whole server.
+    #
+    # So the isolated-instance option is the only one that actually separates.
+    # Second container, own admin password, own loopback port, own volume.
+    terminusdb_protected:
+      url: http://localhost:6364
+      auth_ref: secrets.terminusdb_protected_auth
+      database: efah_protected
+      isolated_instance: true
+      separate_container: true
+      separate_volume: true
+      bind_address: 127.0.0.1
+      # The main instance's admin credential MUST NOT authenticate here.
+      main_admin_credential_must_fail: true
+      # Held only by the owner audit path. No task participant, no worker
+      # session, no gate-bearing role receives this credential.
+      withheld_from: [all_task_participants, all_worker_sessions, all_roles]
+      startup_probe_required: true
+      verification: >
+        Write a canary as the protected user; attempt to read it with the MAIN
+        instance's admin credential. Expect connection refused or 401. A 200 is
+        a hard failure of contract Section 11.2 and of the blinded-identity
+        acceptance check.
+
+    # Cross-vendor model gateway — contract Section 4. Existing config is
+    # reused; the builder MUST NOT redesign provider access.
+    #
+    # TWO deployments, same binary, opposite policies. Routing a gate-bearing
+    # role to production silently corrupts evidence rather than failing.
+    # See model-policy.yaml -> gateway_routing and DEC-002.
+    litellm_production:
+      base_url: https://litellm-production-8656.up.railway.app
+      api_key_ref: secrets.litellm_key
+      class: production
+      policy: {num_retries: 5, pooled_routes_per_alias: 3, cooldowns: true,
+               drop_params: true, max_parallel_requests: 8}
+      use_for: candidate_production_roles_only
+      valid_for_evidence: false
+      redesign_permitted: false
+      availability_probe_required: true
+
+    litellm_eval:
+      base_url: https://litellm-eval-production.up.railway.app
+      api_key_ref: secrets.litellm_eval_key      # separate master key
+      class: eval
+      policy: {num_retries: 0, pooled_routes_per_alias: 1, cooldowns: false,
+               drop_params: false, max_parallel_requests: null}
+      use_for: all_gate_bearing_roles
+      valid_for_evidence: true
+      # DB-less on purpose: it cannot read or write production's virtual-key
+      # store. If a DATABASE_URL ever appears on this service, delete it.
+      database: none
+      must_remain_dbless: true
+      preflight_command: python validate_eval_config.py --url https://litellm-eval-production.up.railway.app
+      preflight_must_exit_zero_before_each_campaign: true
+      redesign_permitted: false
+      availability_probe_required: true
+
+    # Both gateways front the same upstream. All three hosts serve identical
+    # models with the same keys — extra pool members for failover.
+    upstream:
+      primary: https://ckff.dev/v1
+      mirrors: [https://68886868.xyz/v1, https://api2.68886868.xyz/v1]
+      # Account-wide, NOT per-model. Counts every request regardless of which
+      # model it hits. The harness throttles globally; see
+      # model-policy.yaml -> request_policy.
+      rate_limit_requests_per_minute: 100
+      rate_limit_scope: account_wide
+
+    # Human projection only — never project truth (contract Section 4.1).
+    plane:
+      base_url: https://app.plane.so
+      api_key_ref: secrets.plane_api_key
+      mode: projection_only
+
+    # Version-pinned dependency documentation — contract Section 16.
+    context7:
+      base_url: https://context7.com
+      credential_refs:
+        - secrets.context7_key_1
+        - secrets.context7_key_2
+      # Contract Section 16: the two credentials are capacity/failover, NOT
+      # independent evidence sources. Two agreeing retrievals from them are
+      # one source, not corroboration.
+      credentials_are_independent_sources: false
+      snapshot_cache_path: ./evidence/context7-snapshots
+      cache_and_hash_snapshots: true
+
+    # Derived retrieval index — never authoritative (contract Section 15.3).
+    lancedb:
+      path: ./.data/lancedb
+      rebuildable_from_terminusdb: true
+
+    # Tracing — contract Section 23.
+    #
+    # Remapped 2026-08-02. The build host already runs cortex-phoenix on 6006
+    # and cortex-otel-collector on 4317/4318, belonging to an unrelated stack
+    # and reachable tailnet-wide. Sharing them would put EFAH traces into
+    # another project's observability tool and make this project's provenance
+    # readable by anyone on the tailnet — so EFAH gets its own instance on
+    # free ports, bound to loopback.
+    observability:
+      otel_exporter_endpoint: http://localhost:4319
+      phoenix_url: http://localhost:6007
+      phoenix_instance: dedicated_to_efah
+      must_not_share_instance_with: [cortex-phoenix, cortex-otel-collector]
+      bind_address: 127.0.0.1
+
+    # Object storage for large immutable artifacts — contract Section 4.
+    object_storage:
+      mode: local_filesystem
+      location: ./.data/artifacts
+      # Content-addressed on a local filesystem is sufficient for the deadline
+      # build. Contract Section 4 wants immutability and addressability, not
+      # a specific backend.
+      content_addressed: true
+
+    # Release authority — contract Section 21. CI performs the merge; the
+    # implementing agent does not self-certify.
+    ci:
+      # OWNER DECISION 2026-08-01: GitHub Actions with a GitHub App identity.
+      provider: github_actions
+      # OWNER DECISION 2026-08-01: GitHub App. App-authored PRs trigger
+      # workflow runs; the default GITHUB_TOKEN does not, which would leave
+      # every agent PR with zero checks and stall auto_merge silently.
+      pr_identity: github_app
+      # App ID is an identifier, not a secret — the private key is, and it
+      # stays in secrets.refs.yaml as env:GITHUB_APP_PRIVATE_KEY.
+      github_app_id: 4460605
+      github_app_installed_on: [Pukujan/efah-harness]
+      github_app_permissions:
+        contents: write
+        pull_requests: write
+        issues: write
+        actions: write
+        checks: write
+      pr_identity_ref: secrets.github_app_or_pat
+      merge_performed_by: ci_service_identity
+
+    # LangGraph checkpoint store — contract Section 10.3. Non-authoritative,
+    # behind an adapter, replaceable without changing domain schemas.
+    checkpoint_store:
+      backend: AsyncSqliteSaver
+      path: ./.data/checkpoints.sqlite
+      behind_adapter: true
+      safe_serialization_required: true
+      authoritative_project_state: false
+
+  # Contract Section 22 mandates the risk-selected progression
+  # offline evaluation -> shadow -> canary -> pilot -> broader rollout, and
+  # contract.yaml phase_gates includes deployment_validation. Section 29 names
+  # "deployment target where no existing environment is discoverable" as a
+  # permitted genuine blocker — so this must be either supplied or explicitly
+  # waived, never simply absent.
+  deployment:
+    # OWNER DECISION 2026-08-01: waived for the deadline build.
+    status: waived
+    waiver_reason: >
+      No deployment target exists within the 2026-08-01 to 2026-08-03 window.
+      Contract Section 22's shadow/canary/pilot progression is deliberately
+      deferred rather than skipped. The builder MUST record deployment_validation
+      as deliberately deferred in the honest-debt section of the final evidence
+      package (Section 27), citing this waiver. It MUST NOT report the phase as
+      passed, and it MUST NOT quietly omit it.
+    waived_by: owner
+    waived_at: "2026-08-01"
+    target_url: n/a
+    rollback_mechanism: n/a
+    shadow_canary_pilot_required: false
+
+  # The sealed verifier environment is NOT described here. Its endpoints and
+  # credentials belong to the separate verifier service identity and must not
+  # be resolvable from build-side configuration.
+  verifier:
+    accessible_from_build_side: false
+    configured_elsewhere: true

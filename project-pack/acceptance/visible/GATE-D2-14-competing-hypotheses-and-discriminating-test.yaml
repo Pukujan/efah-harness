@@ -1,0 +1,49 @@
+# GATE-D2-14 — Competing hypotheses and discriminating test
+# Contract acceptance_check: competing_hypotheses_and_discriminating_test
+# Contract refs: Section 7.4
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-14
+name: Competing hypotheses and discriminating test
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove the research and debugging path records multiple hypotheses with a discriminating test, and does not implement the first plausible fix.
+
+assertions:
+  - id: A1
+    claim: A research task with credible alternatives records at least two hypotheses.
+    method: hypothesis_count_check
+    expected: count >= 2
+    failure_state: FAILED_ORACLE
+  - id: A2
+    claim: Each hypothesis carries all eight required fields.
+    method: hypothesis_schema_assert
+    expected: all_eight_fields_present
+    failure_state: FAILED_ORACLE
+  - id: A3
+    claim: A discriminating test exists that distinguishes the hypotheses.
+    method: discriminating_test_presence
+    expected: test_present_and_executed
+    failure_state: FAILED_ORACLE
+  - id: A4
+    claim: The selected hypothesis is supported by the test outcome, not by discovery order.
+    method: selection_provenance_check
+    expected: selection_linked_to_test_result
+    failure_state: FAILED_ORACLE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

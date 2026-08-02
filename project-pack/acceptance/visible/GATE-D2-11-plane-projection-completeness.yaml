@@ -1,0 +1,49 @@
+# GATE-D2-11 — Plane projection completeness
+# Contract acceptance_check: plane_project_and_assurance_views
+# Contract refs: Sections 4.1, 11.6
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D2-11
+name: Plane projection completeness
+day: 2
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove Plane shows all thirteen required views, that it is fed one-way from authoritative state, and that it leaks no protected content.
+
+assertions:
+  - id: A1
+    claim: All thirteen required dashboard views are populated.
+    method: view_presence_check
+    expected: all_thirteen_present
+    failure_state: FAILED_IMPLEMENTATION
+  - id: A2
+    claim: Plane cannot mutate authoritative state.
+    method: write_attempt_probe
+    expected: authoritative_state_unchanged
+    failure_state: FAILED_SCOPE
+  - id: A3
+    claim: No holdout assertion, private fixture, or mutant source appears in Plane.
+    method: projection_content_scan
+    expected: zero_protected_content
+    failure_state: PROTECTED_ASSET_ACCESS
+  - id: A4
+    claim: Worklog durations derive from system events, not agent estimates.
+    method: worklog_source_assert
+    expected: source == system_events
+    failure_state: FAILED_PROVENANCE
+
+evidence_required:
+  - gate_execution_log
+  - negative_control_transcript
+  - artifact_hashes_and_commit_binding
+
+on_fail:
+  action: rework
+  state: FAILED_ASSURANCE

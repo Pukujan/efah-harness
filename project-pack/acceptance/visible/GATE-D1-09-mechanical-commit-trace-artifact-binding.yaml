@@ -1,0 +1,55 @@
+# GATE-D1-09 — Mechanical commit/trace/artifact binding
+# Contract acceptance_check: mechanical_commit_trace_artifact_binding
+# Contract refs: Sections 18, 23
+
+schema_id: efah.acceptance_gate
+schema_version: "1.0"
+contract_id: EFAH-CONTRACT-001
+contract_version: "1.0"
+
+gate_id: GATE-D1-09
+name: Mechanical commit/trace/artifact binding
+day: 1
+blocking: true
+oracle_type: deterministic_execution_or_state
+model_judge_in_verdict_path: false
+
+intent: >
+  Prove every tool call, repository change, test run, trace, and artifact is mechanically bound to the exact contract version and commit, and that an unbound result cannot be reported as done.
+
+assertions:
+  - id: A1
+    claim: Every artifact carries content hash, producer, source inputs, and contract/task links.
+    method: artifact_registry_schema_assert
+    expected: all_required_artifact_fields_present
+    failure_state: FAILED_PROVENANCE
+  - id: A2
+    claim: Every test result records command, environment, timestamp, exit status, raw artifact, and commit binding.
+    method: test_record_schema_assert
+    expected: all_required_test_fields_present
+    failure_state: FAILED_PROVENANCE
+  - id: A3
+    claim: Every emitted span carries the eleven minimum correlation fields.
+    method: otel_span_field_assert
+    expected: all_of correlation_fields present
+    failure_state: FAILED_PROVENANCE
+  - id: A4
+    claim: A result with no named evidence is rejected as invalid.
+    method: negative_control_submit_unbound_result
+    expected: rejected_with FAILED_PROVENANCE
+    failure_state: FAILED_PROVENANCE
+  - id: A5
+    claim: Every result carries an evidence tier from the contract's five.
+    method: evidence_tier_assert
+    expected: tier in [OWNER_VERIFIED, DETERMINISTIC_ORACLE, INDEPENDENTLY_REPRODUCED, CALIBRATED_MODEL_VERIFIED, AI_DISCOVERED_UNVERIFIED]
+    failure_state: FAILED_PROVENANCE
+
+evidence_required:
+  - artifact_registry_dump
+  - test_record_sample
+  - otel_span_sample
+  - negative_control_transcript
+
+on_fail:
+  action: halt_and_raise
+  state: FAILED_PROVENANCE
