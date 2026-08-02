@@ -35,3 +35,18 @@ journalctl --user -u efah-owner-surface -n 50
 
 `health` returning `"vendor_neutral": true` with the unit's
 `UnsetEnvironment=ANTHROPIC_*` in force is the live proof of GATE-D1-10 A1.
+
+## Credentials
+
+The unit reads `EnvironmentFile=-/home/yoav/.efah/surface.env` (optional, hence
+the `-`). It holds `TERMINUSDB_ADMIN_PASS` and nothing else, mode `0600`, outside
+the repository — the same reference-only discipline `secrets.refs.yaml` requires.
+
+Without it the surface still starts and honestly reports
+`project_state: FAILED_INFRASTRUCTURE` rather than showing numbers it did not
+read. That is the intended behaviour, not a bug: a control surface that
+fabricates state is worse than one that admits it cannot see.
+
+**The protected identity credential (`TERMINUSDB_PROTECTED_PASS`) is deliberately
+absent.** The surface has no route to `:6364`; only the owner audit path does
+(contract §11.2, `environments.yaml → terminusdb_protected.withheld_from`).
