@@ -1,0 +1,1451 @@
+### List all worklogs for a work item (Python)
+
+Source: https://developers.plane.so/api-reference/worklogs/get-worklogs-for-issue
+
+This Python script uses the `requests` library to fetch worklog entries for a work item from the Plane API. It demonstrates how to set the API endpoint and include the necessary API key in the request headers. The response is printed as JSON.
+
+```python
+import requests
+
+response = requests.get(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/worklogs/",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.json())
+```
+
+--------------------------------
+
+### List all worklogs for a work item (JavaScript)
+
+Source: https://developers.plane.so/api-reference/worklogs/get-worklogs-for-issue
+
+This JavaScript snippet shows how to use the `fetch` API to retrieve worklogs for a work item from the Plane API. It makes a GET request with the required endpoint and an API key in the headers. The JSON response is then parsed.
+
+```javascript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/worklogs/",
+  {
+    method: "GET",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### List all worklogs for a work item (cURL)
+
+Source: https://developers.plane.so/api-reference/worklogs/get-worklogs-for-issue
+
+Use this cURL command to make a GET request to the Plane API to list all worklogs for a specific work item. Ensure you replace placeholder values with your actual workspace, project, and work item identifiers. Authentication can be done using an API key or an OAuth token.
+
+```bash
+curl -X GET \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/worklogs/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### List all work items in a module using JavaScript
+
+Source: https://developers.plane.so/api-reference/module/list-module-work-items
+
+This JavaScript snippet shows how to make a GET request to the Plane API to list module work items using the fetch API. It includes setting the API key in the request headers.
+
+```javascript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/modules/module-uuid/module-issues/?cursor=20:1:0&expand=assignees",
+  {
+    method: "GET",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### List all work items in a cycle (Python)
+
+Source: https://developers.plane.so/api-reference/cycle/list-cycle-work-items
+
+This Python snippet demonstrates how to fetch work items for a cycle using the requests library. Replace 'your-api-key' with your actual Plane API key.
+
+```Python
+import requests
+
+response = requests.get(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/cycles/cycle-uuid/cycle-issues/?cursor=20:1:0&per_page=20",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.json())
+```
+
+--------------------------------
+
+### Transfer cycle work items with Python
+
+Source: https://developers.plane.so/api-reference/cycle/transfer-cycle-work-items
+
+This Python script demonstrates how to transfer work items to a new cycle using the Plane API. It requires the `requests` library and your API key.
+
+```Python
+import requests
+
+response = requests.post(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/cycles/cycle-uuid/transfer-issues/",
+    headers={"X-API-Key": "your-api-key"},
+    json={
+      "new_cycle_id": "550e8400-e29b-41d4-a716-446655440000"
+    }
+)
+print(response.json())
+```
+
+--------------------------------
+
+### Transfer cycle work items API Request
+
+Source: https://developers.plane.so/api-reference/cycle/transfer-cycle-work-items
+
+Use this endpoint to move incomplete work items from the current cycle to a new target cycle. Ensure you provide the correct cycle IDs and authentication headers.
+
+```cURL
+curl -X POST \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/cycles/cycle-uuid/transfer-issues/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "new_cycle_id": "550e8400-e29b-41d4-a716-446655440000"
+}'
+```
+
+--------------------------------
+
+### Create a work item comment using JavaScript
+
+Source: https://developers.plane.so/api-reference/issue-comment/add-issue-comment
+
+This JavaScript code snippet shows how to create a work item comment using the Fetch API. It makes a POST request to the Plane API, including the necessary headers and JSON payload. Remember to replace 'your-api-key' with your actual API key.
+
+```javascript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/",
+  {
+    method: "POST",
+    headers: {
+      "X-API-Key": "your-api-key",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      comment_html: "<p>Example content</p>",
+      external_id: "550e8400-e29b-41d4-a716-446655440000",
+      external_source: "github",
+    }),
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### Create a work item comment using Python
+
+Source: https://developers.plane.so/api-reference/issue-comment/add-issue-comment
+
+This Python script demonstrates how to create a work item comment using the requests library. It sends a POST request with the comment content and relevant identifiers. Replace 'your-api-key' with your actual Plane API key.
+
+```python
+import requests
+
+response = requests.post(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/",
+    headers={"X-API-Key": "your-api-key"},
+    json={
+      "comment_html": "<p>Example content</p>",
+      "external_id": "550e8400-e29b-41d4-a716-446655440000",
+      "external_source": "github"
+    }
+)
+print(response.json())
+```
+
+--------------------------------
+
+### List all work item comments
+
+Source: https://developers.plane.so/api-reference/issue-comment/list-issue-comments
+
+Use this endpoint to retrieve all comments for a work item. You can specify query parameters for pagination, expansion of related fields, filtering, ordering, and controlling the number of results per page. Ensure you have the necessary scopes (`projects.work_items.comments:read`) and provide your API key or OAuth token.
+
+```javascript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/?cursor=20:1:0&expand=assignees",
+  {
+    method: "GET",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### List Work Item Pages
+
+Source: https://developers.plane.so/api-reference/work-item-pages/list-work-item-pages
+
+Use this endpoint to retrieve all page links associated with a work item. You can paginate results using the cursor and order them by creation date. Ensure you include your API key or OAuth token in the request headers.
+
+```Python
+import requests
+
+response = requests.get(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/pages/?cursor=20:1:0&order_by=-created_at",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.json())
+```
+
+--------------------------------
+
+### List Work Item Pages
+
+Source: https://developers.plane.so/api-reference/work-item-pages/list-work-item-pages
+
+Use this endpoint to retrieve all page links associated with a work item. You can paginate results using the cursor and order them by creation date. Ensure you include your API key or OAuth token in the request headers.
+
+```JavaScript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/pages/?cursor=20:1:0&order_by=-created_at",
+  {
+    method: "GET",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### List all work item comments
+
+Source: https://developers.plane.so/api-reference/issue-comment/list-issue-comments
+
+Use this endpoint to retrieve all comments for a work item. You can specify query parameters for pagination, expansion of related fields, filtering, ordering, and controlling the number of results per page. Ensure you have the necessary scopes (`projects.work_items.comments:read`) and provide your API key or OAuth token.
+
+```cURL
+curl -X GET \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/?cursor=20:1:0&expand=assignees" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### Add Work Items to Module (Python)
+
+Source: https://developers.plane.so/api-reference/module/add-module-work-items
+
+This Python script demonstrates how to add issue IDs to a module using the Plane API. It utilizes the `requests` library and requires your API key and relevant IDs.
+
+```python
+import requests
+
+response = requests.post(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/modules/module-uuid/module-issues/",
+    headers={"X-API-Key": "your-api-key"},
+    json={
+      "issues": [
+"550e8400-e29b-41d4-a716-446655440000",
+"550e8400-e29b-41d4-a716-446655440000"
+      ]
+    }
+)
+print(response.json())
+
+```
+
+--------------------------------
+
+### Add Work Items to Cycle
+
+Source: https://developers.plane.so/api-reference/cycle/add-cycle-work-items
+
+Use this endpoint to assign multiple work items to a cycle. Ensure you include the correct workspace slug, project ID, and cycle ID in the URL, and provide a JSON body with a list of issue IDs. Authentication can be done via an API key or OAuth token.
+
+```cURL
+curl -X POST \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/cycles/cycle-uuid/cycle-issues/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "issues": [
+    "550e8400-e29b-41d4-a716-446655440000",
+    "550e8400-e29b-41d4-a716-446655440000"
+  ]'
+}
+```
+
+--------------------------------
+
+### List all work item comments
+
+Source: https://developers.plane.so/api-reference/issue-comment/list-issue-comments
+
+Use this endpoint to retrieve all comments for a work item. You can specify query parameters for pagination, expansion of related fields, filtering, ordering, and controlling the number of results per page. Ensure you have the necessary scopes (`projects.work_items.comments:read`) and provide your API key or OAuth token.
+
+```Python
+import requests
+
+response = requests.get(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/?cursor=20:1:0&expand=assignees",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.json())
+```
+
+--------------------------------
+
+### List Work Item Pages
+
+Source: https://developers.plane.so/api-reference/work-item-pages/list-work-item-pages
+
+Use this endpoint to retrieve all page links associated with a work item. You can paginate results using the cursor and order them by creation date. Ensure you include your API key or OAuth token in the request headers.
+
+```cURL
+curl -X GET \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/pages/?cursor=20:1:0&order_by=-created_at" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### Add Work Items to Cycle
+
+Source: https://developers.plane.so/api-reference/cycle/add-cycle-work-items
+
+Use this endpoint to assign multiple work items to a cycle. Ensure you include the correct workspace slug, project ID, and cycle ID in the URL, and provide a JSON body with a list of issue IDs. Authentication can be done via an API key or OAuth token.
+
+```Python
+import requests
+
+response = requests.post(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/cycles/cycle-uuid/cycle-issues/",
+    headers={"X-API-Key": "your-api-key"},
+    json={
+      "issues": [
+"550e8400-e29b-41d4-a716-446655440000",
+"550e8400-e29b-41d4-a716-446655440000"
+      ]
+    }
+)
+print(response.json())
+```
+
+--------------------------------
+
+### Add Work Items to Cycle
+
+Source: https://developers.plane.so/api-reference/cycle/add-cycle-work-items
+
+Use this endpoint to assign multiple work items to a cycle. Ensure you include the correct workspace slug, project ID, and cycle ID in the URL, and provide a JSON body with a list of issue IDs. Authentication can be done via an API key or OAuth token.
+
+```javascript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/cycles/cycle-uuid/cycle-issues/",
+  {
+    method: "POST",
+    headers: {
+      "X-API-Key": "your-api-key",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      issues: ["550e8400-e29b-41d4-a716-446655440000", "550e8400-e29b-41d4-a716-446655440000"],
+    }),
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### Link Work Items to Customer (Python)
+
+Source: https://developers.plane.so/api-reference/customer/link-work-items-to-customer
+
+This Python script demonstrates how to link issues to a customer using the Plane API. It utilizes the requests library and requires your API key.
+
+```python
+import requests
+
+response = requests.post(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/customers/customer-uuid/issues/",
+    headers={"X-API-Key": "your-api-key"},
+    json={
+      "issue_ids": [
+"550e8400-e29b-41d4-a716-446655440000"
+      ]
+    }
+)
+print(response.json())
+```
+
+--------------------------------
+
+### Update a work item comment
+
+Source: https://developers.plane.so/api-reference/issue-comment/update-issue-comment-detail
+
+Use this endpoint to modify the content of an existing comment on a work item. Ensure you have the necessary API key or OAuth token and the correct content type set.
+
+```JavaScript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/resource-id-uuid/",
+  {
+    method: "PATCH",
+    headers: {
+      "X-API-Key": "your-api-key",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      comment_html: "<p>Example content</p>",
+      external_id: "550e8400-e29b-41d4-a716-446655440000",
+      external_source: "github",
+    }),
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### Update a work item comment
+
+Source: https://developers.plane.so/api-reference/issue-comment/update-issue-comment-detail
+
+Use this endpoint to modify the content of an existing comment on a work item. Ensure you have the necessary API key or OAuth token and the correct content type set.
+
+```Python
+import requests
+
+response = requests.patch(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/resource-id-uuid/",
+    headers={"X-API-Key": "your-api-key"},
+    json={
+      "comment_html": "<p>Example content</p>",
+      "external_id": "550e8400-e29b-41d4-a716-446655440000",
+      "external_source": "github"
+    }
+)
+print(response.json())
+```
+
+--------------------------------
+
+### Update a work item comment
+
+Source: https://developers.plane.so/api-reference/issue-comment/update-issue-comment-detail
+
+Use this endpoint to modify the content of an existing comment on a work item. Ensure you have the necessary API key or OAuth token and the correct content type set.
+
+```cURL
+curl -X PATCH \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/resource-id-uuid/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "comment_html": "<p>Example content</p>",
+  "external_id": "550e8400-e29b-41d4-a716-446655440000",
+  "external_source": "github"
+}'
+```
+
+--------------------------------
+
+### List all work items using JavaScript
+
+Source: https://developers.plane.so/api-reference/issue/list-issues
+
+This JavaScript code snippet shows how to make a GET request to the Plane API to list work items. It uses the `fetch` API and requires your API key for authentication. The example demonstrates how to include query parameters in the request URL.
+
+```JavaScript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/?cursor=20:1:0&expand=assignees",
+  {
+    method: "GET",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### Create Work Item Page Link
+
+Source: https://developers.plane.so/api-reference/work-item-pages/add-work-item-page
+
+Use this endpoint to link a page to a specific work item. Ensure you provide the correct workspace slug, project ID, work item ID, and the page ID in the request body. Authentication is required via an API key or OAuth token.
+
+```cURL
+curl -X POST \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/pages/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "page_id": "550e8400-e29b-41d4-a716-446655440000"
+}'
+```
+
+--------------------------------
+
+### Link Work Items to Customer (JavaScript)
+
+Source: https://developers.plane.so/api-reference/customer/link-work-items-to-customer
+
+This JavaScript snippet shows how to link issues to a customer via the Plane API using the fetch API. It includes setting the necessary headers and request body.
+
+```javascript
+const response = await fetch("https://api.plane.so/api/v1/workspaces/my-workspace/customers/customer-uuid/issues/", {
+  method: "POST",
+  headers: {
+    "X-API-Key": "your-api-key",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    issue_ids: ["550e8400-e29b-41d4-a716-446655440000"],
+  }),
+});
+const data = await response.json();
+```
+
+--------------------------------
+
+### Get Work Item Type Schema with Python
+
+Source: https://developers.plane.so/api-reference/issue-types/types/get-work-item-type-schema
+
+This Python script demonstrates how to make a GET request to the Plane API to fetch a work item type schema. Ensure you replace 'your-api-key' with your actual API key.
+
+```Python
+import requests
+
+response = requests.get(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-item-types/schema/?include=members&type_id=type-uuid",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.json())
+```
+
+--------------------------------
+
+### List all work items in a cycle
+
+Source: https://developers.plane.so/api-reference/cycle/list-cycle-work-items
+
+Use this endpoint to retrieve all work items assigned to a cycle. You can paginate results using the cursor and per_page query parameters. Ensure you have the 'projects.cycles:read' scope.
+
+```cURL
+curl -X GET \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/cycles/cycle-uuid/cycle-issues/?cursor=20:1:0&per_page=20" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### List all work items in a cycle
+
+Source: https://developers.plane.so/api-reference/cycle/list-cycle-work-items
+
+Retrieve all work items assigned to a cycle. This endpoint requires the cycle ID, project ID, and workspace slug. It supports optional query parameters for pagination (cursor and per_page).
+
+```APIDOC
+## GET /api/v1/workspaces/{workspace_slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/
+
+### Description
+Retrieve all work items assigned to a cycle.
+
+### Method
+GET
+
+### Endpoint
+/api/v1/workspaces/{workspace_slug}/projects/{project_id}/cycles/{cycle_id}/cycle-issues/
+
+### Parameters
+#### Path Parameters
+- **cycle_id** (string) - Required - The unique identifier of the cycle.
+- **project_id** (string) - Required - The unique identifier of the project.
+- **workspace_slug** (string) - Required - The workspace_slug represents the unique workspace identifier for a workspace in Plane. It can be found in the URL. For example, in the URL `https://app.plane.so/my-team/projects/`, the workspace slug is `my-team`.
+
+#### Query Parameters
+- **cursor** (string) - Optional - Pagination cursor for getting next set of results
+- **per_page** (integer) - Optional - Number of results per page (default: 20, max: 100)
+
+### Scopes
+`projects.cycles:read`
+
+### Response
+#### Success Response (200)
+- **grouped_by** (string) - Description not available.
+- **sub_grouped_by** (string) - Description not available.
+- **total_count** (integer) - Description not available.
+- **next_cursor** (string) - Description not available.
+- **prev_cursor** (string) - Description not available.
+- **next_page_results** (boolean) - Description not available.
+- **prev_page_results** (boolean) - Description not available.
+- **count** (integer) - Description not available.
+- **total_pages** (integer) - Description not available.
+- **total_results** (integer) - Description not available.
+- **extra_stats** (null) - Description not available.
+- **results** (array) - Description not available.
+  - **id** (string) - Description not available.
+  - **cycle** (string) - Description not available.
+  - **issue** (string) - Description not available.
+  - **sub_issues_count** (integer) - Description not available.
+  - **created_at** (string) - Description not available.
+
+#### Response Example
+```json
+{
+  "grouped_by": "state",
+  "sub_grouped_by": "priority",
+  "total_count": 150,
+  "next_cursor": "20:1:0",
+  "prev_cursor": "20:0:0",
+  "next_page_results": true,
+  "prev_page_results": false,
+  "count": 20,
+  "total_pages": 8,
+  "total_results": 150,
+  "extra_stats": null,
+  "results": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "cycle": "550e8400-e29b-41d4-a716-446655440000",
+      "issue": "550e8400-e29b-41d4-a716-446655440000",
+      "sub_issues_count": 3,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+```
+
+--------------------------------
+
+### List Epic Work Items (Python)
+
+Source: https://developers.plane.so/api-reference/epics/list-epic-work-items
+
+This Python snippet demonstrates how to make a GET request to the Plane API to list work items under an epic. Ensure you replace `your-api-key` with your actual API key.
+
+```Python
+import requests
+
+response = requests.get(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/550e8400-e29b-41d4-a716-446655440000/epics/550e8400-e29b-41d4-a716-446655440001/issues/?per_page=20",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.json())
+
+```
+
+--------------------------------
+
+### List all work item comments
+
+Source: https://developers.plane.so/api-reference/issue-comment/list-issue-comments
+
+Retrieve all comments for a work item by making a GET request to the specified endpoint. You can paginate results using the `cursor` parameter and customize the response using `expand`, `fields`, `order_by`, and `per_page` query parameters.
+
+```APIDOC
+## GET /api/v1/workspaces/{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/comments/
+
+### Description
+Retrieve all comments for a work item.
+
+### Method
+GET
+
+### Endpoint
+/api/v1/workspaces/{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/comments/
+
+### Parameters
+#### Path Parameters
+- **work_item_id** (string) - Required - The unique identifier of the work item.
+- **project_id** (string) - Required - The unique identifier of the project.
+- **workspace_slug** (string) - Required - The workspace_slug represents the unique workspace identifier for a workspace in Plane. It can be found in the URL. For example, in the URL `https://app.plane.so/my-team/projects/`, the workspace slug is `my-team`.
+
+#### Query Parameters
+- **cursor** (string) - Optional - Pagination cursor for getting next set of results
+- **expand** (string) - Optional - Comma-separated list of related fields to expand in response
+- **fields** (string) - Optional - Comma-separated list of fields to include in response
+- **order_by** (string) - Optional - Field to order results by. Prefix with '-' for descending order
+- **per_page** (integer) - Optional - Number of results per page (default: 20, max: 100)
+
+### Scopes
+`projects.work_items.comments:read`
+
+### Request Example
+```json
+{
+  "example": "curl -X GET \"https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/?cursor=20:1:0&expand=assignees\" -H \"X-API-Key: $PLANE_API_KEY\""
+}
+```
+
+### Response
+#### Success Response (200)
+- **grouped_by** (string) - Description
+- **sub_grouped_by** (string) - Description
+- **total_count** (integer) - Description
+- **next_cursor** (string) - Description
+- **prev_cursor** (string) - Description
+- **next_page_results** (boolean) - Description
+- **prev_page_results** (boolean) - Description
+- **count** (integer) - Description
+- **total_pages** (integer) - Description
+- **total_results** (integer) - Description
+- **extra_stats** (null) - Description
+- **results** (array) - Description
+  - **id** (string) - Description
+  - **name** (string) - Description
+  - **created_at** (string) - Description
+
+#### Response Example
+```json
+{
+  "grouped_by": "state",
+  "sub_grouped_by": "priority",
+  "total_count": 150,
+  "next_cursor": "20:1:0",
+  "prev_cursor": "20:0:0",
+  "next_page_results": true,
+  "prev_page_results": false,
+  "count": 20,
+  "total_pages": 8,
+  "total_results": 150,
+  "extra_stats": null,
+  "results": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Example Name",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+```
+
+--------------------------------
+
+### Get total time for each work item (Python)
+
+Source: https://developers.plane.so/api-reference/worklogs/get-total-time
+
+This Python script uses the requests library to fetch the total worklog time for a project from the Plane API. It demonstrates how to set the necessary headers, including the API key.
+
+```python
+import requests
+
+response = requests.get(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/total-worklogs/",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.json())
+```
+
+--------------------------------
+
+### Get total time for each work item (cURL)
+
+Source: https://developers.plane.so/api-reference/worklogs/get-total-time
+
+Use this cURL command to make a GET request to the Plane API to retrieve the total worklog time for a project. Ensure you replace placeholders with your actual workspace, project ID, and API key or OAuth token.
+
+```bash
+curl -X GET \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/total-worklogs/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### Get total time for each work item (JavaScript)
+
+Source: https://developers.plane.so/api-reference/worklogs/get-total-time
+
+This JavaScript code snippet shows how to use the fetch API to make a GET request to the Plane API for retrieving project worklog summaries. It includes setting the API key in the request headers.
+
+```javascript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/total-worklogs/",
+  {
+    method: "GET",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### Update a work item comment
+
+Source: https://developers.plane.so/api-reference/issue-comment/update-issue-comment-detail
+
+Modify the content of an existing comment on a work item. This endpoint allows you to update the HTML content, external source, and other details of a comment.
+
+```APIDOC
+## PATCH /api/v1/workspaces/{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/comments/{resource_id}/
+
+### Description
+Modify the content of an existing comment on a work item.
+
+### Method
+PATCH
+
+### Endpoint
+/api/v1/workspaces/{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/comments/{resource_id}/
+
+### Parameters
+#### Path Parameters
+- **work_item_id** (string) - Required - The unique identifier of the work item.
+- **resource_id** (string) - Required - The unique identifier of the resource.
+- **project_id** (string) - Required - The unique identifier of the project.
+- **workspace_slug** (string) - Required - The workspace_slug represents the unique workspace identifier for a workspace in Plane. It can be found in the URL. For example, in the URL `https://app.plane.so/my-team/projects/`, the workspace slug is `my-team`.
+
+#### Request Body
+- **comment_json** (object) - Optional - Comment json.
+- **comment_html** (string) - Optional - Comment html.
+- **access** (string) - Optional - Enum: `INTERNAL`, `EXTERNAL`.
+- **external_source** (string) - Optional - External source.
+- **external_id** (string) - Optional - External id.
+- **parent** (string) - Optional - Parent.
+
+### Scopes
+`projects.work_items.comments:write`
+
+### Response
+#### Success Response (200)
+- **id** (string) - Description
+- **comment_html** (string) - Description
+- **comment_json** (object) - Description
+- **actor** (object) - Description
+- **created_at** (string) - Description
+- **updated_at** (string) - Description
+```
+
+--------------------------------
+
+### Get Work Item Type Schema with JavaScript
+
+Source: https://developers.plane.so/api-reference/issue-types/types/get-work-item-type-schema
+
+This JavaScript snippet shows how to fetch a work item type schema using the Fetch API. Remember to replace 'your-api-key' with your actual Plane API key.
+
+```JavaScript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-item-types/schema/?include=members&type_id=type-uuid",
+  {
+    method: "GET",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### Search Work Items using JavaScript
+
+Source: https://developers.plane.so/api-reference/issue/search-issues
+
+This JavaScript snippet shows how to search for work items using the fetch API. Remember to replace 'your-api-key' with your actual Plane API key.
+
+```javascript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/work-items/search/?limit=10&project_id=project-uuid",
+  {
+    method: "GET",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+const data = await response.json();
+```
+
+--------------------------------
+
+### List Customer Work Items
+
+Source: https://developers.plane.so/api-reference/customer/list-customer-work-items
+
+Use this endpoint to retrieve all issues linked to a customer. Ensure you have the correct customer ID and workspace slug. Authentication can be done via an API Key or OAuth token.
+
+```bash
+curl -X GET \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/customers/customer-uuid/issues/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### List all work items using Python
+
+Source: https://developers.plane.so/api-reference/issue/list-issues
+
+This Python script demonstrates how to fetch a list of work items from a project using the Plane API. It utilizes the `requests` library and requires your API key for authentication. The example includes query parameters for pagination and expanding related fields.
+
+```Python
+import requests
+
+response = requests.get(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/?cursor=20:1:0&expand=assignees",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.json())
+```
+
+--------------------------------
+
+### Get work item page link
+
+Source: https://developers.plane.so/api-reference/work-item-pages/get-work-item-page-detail
+
+Retrieve details of a specific page link for a work item. This endpoint requires authentication via an API key or OAuth token.
+
+```APIDOC
+## GET /api/v1/workspaces/{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/pages/{page_id}/
+
+### Description
+Retrieve details of a specific page link for a work item.
+
+### Method
+GET
+
+### Endpoint
+/api/v1/workspaces/{workspace_slug}/projects/{project_id}/work-items/{work_item_id}/pages/{page_id}/
+
+### Parameters
+#### Path Parameters
+- **workspace_slug** (string) - Required - The workspace_slug represents the unique workspace identifier for a workspace in Plane. It can be found in the URL. For example, in the URL `https://app.plane.so/my-team/projects/`, the workspace slug is `my-team`.
+- **project_id** (string) - Required - The unique identifier of the project.
+- **work_item_id** (string) - Required - The unique identifier of the work item.
+- **page_id** (string) - Required - The unique identifier of the page.
+
+#### Scopes
+API key authentication or an OAuth token with equivalent access.
+
+### Request Example
+```bash
+curl -X GET \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/pages/page-uuid/" \
+  -H "X-API-Key: $PLANE_API_KEY"
+```
+
+### Response
+#### Success Response (200)
+- **id** (string) - The unique identifier of the page link.
+- **page** (object) - Details of the page.
+  - **id** (string) - The unique identifier of the page.
+  - **name** (string) - The name of the page.
+  - **description_html** (string) - The HTML description of the page.
+  - **created_at** (string) - The timestamp when the page was created.
+  - **updated_at** (string) - The timestamp when the page was last updated.
+  - **created_by** (string) - The identifier of the user who created the page.
+  - **is_global** (boolean) - Indicates if the page is global.
+  - **logo_props** (object) - Properties related to the page logo.
+- **issue** (string) - The identifier of the work item associated with this page link.
+- **project** (string) - The identifier of the project.
+- **workspace** (string) - The identifier of the workspace.
+- **created_at** (string) - The timestamp when the page link was created.
+- **updated_at** (string) - The timestamp when the page link was last updated.
+- **created_by** (string) - The identifier of the user who created the page link.
+
+#### Response Example
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "page": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Example Name",
+    "description_html": "<p>Example content</p>",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-01T00:00:00Z",
+    "created_by": "550e8400-e29b-41d4-a716-446655440000",
+    "is_global": false,
+    "logo_props": {}
+  },
+  "issue": "550e8400-e29b-41d4-a716-446655440000",
+  "project": "550e8400-e29b-41d4-a716-446655440000",
+  "workspace": "550e8400-e29b-41d4-a716-446655440000",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "created_by": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+```
+
+--------------------------------
+
+### Deploy Plane with Advanced Setup
+
+Source: https://developers.plane.so/self-hosting/methods/install-methods-commercial/kubernetes
+
+Perform a production-ready deployment using a custom values.yaml file.
+
+```bash
+helm upgrade --install plane-app plane/plane-enterprise \
+    --create-namespace \
+    --namespace plane \
+    -f values.yaml \
+    --timeout 10m \
+    --wait \
+    --wait-for-jobs
+```
+
+--------------------------------
+
+### Deploy Plane CE with Quick Setup
+
+Source: https://developers.plane.so/self-hosting/methods/kubernetes
+
+Install Plane using default settings, including Nginx ingress and Longhorn storage classes.
+
+```bash
+helm install plane-app makeplane/plane-ce \
+    --create-namespace \
+    --namespace plane-ce \
+    --set planeVersion=stable \
+    --set ingress.appHost="plane.example.com" \
+    --set ingress.minioHost="plane-minio.example.com" \
+    --set ingress.ingressClass=nginx \
+    --set postgres.storageClass=longhorn \
+    --set redis.storageClass=longhorn \
+    --set minio.storageClass=longhorn \
+    --timeout 10m \
+    --wait \
+    --wait-for-jobs
+```
+
+--------------------------------
+
+### Set Environment Variables
+
+Source: https://developers.plane.so/self-hosting/methods/install-methods-commercial/kubernetes
+
+Define the Plane version and domain name before proceeding with the installation.
+
+```bash
+PLANE_VERSION=v2.6.3
+```
+
+```bash
+DOMAIN_NAME=<subdomain.domain.tld or domain.tld>
+```
+
+--------------------------------
+
+### Install Plane via Helm
+
+Source: https://developers.plane.so/self-hosting/methods/kubernetes
+
+Execute this command in your terminal after configuring the values.yaml file to deploy the Plane application.
+
+```bash
+helm install plane-app makeplane/plane-ce \
+    --create-namespace \
+    --namespace plane-ce \
+    -f values.yaml \
+    --timeout 10m \
+    --wait \
+    --wait-for-jobs
+```
+
+--------------------------------
+
+### Add and Update Helm Repository
+
+Source: https://developers.plane.so/self-hosting/methods/kubernetes
+
+Add the official Plane Helm repository to your local system and update the local index.
+
+```bash
+helm repo add makeplane https://helm.plane.so/
+helm repo update
+```
+
+--------------------------------
+
+### Deploy Plane with Quick Setup
+
+Source: https://developers.plane.so/self-hosting/methods/install-methods-commercial/kubernetes
+
+Execute a standard deployment using default settings for storage and ingress.
+
+```bash
+helm upgrade --install plane-app plane/plane-enterprise \
+    --create-namespace \
+    --namespace plane \
+    --set license.licenseDomain=${DOMAIN_NAME} \
+    --set license.licenseServer=https://prime.plane.so \
+    --set planeVersion=${PLANE_VERSION} \
+    --set ingress.enabled=true \
+    --set ingress.ingressClass=nginx \
+    --set env.storageClass=longhorn \
+    --timeout 10m \
+    --wait \
+    --wait-for-jobs
+```
+
+--------------------------------
+
+### Delete Work Item Page Link
+
+Source: https://developers.plane.so/api-reference/work-item-pages/delete-work-item-page
+
+Use this endpoint to remove a page link from a work item. Ensure you replace placeholder values with your actual workspace, project, work item, and page identifiers. Authentication can be done via an API key or an OAuth token.
+
+```javascript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/pages/page-uuid/",
+  {
+    method: "DELETE",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+console.log(response.status);
+```
+
+--------------------------------
+
+### Delete Work Item Page Link
+
+Source: https://developers.plane.so/api-reference/work-item-pages/delete-work-item-page
+
+Use this endpoint to remove a page link from a work item. Ensure you replace placeholder values with your actual workspace, project, work item, and page identifiers. Authentication can be done via an API key or an OAuth token.
+
+```python
+import requests
+
+response = requests.delete(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/pages/page-uuid/",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.status_code)
+```
+
+--------------------------------
+
+### Delete Work Item Page Link
+
+Source: https://developers.plane.so/api-reference/work-item-pages/delete-work-item-page
+
+Use this endpoint to remove a page link from a work item. Ensure you replace placeholder values with your actual workspace, project, work item, and page identifiers. Authentication can be done via an API key or an OAuth token.
+
+```bash
+curl -X DELETE \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/pages/page-uuid/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### Delete a Link
+
+Source: https://developers.plane.so/api-reference/link/delete-link
+
+Use this endpoint to permanently remove an external link from a work item. Ensure you have the correct workspace slug, project ID, work item ID, and resource ID. Authentication can be done via an API Key or Bearer Token.
+
+```cURL
+curl -X DELETE \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/links/resource-id-uuid/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### Unlink Work Item from Customer
+
+Source: https://developers.plane.so/api-reference/customer/unlink-work-item-from-customer
+
+Use this endpoint to remove the link between an issue and a customer. Ensure you replace placeholders with your actual workspace slug, customer ID, work item ID, and API key.
+
+```cURL
+curl -X DELETE \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/customers/customer-uuid/issues/work-item-uuid/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### Remove Work Item from Cycle
+
+Source: https://developers.plane.so/api-reference/cycle/remove-cycle-work-item
+
+Use this endpoint to remove a work item from a cycle. The work item will remain in the project. Ensure you have the 'projects.cycles:write' scope.
+
+```cURL
+curl -X DELETE \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/cycles/cycle-uuid/cycle-issues/work-item-uuid/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+```Python
+import requests
+
+response = requests.delete(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/cycles/cycle-uuid/cycle-issues/work-item-uuid/",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.status_code)
+```
+
+```JavaScript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/cycles/cycle-uuid/cycle-issues/work-item-uuid/",
+  {
+    method: "DELETE",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+console.log(response.status);
+```
+
+--------------------------------
+
+### Delete a work item comment
+
+Source: https://developers.plane.so/api-reference/issue-comment/delete-issue-comment
+
+Use this endpoint to permanently remove a comment from a work item. Ensure you have the necessary scopes and provide the correct identifiers for the workspace, project, work item, and the comment itself.
+
+```JavaScript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/resource-id-uuid/",
+  {
+    method: "DELETE",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+console.log(response.status);
+```
+
+--------------------------------
+
+### Retrieve a Work Item by ID using Python
+
+Source: https://developers.plane.so/api-reference/issue/get-issue-detail
+
+This Python script demonstrates how to fetch details of a specific work item using the Plane API. It utilizes the `requests` library and requires your API key for authentication. The example includes query parameters for expansion and external ID filtering.
+
+```python
+import requests
+
+response = requests.get(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/resource-id-uuid/?expand=assignees&external_id=1234567890",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.json())
+```
+
+--------------------------------
+
+### Delete a work item comment
+
+Source: https://developers.plane.so/api-reference/issue-comment/delete-issue-comment
+
+Use this endpoint to permanently remove a comment from a work item. Ensure you have the necessary scopes and provide the correct identifiers for the workspace, project, work item, and the comment itself.
+
+```Python
+import requests
+
+response = requests.delete(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/resource-id-uuid/",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.status_code)
+```
+
+--------------------------------
+
+### Delete a work item comment
+
+Source: https://developers.plane.so/api-reference/issue-comment/delete-issue-comment
+
+Use this endpoint to permanently remove a comment from a work item. Ensure you have the necessary scopes and provide the correct identifiers for the workspace, project, work item, and the comment itself.
+
+```cURL
+curl -X DELETE \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/work-items/work-item-uuid/comments/resource-id-uuid/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### List milestone work items
+
+Source: https://developers.plane.so/api-reference/milestones/list-milestone-work-items
+
+Use this endpoint to retrieve all work items for a given milestone. Ensure you replace placeholder values with your actual workspace, project, and milestone IDs. Authentication can be done via an API key or an OAuth token.
+
+```bash
+curl -X GET \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/milestones/milestone-uuid/work-items/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+--------------------------------
+
+### GET /api/v1/workspaces/{workspace_slug}/projects/{project_id}/modules/{module_id}/module-issues/
+
+Source: https://developers.plane.so/api-reference/module/list-module-work-items
+
+Retrieve all work items assigned to a module with detailed information. This endpoint supports pagination, filtering by fields, and expanding related data.
+
+```APIDOC
+## GET /api/v1/workspaces/{workspace_slug}/projects/{project_id}/modules/{module_id}/module-issues/
+
+### Description
+Retrieve all work items assigned to a module with detailed information.
+
+### Method
+GET
+
+### Endpoint
+/api/v1/workspaces/{workspace_slug}/projects/{project_id}/modules/{module_id}/module-issues/
+
+### Parameters
+#### Path Parameters
+- **module_id** (string) - Required - The unique identifier of the module.
+- **project_id** (string) - Required - The unique identifier of the project.
+- **workspace_slug** (string) - Required - The workspace_slug represents the unique workspace identifier for a workspace in Plane. It can be found in the URL. For example, in the URL `https://app.plane.so/my-team/projects/`, the workspace slug is `my-team`.
+
+#### Query Parameters
+- **cursor** (string) - Optional - Pagination cursor for getting next set of results
+- **expand** (string) - Optional - Comma-separated list of related fields to expand in response
+- **fields** (string) - Optional - Comma-separated list of fields to include in response
+- **order_by** (string) - Optional - Field to order results by. Prefix with '-' for descending order
+- **per_page** (integer) - Optional - Number of results per page (default: 20, max: 100)
+
+### Scopes
+`projects.modules:read`
+
+### Response
+#### Success Response (200)
+- **grouped_by** (string) - Description
+- **sub_grouped_by** (string) - Description
+- **total_count** (integer) - Description
+- **next_cursor** (string) - Description
+- **prev_cursor** (string) - Description
+- **next_page_results** (boolean) - Description
+- **prev_page_results** (boolean) - Description
+- **count** (integer) - Description
+- **total_pages** (integer) - Description
+- **total_results** (integer) - Description
+- **extra_stats** (null) - Description
+- **results** (array) - Description
+  - **id** (string) - Description
+  - **name** (string) - Description
+  - **created_at** (string) - Description
+
+#### Response Example
+{
+  "grouped_by": "state",
+  "sub_grouped_by": "priority",
+  "total_count": 150,
+  "next_cursor": "20:1:0",
+  "prev_cursor": "20:0:0",
+  "next_page_results": true,
+  "prev_page_results": false,
+  "count": 20,
+  "total_pages": 8,
+  "total_results": 150,
+  "extra_stats": null,
+  "results": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Example Name",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+--------------------------------
+
+### Remove Work Item from Module
+
+Source: https://developers.plane.so/api-reference/module/remove-module-work-item
+
+Use this endpoint to remove a work item from a module. The work item will remain in the project. Ensure you have the necessary 'projects.modules:write' scope.
+
+```cURL
+curl -X DELETE \
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/modules/module-uuid/module-issues/work-item-uuid/" \
+  -H "X-API-Key: $PLANE_API_KEY" \
+  # Or use -H "Authorization: Bearer $PLANE_OAUTH_TOKEN"
+```
+
+```Python
+import requests
+
+response = requests.delete(
+    "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/modules/module-uuid/module-issues/work-item-uuid/",
+    headers={"X-API-Key": "your-api-key"}
+)
+print(response.status_code)
+```
+
+```JavaScript
+const response = await fetch(
+  "https://api.plane.so/api/v1/workspaces/my-workspace/projects/project-uuid/modules/module-uuid/module-issues/work-item-uuid/",
+  {
+    method: "DELETE",
+    headers: {
+      "X-API-Key": "your-api-key",
+    },
+  }
+);
+console.log(response.status);
+```

@@ -1,0 +1,58 @@
+{
+  "snapshot_id": "C7-plane-developers-2026-08-02-29aba5867455",
+  "credential_alias": "primary",
+  "library_id": "/websites/developers_plane_so",
+  "library_version_or_branch": "developers.plane.so@live-docs 2026-08-02",
+  "query": "Plane REST API work items, modules, cycles, comments, links and worklogs endpoints",
+  "retrieved_at": "2026-08-02T05:54:23.219676+00:00",
+  "raw_response_hash": "sha256:29aba5867455a64fd8d9f52f9cdd53affbf6ffb4d5de44164573d385998b34d3",
+  "normalized_response_hash": "sha256:bf20860547a7ce8b4c6537cc2743fa05f8c6c503bfef08f02f5cc2feeae68354",
+  "source_locations": [
+    "https://developers.plane.so/api-reference/customer/link-work-items-to-customer",
+    "https://developers.plane.so/api-reference/customer/list-customer-work-items",
+    "https://developers.plane.so/api-reference/customer/unlink-work-item-from-customer",
+    "https://developers.plane.so/api-reference/cycle/add-cycle-work-items",
+    "https://developers.plane.so/api-reference/cycle/list-cycle-work-items",
+    "https://developers.plane.so/api-reference/cycle/remove-cycle-work-item",
+    "https://developers.plane.so/api-reference/cycle/transfer-cycle-work-items",
+    "https://developers.plane.so/api-reference/epics/list-epic-work-items",
+    "https://developers.plane.so/api-reference/issue-comment/add-issue-comment",
+    "https://developers.plane.so/api-reference/issue-comment/delete-issue-comment",
+    "https://developers.plane.so/api-reference/issue-comment/list-issue-comments",
+    "https://developers.plane.so/api-reference/issue-comment/update-issue-comment-detail",
+    "https://developers.plane.so/api-reference/issue-types/types/get-work-item-type-schema",
+    "https://developers.plane.so/api-reference/issue/get-issue-detail",
+    "https://developers.plane.so/api-reference/issue/list-issues",
+    "https://developers.plane.so/api-reference/issue/search-issues",
+    "https://developers.plane.so/api-reference/link/delete-link",
+    "https://developers.plane.so/api-reference/milestones/list-milestone-work-items",
+    "https://developers.plane.so/api-reference/module/add-module-work-items",
+    "https://developers.plane.so/api-reference/module/list-module-work-items",
+    "https://developers.plane.so/api-reference/module/remove-module-work-item",
+    "https://developers.plane.so/api-reference/work-item-pages/add-work-item-page",
+    "https://developers.plane.so/api-reference/work-item-pages/delete-work-item-page",
+    "https://developers.plane.so/api-reference/work-item-pages/get-work-item-page-detail",
+    "https://developers.plane.so/api-reference/work-item-pages/list-work-item-pages",
+    "https://developers.plane.so/api-reference/worklogs/get-total-time",
+    "https://developers.plane.so/api-reference/worklogs/get-worklogs-for-issue",
+    "https://developers.plane.so/self-hosting/methods/install-methods-commercial/kubernetes",
+    "https://developers.plane.so/self-hosting/methods/kubernetes"
+  ],
+  "affected_dependencies": [
+    "plane"
+  ],
+  "affected_decisions": [
+    "DEC-602-plane-projection-endpoint-shapes"
+  ],
+  "measured_live_corrections": [
+    "app.plane.so serves GET but returns 405 for POST/PATCH/DELETE; api.plane.so accepts writes",
+    "no sub-work-items endpoint (404): a sub work item is a work item carrying `parent`",
+    "duplicate external_id on POST /work-items/ returns 409 with the existing id in the body",
+    "POST /cycles/ requires project_id in the body and rejects the spelling `project`",
+    "cycles enforce name uniqueness and answer 400 without an id, unlike work items",
+    "?external_source=&external_id= resolves a single object for work-items and modules, ignored by cycles",
+    "worklogs return 404 'Worklog is not enabled for the project' on this project",
+    "an invalid API key returns 403, not 401"
+  ],
+  "credential_independence_note": "dependency-policy.yaml: the two Context7 credentials are capacity/failover, not independent evidence sources. This snapshot is ONE source. The live-API probe recorded above is a genuinely different origin and is what corroborates it."
+}
