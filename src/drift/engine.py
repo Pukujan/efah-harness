@@ -22,9 +22,10 @@ a detector that cannot be made to fire is not evidence that nothing is wrong.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from fnmatch import fnmatch
-from typing import Any, Sequence
+from typing import Any
 
 from contracts.compiler import CompiledProject
 from drift import security

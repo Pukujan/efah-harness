@@ -12,8 +12,9 @@ requirements is itself drift (GATE-D2-22 A4).
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 from governance.envelope import CONTRACT_VERSION
 from governance.states import ContractReviewOutcome, DriftFinding, ProjectState
@@ -116,7 +117,7 @@ class ContractReviewScheduler:
         self._counter = 0
 
     @classmethod
-    def from_pack(cls, pack: Any) -> "ContractReviewScheduler":
+    def from_pack(cls, pack: Any) -> ContractReviewScheduler:
         project = pack.yaml("project.yaml")["project"]
         contract = pack.yaml("contract.yaml")["contract_review"]
         return cls(

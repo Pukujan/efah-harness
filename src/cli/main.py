@@ -35,9 +35,10 @@ import argparse
 import importlib
 import json
 import sys
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Sequence
+from typing import Any
 
 from contracts.compiler import CompiledProject, compile_pack
 from governance.compiler import CompilationError

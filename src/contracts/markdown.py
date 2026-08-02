@@ -84,10 +84,7 @@ def bullets(text: str) -> list[str]:
             current = [raw[2:].strip()]
         elif current and raw.startswith("  ") and raw.strip():
             current.append(raw.strip())
-        elif current and not raw.strip():
-            collected.append(" ".join(current))
-            current = []
-        elif current and not raw.startswith(" "):
+        elif (current and not raw.strip()) or (current and not raw.startswith(" ")):
             collected.append(" ".join(current))
             current = []
     if current:

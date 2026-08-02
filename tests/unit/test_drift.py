@@ -25,8 +25,8 @@ from drift.engine import (
     ArtifactClaim,
     DriftEngine,
     DriftScanInput,
-    ReleaseContents,
     EvaluationClaim,
+    ReleaseContents,
 )
 from drift.review import (
     DEFAULT_INTERVAL_MATERIAL_PHASES,

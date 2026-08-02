@@ -165,7 +165,7 @@ class CheckpointReference(BaseModel):
     pending_gates: list[str] = Field(default_factory=list)
 
     @classmethod
-    def from_channel_values(cls, channel_values: dict[str, Any]) -> "CheckpointReference":
+    def from_channel_values(cls, channel_values: dict[str, Any]) -> CheckpointReference:
         return cls(**{k: channel_values[k] for k in REQUIRED_CHECKPOINT_FIELDS})
 
 

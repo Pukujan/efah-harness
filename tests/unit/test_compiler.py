@@ -221,7 +221,7 @@ def test_step_7_records_are_emitted_as_compiled_objects():
 def test_amendment_refuses_a_walking_skeleton_anchor_it_cannot_find():
     contract_md = (PACK_ROOT / "contract.md").read_text().replace("dashboard update", "dashboard refresh")
     amendment = (PACK_ROOT / "evidence" / "owner-documents" / revalidation.AMENDMENT_FILENAME).read_text()
-    with pytest.raises(revalidation.AmendmentError, match="not a Section 14.4 step"):
+    with pytest.raises(revalidation.AmendmentError, match=r"not a Section 14\.4 step"):
         revalidation.recompile_walking_skeleton(contract_md, amendment)
 
 

@@ -46,15 +46,13 @@ def test_gate_d1_04_a5_no_direct_checkpointer_import_outside_the_adapter():
         if path == ADAPTER_MODULE:
             continue
         names = _imports(path)
-        if any(n.startswith(root) for n in names for root in CHECKPOINTER_IMPORT_ROOTS):
-            offenders.append(str(path.relative_to(SRC)))
-        elif any(n.rsplit(".", 1)[-1] in CHECKPOINTER_SYMBOLS for n in names):
+        if any(n.startswith(root) for n in names for root in CHECKPOINTER_IMPORT_ROOTS) or any(n.rsplit(".", 1)[-1] in CHECKPOINTER_SYMBOLS for n in names):
             offenders.append(str(path.relative_to(SRC)))
     assert offenders == [], f"checkpointer reached outside the Section 10.3 adapter: {offenders}"
 
 
 def test_default_path_is_the_contract_specified_location():
-    assert DEFAULT_CHECKPOINT_PATH == Path("./.data/checkpoints.sqlite")
+    assert Path("./.data/checkpoints.sqlite") == DEFAULT_CHECKPOINT_PATH
 
 
 def test_strict_serializer_refuses_the_permissive_default():

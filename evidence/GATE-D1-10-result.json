@@ -12,7 +12,7 @@
     "A2": {
       "claim": "no Anthropic import in any surface code path",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.37s"
+      "detail": "1 passed, 30 deselected, 1 warning in 0.39s"
     },
     "A3": {
       "claim": "owner reads project and task state",
@@ -27,12 +27,12 @@
     "A5": {
       "claim": "owner can resume, retry, cancel",
       "passed": true,
-      "detail": "4 passed, 27 deselected, 1 warning in 0.55s"
+      "detail": "4 passed, 27 deselected, 1 warning in 0.54s"
     },
     "A6": {
       "claim": "scope expansion rejected, not executed",
       "passed": true,
-      "detail": "6 passed, 25 deselected, 1 warning in 0.62s"
+      "detail": "6 passed, 25 deselected, 1 warning in 0.72s"
     },
     "A7": {
       "claim": "cannot bypass a gate or self-approve",
@@ -42,12 +42,12 @@
     "A8": {
       "claim": "cannot reach protected assets",
       "passed": true,
-      "detail": "6 passed, 25 deselected, 1 warning in 0.62s"
+      "detail": "6 passed, 25 deselected, 1 warning in 0.63s"
     },
     "A9": {
       "claim": "usable from a mobile viewport, self-contained",
       "passed": true,
-      "detail": "1 passed, 30 deselected, 1 warning in 0.40s"
+      "detail": "1 passed, 30 deselected, 1 warning in 0.41s"
     },
     "A10": {
       "claim": "routes through the production gateway",

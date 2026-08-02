@@ -912,9 +912,7 @@ class ContractCompiler:
         text = str(rule.get("rule", ""))
         if "family" in text and left["family"] == right["family"]:
             return False
-        if "agent" in text and left["alias"] == right["alias"]:
-            return False
-        return True
+        return not ("agent" in text and left["alias"] == right["alias"])
 
     # ------------------------------------------------------------------
     # output 7: model capability requirements

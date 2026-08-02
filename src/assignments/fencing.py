@@ -20,6 +20,7 @@ one that collapsed it into ``FAIL`` would report a fabricated finding. Section
 
 from __future__ import annotations
 
+import contextlib
 from collections.abc import Callable, Iterable
 from datetime import UTC, datetime
 from typing import Any
@@ -423,10 +424,8 @@ def _fixture_cases() -> Iterable[tuple[str, Verdict]]:
     ledger, clock = _fixture_ledger()
     lease = _acquire(ledger)
     clock.advance(lease.renewal_policy.lease_duration_seconds + 1)
-    try:
+    with contextlib.suppress(Exception):
         ledger.renew(lease.lease_id)
-    except Exception:  # noqa: BLE001 -- refusal is the expected outcome
-        pass
     yield "GP-001", LeaseFencingOracle(ledger).evaluate(_submission(lease)).verdict
 
     # GP-002 -- copy the current generation from the ledger, wrong inputs.

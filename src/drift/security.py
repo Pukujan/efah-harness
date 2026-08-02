@@ -26,8 +26,9 @@ Three properties this module guarantees, each with a test:
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 from governance.states import DriftFinding
 

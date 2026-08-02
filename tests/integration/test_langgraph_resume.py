@@ -46,7 +46,7 @@ THREAD_ID = "GATE-D1-04"
 # Probe 1: kill the process, resume in a new one.
 # ---------------------------------------------------------------------------
 
-CHILD_SOURCE = '''
+CHILD_SOURCE = f'''
 """Child process for the GATE-D1-04 kill/restart probe.
 
 Runs a two-branch graph on the real Section 10.3 adapter. ``durable_branch``
@@ -75,7 +75,7 @@ def record(name):
 def durable_branch(state):
     record("durable_branch")
     (D / "durable_branch.done").write_text("1")
-    return {"output_hashes": {"probe.durable": "sha256:durable"}, "node_log": ["durable_branch"]}
+    return {{"output_hashes": {{"probe.durable": "sha256:durable"}}, "node_log": ["durable_branch"]}}
 
 
 def hanging_branch(state):
@@ -87,12 +87,12 @@ def hanging_branch(state):
                 break
             time.sleep(0.02)
         time.sleep(120)   # the parent SIGKILLs us in here
-    return {"output_hashes": {"probe.hanging": "sha256:hanging"}, "node_log": ["hanging_branch"]}
+    return {{"output_hashes": {{"probe.hanging": "sha256:hanging"}}, "node_log": ["hanging_branch"]}}
 
 
 def join(state):
     record("join")
-    return {"node_log": ["join"]}
+    return {{"node_log": ["join"]}}
 
 
 async def main():
@@ -108,7 +108,7 @@ async def main():
 
     async with SqliteCheckpointAdapter.open(D / "checkpoints.sqlite") as adapter:
         graph = builder.compile(checkpointer=adapter.saver())
-        config = {"configurable": {"thread_id": "%(thread_id)s"}}
+        config = {{"configurable": {{"thread_id": "{THREAD_ID}"}}}}
         state = None
         if MODE == "kill":
             state = initial_state(
@@ -122,14 +122,14 @@ async def main():
                 graph_id="resume_probe",
             )
         result = await graph.ainvoke(state, config)
-        (D / "result.json").write_text(json.dumps({
+        (D / "result.json").write_text(json.dumps({{
             "node_log": result.get("node_log", []),
-            "output_hashes": result.get("output_hashes", {}),
-        }))
+            "output_hashes": result.get("output_hashes", {{}}),
+        }}))
 
 
 asyncio.run(main())
-''' % {"thread_id": THREAD_ID}
+'''
 
 
 def _count(directory: Path, node: str) -> int:
@@ -166,7 +166,7 @@ async def _durable_write_landed(store: Path) -> bool:
     try:
         async with SqliteCheckpointAdapter.open(store) as adapter:
             return "output_hashes" in await adapter.pending_write_channels(THREAD_ID)
-    except Exception:  # noqa: BLE001 -- concurrent writer; retry on the next tick
+    except Exception:
         return False
 
 
@@ -175,7 +175,7 @@ async def test_gate_d1_04_process_kill_then_resume_does_not_rerun_completed_node
     script.write_text(CHILD_SOURCE)
     store = tmp_path / "checkpoints.sqlite"
 
-    child = subprocess.Popen(  # noqa: S603 -- fixed argv, no shell
+    child = subprocess.Popen(
         [sys.executable, str(script), str(tmp_path), "kill"],
         env=_child_env(),
         cwd=str(REPO_ROOT),
@@ -214,7 +214,7 @@ async def test_gate_d1_04_process_kill_then_resume_does_not_rerun_completed_node
     assert _count(tmp_path, "join") == 0
 
     # A brand-new process, no shared memory, no input: resume from checkpoint.
-    resumed = subprocess.run(  # noqa: S603
+    resumed = subprocess.run(
         [sys.executable, str(script), str(tmp_path), "resume"],
         env=_child_env(),
         cwd=str(REPO_ROOT),

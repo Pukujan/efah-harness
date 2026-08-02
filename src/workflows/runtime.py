@@ -100,7 +100,7 @@ class WorkflowRuntime:
             result = await self.compiled(graph_id).ainvoke(state, config)
         # ``Exception``, not ``BaseException``: cancellation and KeyboardInterrupt
         # are the operator stopping the run, not a Section 10.6 failure class.
-        except Exception as exc:  # noqa: BLE001 -- classification is the point
+        except Exception as exc:
             failure_class = classify(exc)
             decision = self.retry_policy.decide(exc, attempt=attempt)
             return RunOutcome(

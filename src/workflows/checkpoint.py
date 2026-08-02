@@ -169,7 +169,7 @@ class SqliteCheckpointAdapter:
         path: Path | str = DEFAULT_CHECKPOINT_PATH,
         *,
         extra_allowed_modules: Iterable[tuple[str, ...] | type] = (),
-    ) -> AsyncIterator["SqliteCheckpointAdapter"]:
+    ) -> AsyncIterator[SqliteCheckpointAdapter]:
         target = Path(path)
         target.parent.mkdir(parents=True, exist_ok=True)
         adapter = cls(path=target)

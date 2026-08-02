@@ -15,6 +15,7 @@ detector, a negative control proving the detector fires.
 from __future__ import annotations
 
 import functools
+import itertools
 from pathlib import Path
 
 import pytest
@@ -156,7 +157,7 @@ def test_a4_critical_path_is_a_real_chain_in_execution_order():
         for edge in project.graph.edges_of_type("depends_on")
     }
     nodes = project.critical_path.nodes
-    for prerequisite, dependent in zip(nodes, nodes[1:]):
+    for prerequisite, dependent in itertools.pairwise(nodes):
         assert (dependent, prerequisite) in depends_on, f"{dependent} does not depend on {prerequisite}"
 
 

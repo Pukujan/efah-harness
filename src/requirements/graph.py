@@ -22,8 +22,9 @@ like a two-node cycle.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Any, Iterable
+from typing import Any
 
 from governance.states import DriftFinding
 
@@ -267,7 +268,7 @@ class DependencyGraph:
             adjacency = self.adjacency(edge_types, kinds)
             report.scanned[label] = sum(len(v) for v in adjacency.values())
             for cycle in _find_cycles(adjacency):
-                report.cycles.append([label] + cycle)
+                report.cycles.append([label, *cycle])
         return report
 
     # -- GATE-D1-03 A4: critical path --------------------------------------
@@ -370,7 +371,7 @@ def _find_cycles(adjacency: dict[str, list[str]]) -> list[list[str]]:
             if colour[target] == WHITE:
                 visit(target)
             elif colour[target] == GREY:
-                cycle = stack[stack.index(target):] + [target]
+                cycle = [*stack[stack.index(target):], target]
                 key = tuple(_canonical_rotation(cycle[:-1]))
                 if key not in seen:
                     seen.add(key)
