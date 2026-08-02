@@ -21,13 +21,13 @@ from governance.states import DriftFinding
 from ontology.schema import ControlPlaneEntity
 
 __all__ = [
-    "StaleContractVersion",
+    "REQUIRED_ENVELOPE_FIELDS",
     "MissingProvenanceBinding",
+    "StaleContractVersion",
     "entity_body",
+    "require_current_contract",
     "seal_entity",
     "verify_entity",
-    "require_current_contract",
-    "REQUIRED_ENVELOPE_FIELDS",
 ]
 
 E = TypeVar("E", bound=ControlPlaneEntity)

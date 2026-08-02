@@ -39,14 +39,14 @@ from ontology.schema import TaskEvent, TaskEventType, TaskProjection
 from provenance.writer import ProvenanceWriter, WriteReceipt
 
 __all__ = [
-    "ActorKind",
+    "EVENT_PERMITTED_ACTORS",
+    "EVENT_RESULTING_STATE",
+    "WORKER_AUTHORABLE_STATES",
     "Actor",
+    "ActorKind",
     "LedgerAuthorityViolation",
     "LedgerIntegrityError",
     "TaskLedger",
-    "EVENT_RESULTING_STATE",
-    "EVENT_PERMITTED_ACTORS",
-    "WORKER_AUTHORABLE_STATES",
 ]
 
 

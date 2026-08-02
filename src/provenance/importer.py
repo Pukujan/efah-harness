@@ -26,9 +26,10 @@ into ``efah`` would defeat GATE-D1-06 in the very first write of the run.
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Sequence
+from typing import Any
 
 from governance.envelope import (
     CONTRACT_ID,

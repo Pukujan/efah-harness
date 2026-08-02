@@ -9,7 +9,7 @@ path may reveal it.
 This module owns three things:
 
 * :class:`ProtectedIdentityStore` -- the port. The TerminusDB-backed adapter for
-  the protected instance on ``localhost:6364`` is owned by WS-B and belongs at
+  the protected identity instance is owned by the TerminusDB lane and belongs at
   ``src/integrations/protected_identity.py``. This module deliberately does not
   create that file; it codes against the Protocol so the adapter can be dropped
   in without touching the router.
@@ -112,7 +112,7 @@ class ModelIdentity:
 class ProtectedIdentityStore(Protocol):
     """Port for the protected identity instance (contract Section 11.2).
 
-    WS-B implements this over TerminusDB at ``http://localhost:6364`` in
+    The TerminusDB lane implements this over the protected instance in
     ``src/integrations/protected_identity.py``. The main-instance credential
     must continue to fail against it.
     """

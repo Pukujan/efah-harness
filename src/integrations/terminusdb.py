@@ -43,8 +43,9 @@ a reimplementation of the database (Section 14.2).
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any
 from urllib.parse import quote
 
 import httpx
@@ -164,7 +165,7 @@ class CommitRecord:
         return bool(self.identifier) and self.commit_type in {"ValidCommit", "InitialCommit"}
 
     @classmethod
-    def from_json(cls, doc: Mapping[str, Any]) -> "CommitRecord":
+    def from_json(cls, doc: Mapping[str, Any]) -> CommitRecord:
         return cls(
             identifier=doc.get("identifier", ""),
             commit_type=doc.get("@type", ""),
@@ -226,7 +227,7 @@ class TerminusClient:
     def endpoint(self) -> str:
         return self._config.base_url
 
-    async def __aenter__(self) -> "TerminusClient":
+    async def __aenter__(self) -> TerminusClient:
         return self
 
     async def __aexit__(self, *exc: object) -> None:

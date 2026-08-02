@@ -44,9 +44,9 @@ from ontology.schema import ALL_MODELS, ControlPlaneEntity, Link
 
 __all__ = [
     "SCHEMA_CONTEXT",
+    "from_terminus_document",
     "terminus_schema_documents",
     "to_terminus_document",
-    "from_terminus_document",
 ]
 
 _SCALARS: dict[type, str] = {

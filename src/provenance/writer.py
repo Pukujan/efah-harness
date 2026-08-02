@@ -22,9 +22,10 @@ for.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Sequence
+from typing import Any
 
 from governance.envelope import content_hash
 from integrations.terminusdb import CommitRecord, TerminusClient
@@ -38,7 +39,7 @@ from provenance.binding import (
     verify_entity,
 )
 
-__all__ = ["WriteReceipt", "ProvenanceWriter"]
+__all__ = ["ProvenanceWriter", "WriteReceipt"]
 
 
 @dataclass(frozen=True)

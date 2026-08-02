@@ -27,7 +27,7 @@ from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from governance.envelope import Envelope
+from governance.envelope import Envelope, EvidenceTier, KnowledgeTier
 from governance.states import (
     ContractReviewOutcome,
     FailureClass,
@@ -36,18 +36,17 @@ from governance.states import (
     TaskState,
     Verdict,
 )
-from governance.envelope import EvidenceTier, KnowledgeTier
 
 __all__ = [
-    "Link",
+    "ALL_MODELS",
+    "CONTROL_PLANE_ENTITY_NAMES",
+    "ENTITY_MODELS",
+    "LEDGER_MODELS",
     "ControlPlaneEntity",
     "DependencyEdgeType",
     "DependencyKind",
+    "Link",
     "TaskEventType",
-    "ENTITY_MODELS",
-    "CONTROL_PLANE_ENTITY_NAMES",
-    "LEDGER_MODELS",
-    "ALL_MODELS",
     "document_id",
 ]
 

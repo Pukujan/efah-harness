@@ -140,8 +140,9 @@ async def test_unknown_alias_reveals_nothing():
 async def test_pack_model_policy_identities_live_only_on_the_protected_side():
     """Every alias in the pack resolves to a real identity here, and only here."""
     require_env("TERMINUSDB_PROTECTED_PASS")
-    import yaml
     from pathlib import Path
+
+    import yaml
 
     policy = yaml.safe_load(
         (Path(__file__).resolve().parents[2] / "project-pack" / "model-policy.yaml").read_text()

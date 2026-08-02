@@ -50,15 +50,15 @@ from integrations.terminusdb import (
 )
 
 __all__ = [
-    "PROTECTED_ENDPOINT",
     "PROTECTED_DATABASE",
+    "PROTECTED_ENDPOINT",
     "PROTECTED_PASSWORD_REF",
-    "ProtectedIdentityStore",
-    "ProtectedIdentityAccessError",
-    "ProtectedModelIdentity",
     "AliasView",
-    "OwnerAuditRequest",
     "IsolationProbeResult",
+    "OwnerAuditRequest",
+    "ProtectedIdentityAccessError",
+    "ProtectedIdentityStore",
+    "ProtectedModelIdentity",
     "probe_credential_against_protected",
     "protected_store_from_env",
 ]
@@ -235,7 +235,7 @@ class ProtectedIdentityStore:
     def database(self) -> str:
         return self._database
 
-    async def __aenter__(self) -> "ProtectedIdentityStore":
+    async def __aenter__(self) -> ProtectedIdentityStore:
         return self
 
     async def __aexit__(self, *exc: object) -> None:

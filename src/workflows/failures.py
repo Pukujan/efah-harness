@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from governance.envelope import content_hash
+from governance.protected import PROTECTED_INSTANCE_MARKERS
 from governance.states import FailureClass
 
 #: Classes where the same work, run again, can legitimately succeed.
@@ -61,7 +62,7 @@ _MESSAGE_SIGNALS: tuple[tuple[tuple[str, ...], FailureClass], ...] = (
     (("contract version", "contract drift", "stale contract"), FailureClass.CONTRACT_DRIFT),
     (("holdout",), FailureClass.HOLDOUT_FAILURE),
     (("oracle",), FailureClass.ORACLE_INVALID),
-    (("protected", "6364", "401"), FailureClass.PROTECTED_ACCESS),
+    ((("protected",) + PROTECTED_INSTANCE_MARKERS[:1] + ("401",)), FailureClass.PROTECTED_ACCESS),
 )
 
 _EXCEPTION_SIGNALS: tuple[tuple[tuple[str, ...], FailureClass], ...] = (

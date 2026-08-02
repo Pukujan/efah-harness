@@ -34,7 +34,7 @@ from ontology.schema import (
 from provenance.writer import ProvenanceWriter, WriteReceipt
 from tasks.ledger import Actor, ActorKind, TaskLedger
 
-__all__ = ["TaskService", "StaleLeaseRejected", "TaskCreation"]
+__all__ = ["StaleLeaseRejected", "TaskCreation", "TaskService"]
 
 
 class StaleLeaseRejected(RuntimeError):

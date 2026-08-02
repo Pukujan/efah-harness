@@ -15,6 +15,7 @@ import pytest
 import pytest_asyncio
 
 from governance.envelope import Envelope
+from governance.states import ProjectState
 from integrations.terminusdb import (
     MAIN_BRANCH,
     TerminusAlreadyExists,
@@ -25,7 +26,6 @@ from integrations.terminusdb import (
 )
 from ontology import terminus_schema_documents, to_terminus_document
 from ontology.schema import Dependency, DependencyEdgeType, DependencyKind, Project
-from governance.states import ProjectState
 
 AUTHOR = "ws-b-terminusdb"
 MAIN_ENDPOINT = "http://localhost:6363"

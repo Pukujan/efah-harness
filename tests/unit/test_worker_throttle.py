@@ -68,8 +68,18 @@ def test_acquire_actually_waits(throttle):
 
 
 async def test_async_acquire_waits_without_a_second_event_loop(throttle):
-    await throttle.acquire_async()
+    """Two acquisitions must be at least one interval apart.
+
+    Measured from *before* the first acquisition, not between the two. The
+    throttle schedules relative to the reservation it granted, so if this
+    process is descheduled between the two calls -- routine on a box running six
+    worker lanes -- the remaining sleep is legitimately shorter than the
+    interval while the spacing is still correct. Timing the gap between the
+    calls measured CPU starvation, not the limiter, and failed under exactly the
+    concurrency this limiter exists to survive.
+    """
     started = time.perf_counter()
+    await throttle.acquire_async()
     await throttle.acquire_async()
     assert time.perf_counter() - started >= 0.85
 

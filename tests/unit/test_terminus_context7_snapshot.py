@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from governance.envelope import content_hash
+from integrations.context7 import verify_snapshot
 
 ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT_DIR = ROOT / "project-pack" / "evidence" / "context7-snapshots"
@@ -43,15 +43,17 @@ def test_snapshot_carries_every_required_field(path: Path):
 
 
 @pytest.mark.parametrize("path", _snapshots(), ids=lambda p: p.name)
-def test_snapshot_hashes_recompute_from_the_stored_body(path: Path):
-    snapshot = json.loads(path.read_text())
-    body = snapshot["response_body"]
-    assert snapshot["raw_response_hash"] == content_hash(body.encode("utf-8"))
+def test_snapshot_verifies_against_the_canonical_rule(path: Path):
+    """Contract §16.1 requires both hashes but does not define "normalized".
 
-    lines = [line.rstrip() for line in body.splitlines()]
-    normalized = "\n".join(line for line in lines if line)
-    assert snapshot["normalized_response_hash"] == content_hash(normalized)
-    assert snapshot["raw_response_hash"] != snapshot["normalized_response_hash"]
+    Two lanes independently chose two different normalisation rules, which is
+    worse than either: §16.2's version-diff loop compares normalised documents
+    across dependency versions, and two conventions make those diffs
+    incomparable. The rule now lives once in integrations.context7 and every
+    snapshot is checked against it.
+    """
+    problems = verify_snapshot(json.loads(path.read_text()))
+    assert not problems, f"{path.name}: {problems}"
 
 
 @pytest.mark.parametrize("path", _snapshots(), ids=lambda p: p.name)
