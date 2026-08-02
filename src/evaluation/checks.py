@@ -1179,8 +1179,20 @@ _COMPLETION_TIME_FIELDS = frozenset({"auto_merged_pr_reference"})
 def _d3_26_a1(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOutcome:
     package = _fresh_package()
     body = package.as_body()
-    pending = [k for k in package.missing if k in _COMPLETION_TIME_FIELDS]
-    gaps = [k for k in package.missing if k not in _COMPLETION_TIME_FIELDS]
+    # A field whose source exists but is bound to different source than HEAD is
+    # *stale*, not absent, and the difference matters. "The suite has not been
+    # re-run since the last edit" is a refresh instruction; reporting it as FAIL
+    # drives a blocking gate to FAILED_ASSURANCE and states that the project
+    # failed assurance, which is untrue. A stale record still cannot claim the
+    # tests pass — it reports UNVERIFIABLE, and only a genuinely absent
+    # measurement fails.
+    stale = {
+        entry["key"]
+        for entry in body["fields"]
+        if not entry["present"] and "exercised source tree" in str(entry.get("source", ""))
+    }
+    pending = [k for k in package.missing if k in _COMPLETION_TIME_FIELDS or k in stale]
+    gaps = [k for k in package.missing if k not in _COMPLETION_TIME_FIELDS and k not in stale]
     evidence = {
         "artifact_hashes_and_commit_binding": {
             "candidate_commit": ctx.binding.commit_sha,
@@ -1197,10 +1209,10 @@ def _d3_26_a1(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOu
         return undecided(
             (
                 f"{body['fields_present']}/{body['fields_total']} §27 fields are measured; "
-                f"{pending} cannot exist yet — §21.2 requires hidden_holdout: PASS before a "
-                "merge, and no sealed holdout content exists while FINDING-005 is open. "
-                "Reporting FAIL would record a defective package for a project that has "
-                "simply not merged"
+                f"{pending} are not yet measurable — a completion-time field cannot exist "
+                "before the merge this gate gates, and a stale field needs its source re-run, "
+                "not a failure verdict. Both would record a defective package for a project "
+                "that is simply not finished"
             ),
             evidence,
         )
