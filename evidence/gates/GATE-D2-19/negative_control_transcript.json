@@ -1,0 +1,13 @@
+{
+  "artifact": "negative_control_transcript",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "because": [
+      "hidden lane ran against ffffffffffff, the set is bound to c0d654a32621"
+    ],
+    "invalidated": true,
+    "probe": "change the candidate commit between lanes",
+    "set_verdict": "FAIL"
+  },
+  "gate_id": "GATE-D2-19"
+}

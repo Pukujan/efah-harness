@@ -1,0 +1,10 @@
+{
+  "artifact": "import_graph_report",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "claim": "Claude Code is only an optional worker adapter",
+    "findings": [],
+    "passed": true
+  },
+  "gate_id": "GATE-D1-07"
+}

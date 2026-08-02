@@ -1,6 +1,6 @@
 {
   "body": {
-    "candidate_commit": "0f00a7a85932acd04cbd14bfa1525d98885ec907",
+    "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
     "checker_test_suite_result": "NOT_RUN_IN_THIS_PROCESS",
     "content_hash": "sha256:073548d636cfe7a00bab28650798afc3298e577428808ff28f9203bc19103127",
     "definition_path": "project-pack/acceptance/oracle-definitions/ORACLE-002-lease-fencing.yaml",
@@ -217,10 +217,10 @@
     "unsatisfied_requirements": []
   },
   "envelope": {
-    "content_hash": "sha256:6d465a90c14f8fe2c8af8ce6564b0aad6261d44c92463c9e2f242ac5644139fd",
+    "content_hash": "sha256:7016a163a30de1192cc69f1b5ad162e1ba94a37a75375a2e6562782217a6ea11",
     "contract_id": "EFAH-CONTRACT-001",
     "contract_version": "1.1",
-    "created_at": "2026-08-02T05:51:22.969079+00:00",
+    "created_at": "2026-08-02T06:01:20.619857+00:00",
     "created_by_alias": "oracle-o02",
     "methodology_version": "1.0.0",
     "schema_id": "efah.oracle_mint_record",

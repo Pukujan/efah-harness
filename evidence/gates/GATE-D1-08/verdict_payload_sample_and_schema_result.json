@@ -1,0 +1,25 @@
+{
+  "artifact": "verdict_payload_sample_and_schema_result",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "alias_comparison": {
+      "judge": {
+        "distinct_by_alias": true,
+        "distinct_by_family": true,
+        "implementer_alias": "implementer-i12",
+        "implementer_family": "openai",
+        "other_alias": "judge-j03",
+        "other_family": "deepseek"
+      },
+      "sealed_holdout_author": {
+        "distinct_by_alias": true,
+        "distinct_by_family": true,
+        "implementer_alias": "implementer-i12",
+        "implementer_family": "openai",
+        "other_alias": "holdout-h01",
+        "other_family": "anthropic"
+      }
+    }
+  },
+  "gate_id": "GATE-D1-08"
+}

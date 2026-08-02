@@ -1,0 +1,10 @@
+{
+  "artifact": "hash_recomputation_log",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "declared": "sha256:746eaa3ddf5540cf4e43f3ff364c2e7380327475f101267eda3efb0d18175866",
+    "recomputed_matches": true,
+    "tampered_body_detected": true
+  },
+  "gate_id": "GATE-D1-02"
+}

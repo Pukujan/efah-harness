@@ -1,0 +1,32 @@
+{
+  "artifact": "gate_execution_log",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "candidates": [
+      {
+        "level": 1,
+        "oracle_id": "ORACLE-001"
+      },
+      {
+        "level": 1,
+        "oracle_id": "ORACLE-002"
+      },
+      {
+        "level": 2,
+        "oracle_id": "ORACLE-003"
+      }
+    ],
+    "check": "oracle_route_audit",
+    "expected": "route_selects_highest_available_level",
+    "not_selected_because_a_higher_level_was_available": [
+      {
+        "level": 2,
+        "oracle_id": "ORACLE-003"
+      }
+    ],
+    "question": "does this candidate bind to its evidence?",
+    "selected": "ORACLE-001",
+    "selected_hierarchy_level": 1
+  },
+  "gate_id": "GATE-D2-20"
+}

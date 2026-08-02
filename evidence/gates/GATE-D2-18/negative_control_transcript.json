@@ -1,0 +1,17 @@
+{
+  "artifact": "negative_control_transcript",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "promotion_attempts": {
+      "T6_APPROVED_OPERATIONAL_KNOWLEDGE": {
+        "reason": "K-unverified: cannot promote T2_HYPOTHESIS -> T6_APPROVED_OPERATIONAL_KNOWLEDGE: no passing verification recorded; T3_TESTED requires a test; T4_REPRODUCIBLE requires at least two independent reproductions, found 0; promotion above T4_REPRODUCIBLE requires a passing verification from a family other than 'openai'; Section 15.6 promotion steps not recorded: ['quarantine', 'reproducibility', 'independent_verification', 'mutant_validation', 'contamination_review']",
+        "rejected": true
+      },
+      "T7_HARD_GOLD": {
+        "reason": "K-unverified: cannot promote T2_HYPOTHESIS -> T7_HARD_GOLD: no passing verification recorded; T3_TESTED requires a test; T4_REPRODUCIBLE requires at least two independent reproductions, found 0; promotion above T4_REPRODUCIBLE requires a passing verification from a family other than 'openai'; Section 15.6 promotion steps not recorded: ['quarantine', 'reproducibility', 'independent_verification', 'mutant_validation', 'contamination_review']",
+        "rejected": true
+      }
+    }
+  },
+  "gate_id": "GATE-D2-18"
+}

@@ -1,0 +1,23 @@
+{
+  "artifact": "artifact_hashes_and_commit_binding",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+    "contract_version": "1.1",
+    "knowledge_item": {
+      "content_hash": "sha256:1108a4ba94d4340002834c0dc361953a3dd9de159c43f5d873bae4dfdac696fc",
+      "contract_id": "EFAH-CONTRACT-001",
+      "contract_version": "1.1",
+      "created_at": "2026-08-02T06:01:21.036276+00:00",
+      "created_by_alias": "researcher-r17",
+      "methodology_version": "1.0.0",
+      "schema_id": "efah.knowledge_item",
+      "schema_version": "1.0",
+      "terminus_branch": null,
+      "terminus_commit": null,
+      "terminus_database": null
+    },
+    "transcript_hash": "sha256:f22f5501dc0f582a1acbe6ab771ec8f63f8d8cce755f1dcf7db0b93a4a16c8ef"
+  },
+  "gate_id": "GATE-D2-18"
+}

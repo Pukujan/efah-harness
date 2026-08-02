@@ -1,0 +1,145 @@
+{
+  "artifact": "gate_execution_log",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "all_thirteen_recorded": true,
+    "blockers": [
+      "requirement not satisfied: unresolved_scope_drift",
+      "requirement not satisfied: visible_tests",
+      "requirement not satisfied: integration_tests",
+      "requirement not satisfied: composition_test",
+      "requirement not satisfied: hidden_holdout",
+      "requirement not satisfied: dependency_policy",
+      "requirement not satisfied: unresolved_high_risk_findings",
+      "requirement not satisfied: branch_up_to_date",
+      "requirement not evaluated: unresolved_scope_drift",
+      "requirement not evaluated: visible_tests",
+      "requirement not evaluated: integration_tests",
+      "requirement not evaluated: composition_test",
+      "requirement not evaluated: hidden_holdout",
+      "requirement not evaluated: dependency_policy",
+      "requirement not evaluated: unresolved_high_risk_findings",
+      "requirement not evaluated: branch_up_to_date",
+      "no CI checks are present on the pull request"
+    ],
+    "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+    "check": "requirement_evaluation_record",
+    "ci_checks_present": false,
+    "expected": "all_thirteen_recorded",
+    "implementing_agent_alias": "implementer-i12",
+    "may_merge": false,
+    "merge_actor": null,
+    "never_evaluated": [],
+    "pull_request": "candidate@c0d654a32621",
+    "recorded_count": 13,
+    "requirement_count": 13,
+    "requirements": [
+      {
+        "evaluated": true,
+        "observed": true,
+        "required": true,
+        "requirement": "contract_unchanged_or_approved",
+        "satisfied": true,
+        "source": "tools/check_assertion_hashes.py logic"
+      },
+      {
+        "evaluated": false,
+        "observed": null,
+        "required": 0,
+        "requirement": "unresolved_scope_drift",
+        "satisfied": false,
+        "source": "src/drift (WS-A)"
+      },
+      {
+        "evaluated": false,
+        "observed": null,
+        "required": "PASS",
+        "requirement": "visible_tests",
+        "satisfied": false,
+        "source": "CI job static-and-unit"
+      },
+      {
+        "evaluated": false,
+        "observed": null,
+        "required": "PASS",
+        "requirement": "integration_tests",
+        "satisfied": false,
+        "source": "CI integration job (not yet defined)"
+      },
+      {
+        "evaluated": false,
+        "observed": null,
+        "required": "PASS",
+        "requirement": "composition_test",
+        "satisfied": false,
+        "source": "ORACLE-001 needs a composition root (WS-C/WS-F)"
+      },
+      {
+        "evaluated": false,
+        "observed": null,
+        "required": "PASS",
+        "requirement": "hidden_holdout",
+        "satisfied": false,
+        "source": "sealed side unavailable: owner question Q1"
+      },
+      {
+        "evaluated": true,
+        "observed": "PASS",
+        "required": "PASS",
+        "requirement": "mutation_gate",
+        "satisfied": true,
+        "source": "mutants.runner"
+      },
+      {
+        "evaluated": true,
+        "observed": "PASS",
+        "required": "PASS",
+        "requirement": "oracle_health",
+        "satisfied": true,
+        "source": "oracles.fixtures + oracles.no_judge"
+      },
+      {
+        "evaluated": true,
+        "observed": "PASS",
+        "required": "PASS",
+        "requirement": "provenance_gate",
+        "satisfied": true,
+        "source": "ORACLE-003"
+      },
+      {
+        "evaluated": false,
+        "observed": null,
+        "required": "PASS",
+        "requirement": "dependency_policy",
+        "satisfied": false,
+        "source": "src/dependencies (WS-A)"
+      },
+      {
+        "evaluated": false,
+        "observed": null,
+        "required": 0,
+        "requirement": "unresolved_high_risk_findings",
+        "satisfied": false,
+        "source": "security review lane"
+      },
+      {
+        "evaluated": true,
+        "observed": false,
+        "required": false,
+        "requirement": "protected_assets_accessed",
+        "satisfied": true,
+        "source": "GATE-D1-08 A2 static scan"
+      },
+      {
+        "evaluated": false,
+        "observed": null,
+        "required": true,
+        "requirement": "branch_up_to_date",
+        "satisfied": false,
+        "source": "GitHub API under the builder identity"
+      }
+    ],
+    "waits_for_human_message": false
+  },
+  "gate_id": "GATE-D3-25"
+}

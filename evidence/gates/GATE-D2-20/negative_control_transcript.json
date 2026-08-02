@@ -1,0 +1,18 @@
+{
+  "artifact": "negative_control_transcript",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "authority_limits": {
+      "cross_vendor_agreement_is_proof": false,
+      "deterministic_oracle_preferred_over_model_judge": true,
+      "model_judge_in_deterministic_verdict_path": "forbidden",
+      "model_voting_as_correctness": "forbidden",
+      "uncalibrated_judge_is_gate": false
+    },
+    "gates_admitting_a_judge": [],
+    "judge_calibration_posture": "all_judges_advisory_for_deadline_build",
+    "minimum_agreement_to_gate": null,
+    "result_is_advisory_only": true
+  },
+  "gate_id": "GATE-D2-20"
+}

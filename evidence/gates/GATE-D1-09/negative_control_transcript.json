@@ -1,0 +1,13 @@
+{
+  "artifact": "negative_control_transcript",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "failure_state": "FAILED_PROVENANCE",
+    "probe": "submit a result claiming success with no named evidence",
+    "reasons": [
+      "R-001: claims success with no named evidence artifact"
+    ],
+    "verdict": "FAIL"
+  },
+  "gate_id": "GATE-D1-09"
+}

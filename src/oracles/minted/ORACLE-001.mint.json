@@ -1,6 +1,6 @@
 {
   "body": {
-    "candidate_commit": "0f00a7a85932acd04cbd14bfa1525d98885ec907",
+    "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
     "checker_test_suite_result": "NOT_RUN_IN_THIS_PROCESS",
     "content_hash": "sha256:a36b0896ba302788d7f6c35eb27a855bd71d89ef81e7e16e4ec42a9f0a1b937c",
     "definition_path": "project-pack/acceptance/oracle-definitions/ORACLE-001-composition-reachability.yaml",
@@ -217,10 +217,10 @@
     "unsatisfied_requirements": []
   },
   "envelope": {
-    "content_hash": "sha256:6731d84735d985d8a00863c6ab1bc48ee43a1f75edbcb8484fb1e4f0f6624d0c",
+    "content_hash": "sha256:8bd94c3f2062ec6897203a3146bf31490ebdc34a93febb971e4968eb3dc5319a",
     "contract_id": "EFAH-CONTRACT-001",
     "contract_version": "1.1",
-    "created_at": "2026-08-02T05:51:22.968665+00:00",
+    "created_at": "2026-08-02T06:01:20.619399+00:00",
     "created_by_alias": "oracle-o02",
     "methodology_version": "1.0.0",
     "schema_id": "efah.oracle_mint_record",
