@@ -170,6 +170,11 @@ class AvailabilityProbe:
                 messages=[{"role": "user", "content": PROBE_PROMPT}],
                 max_tokens=self.probe_max_tokens,
                 tools=[PROBE_TOOL] if include_tool else None,
+                # Probe the path production uses. A probe that streams while
+                # production does not -- or the reverse -- is evidence about the
+                # probe. This one was non-streaming while long generations died
+                # on the streamed/non-streamed distinction.
+                stream=self.policy.request_policy.prefer_streaming,
             )
         except Exception as exc:
             capability = ModelCapability(

@@ -16,7 +16,7 @@ EFAH — Contract §27 Final Evidence Package
     tier=DETERMINISTIC_ORACLE  source=live GET /api/info and /api/db/admin/{db}/local/branch
     note: graph commit id is not exposed by the branch endpoint on this version
 
-  Release repository and commit: {"repository": "git@github-efah:Pukujan/efah-harness.git", "branch": "feat/kernel-and-ci", "commit": "03a149084144050c4ae5e5a94fc9858c1aa2580b", "working_tre...
+  Release repository and commit: {"repository": "git@github-efah:Pukujan/efah-harness.git", "branch": "feat/kernel-and-ci", "commit": "7f5e0e6875d52c9fce59dce81f73a1327a7c73ab", "working_tre...
     tier=DETERMINISTIC_ORACLE  source=git rev-parse HEAD / git status --porcelain
 
   Release artifact digest: {"artifact": "efah-0.1.0-py3-none-any.whl", "digest": "sha256:eb53ded7b7e265ced392be03f39eb08b8975953d80be8539198965e734456c99", "size_bytes": 423917, "built...
@@ -31,13 +31,13 @@ EFAH — Contract §27 Final Evidence Package
     tier=DETERMINISTIC_ORACLE  source=.data/owner_surface_ledger.jsonl work_unit projections
 
 ! Visible tests result: UNAVAILABLE
-    tier=NOT_MEASURED  source=the recorded run exercised source tree 0f0d00952e10, the working tree is ddb113bd871c
+    tier=NOT_MEASURED  source=the recorded run exercised source tree 0f0d00952e10, the working tree is e1b025bbcace
     note: a passing suite from different source is not evidence about this source
 
   Integration/composition result: {"composition_findings": [], "composition_finding_count": 0, "modules_declared": 32}
     tier=DETERMINISTIC_ORACLE  source=composition.registry live discovery + recorded walking-skeleton evidence
 
-  Hidden holdout result: {"lane": "hidden", "candidate_commit": "03a149084144050c4ae5e5a94fc9858c1aa2580b", "verdict": "UNVERIFIABLE", "blocked_reason": "no protected-verifier endpoi...
+  Hidden holdout result: {"lane": "hidden", "candidate_commit": "7f5e0e6875d52c9fce59dce81f73a1327a7c73ab", "verdict": "UNVERIFIABLE", "blocked_reason": "no protected-verifier endpoi...
     tier=DETERMINISTIC_ORACLE  source=holdouts.suite.HoldoutLane submitted against HEAD
     note: UNVERIFIABLE is not a soft pass. No sealed holdout content exists: FINDING-005 holds generation, and the generator enforces that refusal itself. auto_merge_requirements.hidden_holdout therefore cannot be PASS.
 
@@ -72,7 +72,7 @@ EFAH — Contract §27 Final Evidence Package
     tier=DETERMINISTIC_ORACLE  source=model-policy.yaml alias map + models.separation.coverage_report()
     note: real model identities are deliberately absent (§12.3). Family is a label: FINDING-005 measured three anthropic-labelled roles resolving to one resold account pool, so a cross-family edge may not hold at the transport.
 
-  Timing breakdown: {"package_build_seconds": 0.266, "stages": [{"stage": "terminusdb", "seconds": 0.079}, {"stage": "requirements", "seconds": 0.005}, {"stage": "tasks", "secon...
+  Timing breakdown: {"package_build_seconds": 0.283, "stages": [{"stage": "terminusdb", "seconds": 0.089}, {"stage": "requirements", "seconds": 0.005}, {"stage": "tasks", "secon...
     tier=DETERMINISTIC_ORACLE  source=measured during this package build
     note: per-phase project timing lives in the task ledger; this is the package build itself
 

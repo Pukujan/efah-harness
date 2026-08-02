@@ -88,7 +88,19 @@ class LiteLLMWorkerAdapter:
                 max_tokens=max_tokens,
                 model=identity.litellm_model,
                 tools=list(work_unit.tools) or None,
-                stream=self.policy.request_policy.prefer_streaming and not work_unit.tools,
+                # Streaming even with tools. The owner's cortex research
+                # (STREAMING-DISPATCH-FINDING-2026-07-19) established that a
+                # non-streamed request holds an idle connection that the edge
+                # proxy kills at ~100-120s, and that the effect is
+                # transport-level -- "applies to every OpenAI-compatible lane
+                # behind an edge proxy, not one model". Excluding tool calls
+                # left the longest requests on the fragile path.
+                #
+                # _post_stream reassembles tool-call deltas by index, so the
+                # capability is not lost. The one known exception, minimax-m3,
+                # emits tool calls only when not streaming -- and it is in
+                # prohibited_models for exactly that.
+                stream=self.policy.request_policy.prefer_streaming,
             )
         except ModelPolicyError as exc:
             session.close()

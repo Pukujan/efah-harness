@@ -1,0 +1,63 @@
+{
+  "check": "generation_config_sweep",
+  "rule_ref": "DEC-008 \u2014 a failure is a configuration finding, not a verdict",
+  "oracle_type": "reproducible_empirical_benchmark",
+  "probed_at": "2026-08-02T19:54:33Z",
+  "working_configuration_per_model": {
+    "kimi-k2.7-code": {
+      "model": "kimi-k2.7-code",
+      "max_tokens": 6000,
+      "stream": false,
+      "task_size": 3,
+      "attempt": 1,
+      "ok": true,
+      "chars": 1275,
+      "finish_reason": "stop",
+      "fenced_blocks": 3,
+      "latency_seconds": 40.75,
+      "error": null
+    },
+    "claude-opus-5-thinking": {
+      "model": "claude-opus-5-thinking",
+      "max_tokens": 6000,
+      "stream": false,
+      "task_size": 3,
+      "attempt": 1,
+      "ok": true,
+      "chars": 1285,
+      "finish_reason": "stop",
+      "fenced_blocks": 3,
+      "latency_seconds": 5.94,
+      "error": null
+    }
+  },
+  "models_with_no_working_configuration": [],
+  "cells": [
+    {
+      "model": "kimi-k2.7-code",
+      "max_tokens": 6000,
+      "stream": false,
+      "task_size": 3,
+      "attempt": 1,
+      "ok": true,
+      "chars": 1275,
+      "finish_reason": "stop",
+      "fenced_blocks": 3,
+      "latency_seconds": 40.75,
+      "error": null
+    },
+    {
+      "model": "claude-opus-5-thinking",
+      "max_tokens": 6000,
+      "stream": false,
+      "task_size": 3,
+      "attempt": 1,
+      "ok": true,
+      "chars": 1285,
+      "finish_reason": "stop",
+      "fenced_blocks": 3,
+      "latency_seconds": 5.94,
+      "error": null
+    }
+  ]
+}

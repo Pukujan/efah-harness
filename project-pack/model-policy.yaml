@@ -187,8 +187,16 @@ aliases:
     # implementer. Owner authorized role-separated generation 2026-08-01.
     runs_under_identity: verifier_service_identity
     measured: {median_latency_s: 2.7, price: "$5.00/$25.00 per M", tools: "3/3"}
+    
     quirk: rejects_reasoning_effort_400
-
+    # claude-opus-5-thinking was tried here on 2026-08-02 and reverted. It is
+    # not a capability problem: it measured 8/8 with tool calls in both modes at
+    # p50 2.4s on short calls. It cannot complete a *generation-sized* request
+    # on this transport — the upstream returned HTTP 408 at both 8000 and 4000
+    # max_tokens, after our own client timeout was raised to 300s and was not
+    # the binding constraint. A reasoning model spends budget before emitting,
+    # and this gateway will not wait. See FINDING-009.
+    generation_timeout_seconds: 300
   mutant_author:
     alias: mutant-m03
     litellm_model: kimi-k2.7-code

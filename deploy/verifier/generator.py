@@ -72,12 +72,22 @@ EVAL_BASE_URL = "https://litellm-eval-production.up.railway.app"
 #: imported for the reason at the top of the file; drift between the two is
 #: caught by tools/gate_dec_006.py, which reads both and compares.
 HOLDOUT_AUTHOR_MODEL = "claude-opus-4-8"
-MUTANT_AUTHOR_MODEL = "gemini-3.5-flash"
+MUTANT_AUTHOR_MODEL = "kimi-k2.7-code"
 
 #: DEC-002: gate-bearing evidence never retries silently. A retry the recorded
-#: configuration does not mention makes the evidence unprovable.
+#: configuration does not mention makes the evidence unprovable. Still zero.
 MAX_RETRIES = 0
-TIMEOUT_SECONDS = 120
+
+#: 300s, not the 120s recorded for ordinary eval-gateway calls. The holdout
+#: author is now claude-opus-5-thinking, a reasoning model asked for up to 8000
+#: tokens, and 120s cut it off mid-generation with a socket read timeout —
+#: reported as TRANSIENT_PROVIDER_FAILURE, which is true and useless.
+#:
+#: This does not weaken DEC-002. That decision is about *retries* making the
+#: recorded run differ from the run that happened; this is one attempt, still
+#: zero retries, just allowed to finish. Recorded here and in model-policy.yaml
+#: beside the role, so it is a stated exception rather than silent drift.
+TIMEOUT_SECONDS = 300
 
 #: The account-wide upstream ceiling is 100 rpm and the harness throttles to 90.
 #: This process is serial and slow by construction, but it shares the account
@@ -205,20 +215,39 @@ def throttle() -> None:
         time.sleep(wait)
 
 
-def call_model(api_key: str, model: str, prompt: str, log: Log) -> str:
-    """One completion, zero retries. Empty or truncated output is a hard failure.
+def call_model(api_key: str, model: str, prompt: str, log: Log, *, max_tokens: int = 8000) -> str:
+    """One completion, zero retries, **streamed**.
 
-    FINDING-005 option C: a degraded assurance model does not error, it emits
-    plausible output. Truncation and emptiness are the two failure modes that are
-    mechanically detectable, so they are refused rather than accepted.
+    Streaming is not a latency optimisation here, it is a reliability fix. The
+    owner's cortex research (2026-07-19, re-scoping an earlier conclusion)
+    established it directly:
+
+        "HTTP 524 on long gens (~120s/~16k) was a NON-STREAM artifact …
+         streaming keeps the connection alive -> long gens COMPLETE
+         (verified 139.5s/~3.2k tok)."
+
+    This generator reproduced the same artifact with different status codes:
+    HTTP 408 at 8000 and 4000 max_tokens, HTTP 502 at 16000, all non-streaming,
+    all after our own client timeout had been raised to 300s and was proven not
+    to be the binding constraint. Three models were nearly written off for it.
+
+    A non-streaming request holds a silent connection while the model works, and
+    something between here and the upstream closes it. A streamed request emits
+    chunks the whole way and nothing decides it is dead.
+
+    DEC-002 is untouched: still one attempt, still zero retries. The empty and
+    truncated checks below stay, because streaming makes a long generation
+    *finish*, not *correct*.
     """
     throttle()
     body = json.dumps(
         {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 8000,
+            "max_tokens": max_tokens,
             "temperature": 0,
+            "stream": True,
+            "stream_options": {"include_usage": True},
         }
     ).encode()
     request = urllib.request.Request(  # noqa: S310 - fixed https base url
@@ -227,20 +256,37 @@ def call_model(api_key: str, model: str, prompt: str, log: Log) -> str:
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:  # noqa: S310
-        payload = json.loads(response.read())
 
-    choice = (payload.get("choices") or [{}])[0]
-    text = (choice.get("message") or {}).get("content") or ""
-    finish = choice.get("finish_reason")
-    log.write(f"model={model} finish_reason={finish} chars={len(text)}")
+    chunks: list[str] = []
+    finish: str | None = None
+    echoed: str | None = None
+    with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:  # noqa: S310
+        for raw in response:
+            line = raw.decode("utf-8", errors="replace").strip()
+            if not line.startswith("data:"):
+                continue
+            payload = line[5:].strip()
+            if payload == "[DONE]":
+                break
+            try:
+                event = json.loads(payload)
+            except json.JSONDecodeError:
+                continue
+            echoed = echoed or event.get("model")
+            for choice in event.get("choices") or []:
+                delta = choice.get("delta") or {}
+                if delta.get("content"):
+                    chunks.append(delta["content"])
+                if choice.get("finish_reason"):
+                    finish = choice["finish_reason"]
+
+    text = "".join(chunks)
+    log.write(f"model={model} finish_reason={finish} chars={len(text)} streamed=True")
 
     if not text.strip():
         raise RuntimeError(f"{model} returned an empty generation")
     if finish == "length":
         raise RuntimeError(f"{model} generation was truncated (finish_reason=length)")
-    # Model-echo assertion: the gateway names what actually answered.
-    echoed = payload.get("model")
     if echoed and model.split("/")[-1] not in str(echoed):
         raise RuntimeError(f"requested {model} but the gateway echoed {echoed}")
     return text
@@ -383,7 +429,7 @@ def generate_subject_and_holdouts(api_key: str, args: argparse.Namespace, log: L
         "No prose outside the two fenced blocks.\n"
         f"Candidate commit: {args.candidate_commit}\nContract version: {args.contract_version}"
     )
-    text = call_model(api_key, HOLDOUT_AUTHOR_MODEL, prompt, log)
+    text = call_model(api_key, HOLDOUT_AUTHOR_MODEL, prompt, log, max_tokens=8000)
     files = _split_files(text)
     log.write(f"holdout author produced files: {sorted(files)}")
     if "subject.py" not in files or "test_holdout.py" not in files:
@@ -413,7 +459,7 @@ def generate_mutants(api_key: str, args: argparse.Namespace, subject: Path, log:
         "should be refused but is allowed.\n\n"
         "Output each as a fenced block preceded by `# FILE: mutant_<n>.py`. No prose."
     )
-    text = call_model(api_key, MUTANT_AUTHOR_MODEL, prompt, log)
+    text = call_model(api_key, MUTANT_AUTHOR_MODEL, prompt, log, max_tokens=8000)
     files = _split_files(text, fallback_stem="mutant_")
     # Filenames only -- metadata, not content. Enough to diagnose a format
     # mismatch without the builder ever seeing a mutant.

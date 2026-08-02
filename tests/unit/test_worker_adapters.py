@@ -55,12 +55,28 @@ def json_response(text: str = "OK", tool_calls=None) -> httpx.Response:
     )
 
 
-def sse_response(text: str = "OK") -> httpx.Response:
-    chunks = [
-        {"choices": [{"index": 0, "delta": {"content": text}}]},
-        {"choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
-         "usage": {"total_tokens": 13}},
-    ]
+def sse_response(text: str = "OK", tool_calls=None) -> httpx.Response:
+    """An SSE body, optionally carrying tool-call deltas.
+
+    Tool calls arrive as indexed deltas, not as a whole message, and
+    ``LiteLLMGateway._post_stream`` reassembles them by index. A double that
+    returns a plain JSON message would let the adapter pass a test it could not
+    pass in production — which is what happened when streaming became the
+    default for tool work.
+    """
+    chunks: list[dict] = []
+    if tool_calls:
+        chunks.append({"choices": [{"index": 0, "delta": {"tool_calls": [
+            {"index": i, "id": tc["id"], "type": "function",
+             "function": {"name": tc["function"]["name"],
+                          "arguments": tc["function"]["arguments"]}}
+            for i, tc in enumerate(tool_calls)
+        ]}}]})
+    if text:
+        chunks.append({"choices": [{"index": 0, "delta": {"content": text}}]})
+    chunks.append({"choices": [{"index": 0, "delta": {},
+                                "finish_reason": "tool_calls" if tool_calls else "stop"}],
+                   "usage": {"total_tokens": 13}})
     body = "".join(f"data: {json.dumps(c)}\n\n" for c in chunks) + "data: [DONE]\n\n"
     return httpx.Response(200, text=body, headers={"content-type": "text/event-stream"})
 
@@ -264,7 +280,9 @@ async def test_the_adapter_raises_the_budget_to_the_floor_for_tool_work(router, 
 
     def handler(request: httpx.Request) -> httpx.Response:
         sent.update(json.loads(request.content))
-        return json_response(
+        # Streaming is the production default for tool work now
+        # (STREAMING-DISPATCH-FINDING-2026-07-19), so the double speaks SSE.
+        return sse_response(
             "", tool_calls=[{"id": "c1", "type": "function",
                              "function": {"name": "noop", "arguments": "{}"}}]
         )
