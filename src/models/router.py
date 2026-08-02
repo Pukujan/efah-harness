@@ -16,6 +16,14 @@ What it enforces, mechanically rather than by agent judgment:
 * ``role_incompatibilities`` -- ``implementer`` may not share an alias *or* a
   family with ``sealed_holdout_author`` or ``judge``, may not share a family
   with ``adversarial_critic``, and so on. A violation is ``ROLE_CONFLICT``;
+* **the separations the contract states directly**, whether or not the pack
+  declared a rule for them (:mod:`models.separation`). The pack's rule list and
+  its alias map are both owner data in one file, so a pair the owner never wrote
+  a rule for was silently unconstrained: measured, all five binding rules were
+  edges from ``implementer``, leaving every assurance-to-assurance pair
+  unchecked. §1.2 puts the contract above the pack, so §12.2/§12.4 are enforced
+  from the contract side. All sixteen required edges hold on the current map, so
+  this changes no routing today -- it means a regression cannot pass unnoticed;
 * ``prohibited_models`` and ``degraded_at_pack_time``;
 * DEC-002 gateway class, carried on the decision so the dispatch layer cannot
   pick the wrong one;
@@ -37,6 +45,7 @@ from models.errors import (
     RoleConflictError,
 )
 from models.policy import ModelPolicy, RoleModel, load_model_policy
+from models.separation import Strength, evaluate
 
 #: Ordered strongest to weakest; used only to pick a deterministic substitute.
 _TIER_RANK = {"frontier": 0, "mid": 1, "cheap": 2, "unspecified": 3}
@@ -150,6 +159,31 @@ class ModelRouter:
                     f"{prefix}{list(rule.roles)} must differ by family but share one "
                     f"({rule.contract_ref})"
                 )
+
+        findings.extend(self._contract_separation_findings(role))
+        return findings
+
+    def _contract_separation_findings(self, role: str | None) -> list[str]:
+        """Separations §12 states that the pack may not have written a rule for.
+
+        The pack's rules are checked above; this checks the contract's. A
+        ``CONDITIONAL`` clause ("where feasible", "where family bias is
+        material") is reported as advisory, because deciding materiality is the
+        owner's, not the router's.
+        """
+        findings: list[str] = []
+        for edge in evaluate(self.policy):
+            required = edge.required
+            if role is not None and role not in (required.left, required.right):
+                continue
+            if edge.mechanized or edge.holds_on_the_current_map is not False:
+                continue
+            prefix = "advisory: " if required.strength is Strength.CONDITIONAL else ""
+            findings.append(
+                f"{prefix}[{required.left}, {required.right}] must differ by "
+                f"{required.dimension.value} but share {edge.left_value!r} "
+                f"({required.contract_ref}; the pack declares no rule for this pair)"
+            )
         return findings
 
     def assert_role_separation(self, role: str | None = None) -> None:

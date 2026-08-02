@@ -71,6 +71,7 @@ from oracles.base import DeterministicOracle
 from oracles.no_judge import prove_no_judge
 from oracles.oracle_003_provenance import ExecutedTestRecord
 from oracles.registry import VERDICT_PATH_MODULES, RoutingDecision, build_oracles, route
+from verifier_identity.identity import measure as measure_verifier_identity
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PACK_ROOT = REPO_ROOT / "project-pack"
@@ -411,6 +412,25 @@ def _d1_08_a2(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOu
 
 
 def _d1_08_a4(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOutcome:
+    """``compare_actor_identifiers`` — real uids, not declarations about them.
+
+    This assertion previously reported PASS from ``repositories.yaml`` and
+    ``model-policy.yaml`` alone. Those are declarations *that* the identities
+    differ; the method asks for the identifiers themselves. FINDING-004 recorded
+    exactly this error one gate over — GATE-D1-10 A9 passed on an observation
+    that did not match the condition it claimed to test — so it is corrected
+    here rather than left because it happened to be green.
+
+    DEC-006 option B makes the real comparison possible: an ``efah-verifier``
+    system account owning a 0700 store the builder cannot traverse. The pack
+    checks below still run, because a live boundary with the pack declaring
+    ``builder_access: read`` would be a boundary somebody is about to remove.
+
+    On a host with no verifier identity — CI, a fresh clone — this is
+    ``UNVERIFIABLE``. It is not PASS. §14.4's rule is that services are
+    exercised *with evidence*, and a declaration is not the evidence this
+    assertion names.
+    """
     repositories = ctx.pack_yaml("repositories.yaml")
     policy = ctx.pack_yaml("model-policy.yaml")
     sealed = repositories.get("sealed_repos", [])
@@ -429,11 +449,14 @@ def _d1_08_a4(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOu
     implementer = (policy.get("aliases") or {}).get("implementer", {})
     if implementer.get("runs_under_identity") == verifier_identity:
         findings.append("the implementer runs under the verifier service identity")
+    measurement = measure_verifier_identity()
+    measured = measurement.as_body()
+
     evidence = {
         "token_scope_dump_redacted": {
-            "note": "no builder token is introspected here; identities are compared from the pack",
-            "verifier_service_identity": verifier_identity,
-            "builder_identity": implementer.get("runs_under_identity") or "builder_default",
+            "note": "identities are compared as live actor identifiers; the pack is checked too",
+            "declared_verifier_service_identity": verifier_identity,
+            "declared_builder_identity": implementer.get("runs_under_identity") or "builder_default",
             "sealed_repositories": [
                 {
                     "role": repo.get("role"),
@@ -445,11 +468,49 @@ def _d1_08_a4(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOu
                 }
                 for repo in sealed
             ],
-        }
+        },
+        "actor_identifiers": measured,
     }
+
     if findings:
         return bad(findings, evidence)
-    return ok(evidence, "verifier identity is separate from the builder identity")
+
+    if not measurement.provisioned:
+        return undecided(
+            "no verifier service identity is provisioned on this host, so the actor "
+            "identifiers this assertion compares do not exist; the pack declares the "
+            "separation but a declaration is not an identifier "
+            "(run deploy/verifier/provision.sh under the owner's authority)",
+            evidence,
+        )
+    if measurement.measured_as_root:
+        return undecided(
+            "measured as root, which can read the store regardless; a root-run "
+            "measurement proves nothing about the builder identity",
+            evidence,
+        )
+    if not measurement.isolation_holds:
+        can_read, detail = measurement.builder_read_attempt
+        return bad(
+            [
+                f"the builder identity {measurement.builder_user!r} could read the sealed "
+                f"store: {detail}"
+                if can_read
+                else f"verifier identity isolation did not hold: {detail}"
+            ],
+            evidence,
+        )
+
+    return ok(
+        evidence,
+        (
+            f"builder uid {measurement.builder_uid} != verifier uid {measurement.verifier_uid}; "
+            f"the builder's read of the sealed store was refused by the kernel "
+            f"({measurement.builder_read_attempt[1]}). Honest debt: the builder holds "
+            "passwordless sudo, so this is an accident-and-audit boundary, not a "
+            "security one (DEC-006)."
+        ),
+    )
 
 
 def _d1_08_a5(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOutcome:

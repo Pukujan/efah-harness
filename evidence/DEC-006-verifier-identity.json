@@ -1,0 +1,166 @@
+{
+  "gate": "DEC-006",
+  "name": "verifier service identity and sealed store",
+  "contract_ref": "contract_17.2_protected_verifier_architecture",
+  "gate_ref": "GATE-D1-08 A4",
+  "oracle_type": "deterministic_execution_or_state",
+  "model_judge_in_verdict_path": false,
+  "evidence_tier": "DETERMINISTIC_ORACLE",
+  "measured_at": "2026-08-02T13:57:27Z",
+  "verdict": "PASS",
+  "passed": 6,
+  "total": 6,
+  "checks": [
+    {
+      "check": "A",
+      "claim": "the verifier service identity exists and differs from the builder's",
+      "passed": true,
+      "detail": "builder uid=1000 (yoav), verifier uid=995 (efah-verifier)",
+      "builder_uid": 1000,
+      "verifier_uid": 995
+    },
+    {
+      "check": "B",
+      "claim": "the builder's read of the sealed store is refused by the kernel",
+      "passed": true,
+      "detail": "PermissionError: Permission denied",
+      "method": "os.listdir under the builder's effective identity",
+      "measured_as_root": false
+    },
+    {
+      "check": "C",
+      "claim": "the generator is root-owned, so the verifier identity cannot rewrite it",
+      "passed": true,
+      "detail": "owner=root mode=0o755"
+    },
+    {
+      "check": "D",
+      "claim": "the sudoers grant names the generator and no unrestricted command",
+      "passed": true,
+      "detail": "Defaults:yoav !requiretty; yoav ALL=(efah-verifier) NOPASSWD: /opt/efah-verifier/bin/generate-holdouts",
+      "honest_note": "the builder holds blanket passwordless sudo independently of this rule, so a narrow grant restricts the sanctioned path and makes out-of-band access visible in the audit log; it does not prevent it (DEC-006)"
+    },
+    {
+      "check": "E",
+      "claim": "the seam returns a valid receipt shape and no content",
+      "passed": true,
+      "detail": "state=VERIFYING exit_status=4 failure_class=ORACLE_INVALID",
+      "receipt": {
+        "generation_request_id": "GEN-PROBE-1785679047",
+        "exit_status": 4,
+        "holdout_count": 0,
+        "mutant_count": 0,
+        "killed_count": 0,
+        "kill_rate": 0.0,
+        "store_content_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "generator_version": "1.0.0",
+        "oracle_version": "holdout-mint-1.0.0",
+        "generated_at": "2026-08-02T13:57:27Z",
+        "failure_class": "ORACLE_INVALID",
+        "mint_accepted": false
+      },
+      "stderr_read_by_builder": false,
+      "stdout_bytes_discarded": 0
+    },
+    {
+      "check": "F",
+      "claim": "the generator's model assignments match model-policy.yaml",
+      "passed": true,
+      "detail": "generator constants match the pack",
+      "expected": {
+        "HOLDOUT_AUTHOR_MODEL": "claude-opus-4-8",
+        "MUTANT_AUTHOR_MODEL": "gemini-3.5-flash"
+      },
+      "found": {
+        "HOLDOUT_AUTHOR_MODEL": "claude-opus-4-8",
+        "MUTANT_AUTHOR_MODEL": "gemini-3.5-flash"
+      }
+    }
+  ],
+  "identity_measurement": {
+    "check": "verifier_service_identity_isolation",
+    "decision_ref": "DEC-006",
+    "contract_ref": "contract_17.2_protected_verifier_architecture",
+    "gate_ref": "GATE-D1-08 A4",
+    "oracle_type": "deterministic_execution_or_state",
+    "identity": {
+      "user": "efah-verifier",
+      "home": "/var/lib/efah-verifier",
+      "store": "/var/lib/efah-verifier/store",
+      "generator": "/opt/efah-verifier/bin/generate-holdouts",
+      "credential_path": "/var/lib/efah-verifier/etc/eval.env"
+    },
+    "builder_identity": {
+      "user": "yoav",
+      "uid": 1000
+    },
+    "verifier_identity": {
+      "user": "efah-verifier",
+      "uid": 995
+    },
+    "identities_distinct": true,
+    "paths": {
+      "home": {
+        "exists": true,
+        "mode": "0o700",
+        "owner_uid": 995,
+        "owner_name": "efah-verifier",
+        "stat_denied": false,
+        "denial": null
+      },
+      "store": {
+        "exists": null,
+        "mode": null,
+        "owner_uid": null,
+        "owner_name": null,
+        "stat_denied": true,
+        "denial": "PermissionError: Permission denied"
+      },
+      "generator": {
+        "exists": true,
+        "mode": "0o755",
+        "owner_uid": 0,
+        "owner_name": "root",
+        "stat_denied": false,
+        "denial": null
+      },
+      "credential": {
+        "exists": null,
+        "mode": null,
+        "owner_uid": null,
+        "owner_name": null,
+        "stat_denied": true,
+        "denial": "PermissionError: Permission denied"
+      }
+    },
+    "builder_read_attempt": {
+      "method": "os.listdir under the current effective identity",
+      "succeeded": false,
+      "detail": "PermissionError: Permission denied"
+    },
+    "sudoers": {
+      "readable": true,
+      "rules": [
+        "Defaults:yoav !requiretty",
+        "yoav ALL=(efah-verifier) NOPASSWD: /opt/efah-verifier/bin/generate-holdouts"
+      ],
+      "grants_unrestricted_command": false
+    },
+    "provisioned": true,
+    "isolation_holds": true,
+    "measured_as_root": false,
+    "honest_debt": {
+      "builder_cannot_escalate": false,
+      "why": "the builder identity holds passwordless sudo and docker group membership; OS separation prevents accidental exposure and makes deliberate access auditable, and does not prevent it",
+      "durable_path": "DEC-006 option A - sealed side on a separate host under an owner-held identity",
+      "reversible": "the submission interface does not change, so regenerating under an owner-held identity later costs nothing already built"
+    }
+  },
+  "honest_debt": {
+    "builder_cannot_escalate": false,
+    "why": "the builder identity holds passwordless sudo and docker group membership; OS separation prevents accidental exposure and makes deliberate access auditable, and does not prevent it",
+    "durable_path": "DEC-006 option A - sealed side on a separate host under an owner-held identity",
+    "reversible": "the submission interface does not change, so regenerating under an owner-held identity later costs nothing already built"
+  },
+  "generation_status": "BLOCKED_OWNER_DECISION: sealed holdout content is not generated while FINDING-005 is unanswered. The refusal is enforced by the generator, which requires a transport decision recorded inside the verifier's own 0700 directory - the builder cannot write it to unblock itself."
+}

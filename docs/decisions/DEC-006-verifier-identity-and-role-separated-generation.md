@@ -72,6 +72,52 @@ mutants.
 `judge_calibration.minimum_agreement_to_gate` remains `null`, so every model
 judge stays advisory and the deterministic oracles carry the gates.
 
+## Implemented 2026-08-02 — measured, 6/6
+
+`evidence/DEC-006-verifier-identity.json`, produced by `tools/gate_dec_006.py`
+from the **builder** identity. The tool refuses to run as root, because as root
+the store is readable regardless and check B would pass for the wrong reason.
+
+| | Check | Measured |
+|---|---|---|
+| A | verifier identity exists and differs | builder uid 1000 (`yoav`) vs verifier uid 995 (`efah-verifier`) |
+| B | builder's read of the store is refused | `os.listdir` → `PermissionError: Permission denied` |
+| C | generator is root-owned | `owner=root mode=0o755` — the account that runs it cannot rewrite it |
+| D | sudo grant is scoped | `yoav ALL=(efah-verifier) NOPASSWD: /opt/efah-verifier/bin/generate-holdouts` |
+| E | seam returns a receipt and no content | invoked for real; `exit_status=4 failure_class=ORACLE_INVALID` |
+| F | generator's models match the pack | `claude-opus-4-8` / `gemini-3.5-flash`, compared not assumed |
+
+The boundary turned out tighter than designed: the builder cannot even `stat`
+the store, because `/var/lib/efah-verifier` denies traversal. That is recorded
+as `stat_denied`, **not** as `exists: false` — a denial reported as an absence
+would repeat FINDING-004's error of counting a missing signal as success.
+
+**GATE-D1-08 A4 was corrected in the same change.** Its method is
+`compare_actor_identifiers` and it had been reporting PASS from
+`repositories.yaml` and `model-policy.yaml` — declarations *that* the identities
+differ, not the identifiers themselves. It now compares real uids and is
+`UNVERIFIABLE` on a host with no verifier identity, rather than PASS. Gate totals
+are unchanged (PASS=5, FAIL=0); one assertion is now genuinely verified instead
+of declaration-verified.
+
+Check F exists because the generator deliberately cannot import the harness — a
+generator importing `src/` would depend on code the builder can rewrite, which
+would make the separation theatre. The price of that independence is a
+duplicated constant; the mitigation is a check that compares the two.
+
+## Generation has not run, and the refusal is mechanical
+
+FINDING-005 measured that the assurance roles are served from resold
+subscription pools, so holdouts minted now would have to be discarded once the
+owner answers. The generator therefore refuses until a transport decision is
+recorded at `/var/lib/efah-verifier/etc/transport-decision` — **inside the
+verifier's own 0700 directory, which the builder cannot write**. The builder
+cannot unblock itself; the refusal does not depend on the builder's restraint.
+
+`HoldoutLane` continues to return `UNVERIFIABLE` / `BLOCKED_EXTERNAL_ACCESS`, so
+`hidden_holdout` does not report PASS and auto-merge stays blocked. That is the
+correct state, not a gap.
+
 ## Accepted consequences (honest debt)
 
 - **Same host.** Isolation rests on OS user separation and filesystem

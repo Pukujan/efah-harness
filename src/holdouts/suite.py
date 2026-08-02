@@ -11,12 +11,22 @@ What the build side legitimately owns is the *lane*: a request for evaluation
 bound to an exact candidate commit, submitted through the four-field interface,
 and a typed blocker when the sealed side is unreachable.
 
-Current state, honestly: no sealed holdout content exists yet (open owner
-question Q1) and no verifier endpoint is configured. :meth:`HoldoutLane.run`
-therefore returns ``UNVERIFIABLE`` with ``BLOCKED_EXTERNAL_ACCESS``. That is the
-correct output. Manufacturing a local "hidden" suite to turn the lane green
-would make the evaluation circular, which is the failure the sealed side exists
-to prevent.
+Current state, honestly. Q1 is answered — DEC-006 option B — and the verifier
+service identity now exists: a separate uid owning a ``0700`` store whose read
+the kernel refuses to the builder, measured in
+``evidence/DEC-006-verifier-identity.json``. What does **not** exist is holdout
+*content*, because FINDING-005 measured that the assurance roles are served from
+resold subscription pools and holdouts minted through an unverifiable transport
+would have to be discarded and regenerated once the owner answers. The generator
+enforces that refusal itself: it requires a transport decision recorded inside
+the verifier's own ``0700`` directory, which the builder cannot write.
+
+So no verifier endpoint is configured and :meth:`HoldoutLane.run` returns
+``UNVERIFIABLE`` with ``BLOCKED_EXTERNAL_ACCESS``. That remains the correct
+output, and it correctly keeps ``hidden_holdout`` from reporting PASS, which
+keeps auto-merge blocked. Manufacturing a local "hidden" suite to turn the lane
+green would make the evaluation circular, which is the failure the sealed side
+exists to prevent.
 """
 
 from __future__ import annotations
