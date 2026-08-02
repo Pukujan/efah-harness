@@ -10,10 +10,10 @@ from dashboard.source import MutationAttemptedFromDashboard, ReadOnlySource
 from dashboard.views import REQUIRED_VIEWS, DashboardProjection
 
 __all__ = [
+    "REQUIRED_VIEWS",
     "DashboardProjection",
     "MutationAttemptedFromDashboard",
     "ProtectedContentLeak",
-    "REQUIRED_VIEWS",
     "ReadOnlySource",
     "assert_no_protected_content",
     "build_projection",

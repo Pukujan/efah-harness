@@ -65,14 +65,18 @@ def normalised_hash(body: str) -> str:
 
 
 def verify_snapshot(snapshot: dict[str, Any]) -> list[str]:
-    """Return the problems with a snapshot. Empty means it verifies."""
+    """Return contract violations. Empty means the snapshot is compliant.
+
+    A snapshot with no stored body is *not* a violation — contract §16.1's
+    required field list names both hashes but no body. See
+    :func:`diff_loop_limitations` for why storing one anyway is better.
+    """
     problems = [f"missing field {f!r}" for f in REQUIRED_SNAPSHOT_FIELDS if f not in snapshot]
     if snapshot.get("credential_alias") not in {"primary", "secondary"}:
         problems.append(f"credential_alias {snapshot.get('credential_alias')!r} is not primary or secondary")
 
     body = snapshot.get(BODY_FIELD)
     if not isinstance(body, str) or not body:
-        problems.append(f"no retrieved body under {BODY_FIELD!r}")
         return problems
 
     if snapshot["raw_response_hash"] != raw_hash(body):
@@ -82,3 +86,22 @@ def verify_snapshot(snapshot: dict[str, Any]) -> list[str]:
     if snapshot["raw_response_hash"] == snapshot["normalized_response_hash"]:
         problems.append("raw and normalized hashes are equal, so normalisation did nothing")
     return problems
+
+
+def diff_loop_limitations(snapshot: dict[str, Any]) -> list[str]:
+    """Honest debt: what this snapshot cannot support, and why.
+
+    A snapshot that records only hashes satisfies §16.1 but is unfalsifiable —
+    nothing can check the hash against anything — and it cannot participate in
+    §16.2's version-diff loop, which compares *normalised documents* across
+    dependency versions. Recording the limitation is the contract's own
+    honest-debt requirement (§18); inventing a body to make a check pass would
+    be fabricated evidence.
+    """
+    limitations: list[str] = []
+    if not isinstance(snapshot.get(BODY_FIELD), str) or not snapshot.get(BODY_FIELD):
+        limitations.append(
+            f"{snapshot.get('snapshot_id', '<unknown>')}: no stored body, so its hashes cannot be "
+            "re-verified and it cannot participate in the §16.2 version-diff loop"
+        )
+    return limitations

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 
 import httpx
 import pytest
@@ -35,7 +36,6 @@ from dashboard.redaction import ProtectedContentLeak
 from dashboard.source import ReadOnlySource
 from governance.states import ProjectState, TaskState, Verdict
 from integrations.pack import load_pack
-from integrations.secrets import SecretResolver
 from integrations.plane import (
     DERIVED_DURATION_KEYS,
     EXTERNAL_SOURCE,
@@ -47,6 +47,7 @@ from integrations.plane import (
     PlaneUnavailable,
     derived_worklog,
 )
+from integrations.secrets import SecretResolver
 from observability.identity import ProtectedIdentityLeak
 
 LIVE = bool(os.environ.get("PLANE_API_KEY"))
@@ -219,8 +220,8 @@ def test_writes_are_routed_to_the_api_host(config: PlaneConfig) -> None:
 
 
 def test_projection_mapping_matches_plane_yaml() -> None:
-    pack_mapping = yaml.safe_load(open("project-pack/plane.yaml"))["projection_mapping"]
-    assert PROJECTION_MAPPING == pack_mapping
+    pack_mapping = yaml.safe_load(Path("project-pack/plane.yaml").read_text())["projection_mapping"]
+    assert pack_mapping == PROJECTION_MAPPING
 
 
 # ------------------------------------------------- one-way, never truth
@@ -373,7 +374,7 @@ def test_worklog_exposes_every_derived_duration_key_and_no_estimate() -> None:
 
 
 def test_derived_duration_keys_match_plane_yaml() -> None:
-    pack = yaml.safe_load(open("project-pack/plane.yaml"))["worklog"]
+    pack = yaml.safe_load(Path("project-pack/plane.yaml").read_text())["worklog"]
     assert pack["source"] == "system_events_only"
     assert pack["agent_estimates_permitted"] is False
     assert list(DERIVED_DURATION_KEYS) == list(pack["derived_durations"])

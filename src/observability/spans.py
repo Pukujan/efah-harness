@@ -15,10 +15,11 @@ context, because a caller-supplied trace id is a claim, and the point of Section
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, replace
 from enum import StrEnum
-from typing import Any, Final, Iterator
+from typing import Any, Final
 
 from opentelemetry import trace
 from opentelemetry.trace import Span, Status, StatusCode
@@ -98,7 +99,7 @@ class Correlation:
         # Section 11.2: a span is an audit record. Aliases only.
         assert_alias_only(self.model_alias, field="model_alias")
 
-    def merged(self, **overrides: Any) -> "Correlation":
+    def merged(self, **overrides: Any) -> Correlation:
         """Child spans inherit the parent's ids and override what they know."""
         clean = {k: v for k, v in overrides.items() if v is not None}
         return replace(self, **clean)
@@ -188,7 +189,7 @@ def efah_span(
         span.set_attribute(f"{ATTRIBUTE_PREFIX}trace_id", format_trace_id(span))
         try:
             yield span
-        except Exception as exc:  # noqa: BLE001 - re-raised immediately
+        except Exception as exc:
             span.record_exception(exc)
             span.set_status(Status(StatusCode.ERROR, type(exc).__name__))
             raise

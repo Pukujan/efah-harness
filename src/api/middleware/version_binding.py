@@ -40,7 +40,7 @@ _SAFE_METHODS: Final = frozenset({"GET", "HEAD", "OPTIONS"})
 
 
 class VersionBindingMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, public_paths: frozenset[str] = frozenset()) -> None:  # noqa: ANN001
+    def __init__(self, app, public_paths: frozenset[str] = frozenset()) -> None:
         super().__init__(app)
         self.public_paths = public_paths
 

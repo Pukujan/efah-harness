@@ -65,7 +65,7 @@ class TokenRegistry:
     extra_service_tokens: dict[str, str] = field(default_factory=dict)
 
     @classmethod
-    def from_environment(cls, resolver: SecretResolver | None = None) -> "TokenRegistry":
+    def from_environment(cls, resolver: SecretResolver | None = None) -> TokenRegistry:
         resolver = resolver or SecretResolver()
 
         def optional(name: str) -> str | None:
@@ -119,7 +119,7 @@ class TokenRegistry:
 class AuthenticationMiddleware(BaseHTTPMiddleware):
     """Resolves the caller into a :class:`Principal` or refuses the request."""
 
-    def __init__(self, app, registry: TokenRegistry) -> None:  # noqa: ANN001
+    def __init__(self, app, registry: TokenRegistry) -> None:
         super().__init__(app)
         self.registry = registry
 

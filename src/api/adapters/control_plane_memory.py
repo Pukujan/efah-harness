@@ -460,7 +460,7 @@ def _longest_path(tasks: dict[str, TaskRecord]) -> tuple[tuple[str, ...], bool]:
             if len(candidate) > len(best):
                 best = candidate
         visiting.discard(task_id)
-        memo[task_id] = best + (task_id,)
+        memo[task_id] = (*best, task_id)
         return memo[task_id]
 
     longest: tuple[str, ...] = ()

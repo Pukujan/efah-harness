@@ -26,8 +26,9 @@ for it to be unable to escape the stack.
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from contextlib import asynccontextmanager
-from typing import Any, Iterable, Sequence
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -169,6 +170,14 @@ def __getattr__(name: str) -> Any:
             _DEFAULT_APP = create_app()
         return _DEFAULT_APP
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+if TYPE_CHECKING:  # pragma: no cover
+    # Declared for static analysis only. The real ``app`` is produced lazily by
+    # __getattr__ above (PEP 562); a checker cannot see that, and binding it
+    # here at runtime would reintroduce the import-time side effect the lazy
+    # export exists to avoid.
+    app: FastAPI
 
 
 __all__ = ["ExtraRouter", "app", "create_app", "mount_routers"]

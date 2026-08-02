@@ -21,7 +21,7 @@ import json
 import logging
 import time
 from collections import deque
-from typing import Any, Deque, Final
+from typing import Any, Final
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -40,7 +40,7 @@ class AuditSink:
     """Bounded in-memory ring of the most recent audit records."""
 
     def __init__(self, capacity: int = 1000) -> None:
-        self._records: Deque[dict[str, Any]] = deque(maxlen=capacity)
+        self._records: deque[dict[str, Any]] = deque(maxlen=capacity)
 
     def append(self, record: dict[str, Any]) -> None:
         self._records.append(record)
@@ -53,7 +53,7 @@ class AuditSink:
 
 
 class AuditMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app, sink: AuditSink | None = None) -> None:  # noqa: ANN001
+    def __init__(self, app, sink: AuditSink | None = None) -> None:
         super().__init__(app)
         self.sink = sink or AuditSink()
 
@@ -69,7 +69,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
             status_code = exc.status_code
             error_code = exc.code
             raise
-        except Exception as exc:  # noqa: BLE001 - re-raised after auditing
+        except Exception as exc:
             status_code = 500
             error_code = type(exc).__name__
             raise
@@ -83,7 +83,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
                 "duration_ms": round((time.perf_counter() - started) * 1000, 3),
                 "error_code": error_code,
                 "headers_present": sorted(
-                    name for name in request.headers.keys() if name.lower() not in REDACTED_HEADERS
+                    name for name in request.headers if name.lower() not in REDACTED_HEADERS
                 ),
             }
             if context is not None:

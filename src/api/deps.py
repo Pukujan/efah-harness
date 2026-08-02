@@ -35,7 +35,13 @@ from api.controllers.evaluations import EvaluationController
 from api.controllers.projects import ContractDriftEngine, ProjectController
 from api.controllers.tasks import TaskController
 from api.middleware.audit import AuditSink
-from api.ports import ControlPlaneReadPort, ControlPlaneWritePort, DriftEnginePort, ProjectionPort, RuntimePort
+from api.ports import (
+    ControlPlaneReadPort,
+    ControlPlaneWritePort,
+    DriftEnginePort,
+    ProjectionPort,
+    RuntimePort,
+)
 from dashboard.source import ReadOnlySource
 
 
@@ -77,7 +83,7 @@ class Container:
         drift_engine: DriftEnginePort | None = None,
         projection: ProjectionPort | None = None,
         audit_sink: AuditSink | None = None,
-    ) -> "Container":
+    ) -> Container:
         plane = control_plane if control_plane is not None else InMemoryControlPlane()
         resolved_runtime = runtime if runtime is not None else RecordingRuntime(plane)
         resolved_drift = drift_engine if drift_engine is not None else ContractDriftEngine(plane)

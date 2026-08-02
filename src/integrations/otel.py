@@ -78,7 +78,7 @@ class OtelSettings:
         check_endpoint_allowed(self.phoenix_url)
 
     @classmethod
-    def from_pack(cls, pack: Any, *, environment: str = "dev", **overrides: Any) -> "OtelSettings":
+    def from_pack(cls, pack: Any, *, environment: str = "dev", **overrides: Any) -> OtelSettings:
         """Build settings from a loaded :class:`integrations.pack.ProjectPack`."""
         observability = (
             pack.yaml("environments.yaml")["environments"][environment].get("observability") or {}

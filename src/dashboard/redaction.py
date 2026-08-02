@@ -21,6 +21,7 @@ from __future__ import annotations
 import re
 from typing import Any, Final
 
+from governance.protected import denied_terms, sealed_repository_names
 from observability.identity import ProtectedIdentityLeak, scan_for_leaks
 
 #: Field names that carry sealed-side internals. Their *presence* is the
@@ -42,12 +43,12 @@ PROTECTED_FIELD_NAMES: Final = frozenset(
         "oracle_internals",
         "holdout_dataset",
         "sealed_repo",
-        "verifier_token",
+        *(t for t in denied_terms() if "_" in t),
     }
 )
 
 #: Sealed-side repositories. A projection that even names a route to them fails.
-SEALED_REPOSITORIES: Final = ("efah-lab-verifier", "eval-lab-verifier")
+SEALED_REPOSITORIES: Final = tuple(n.lower() for n in sealed_repository_names())
 
 _ASSERTION_BODY = re.compile(r"\bassert\s+|\bdef\s+test_|<<<<<<<|-----BEGIN [A-Z ]*PRIVATE KEY")
 

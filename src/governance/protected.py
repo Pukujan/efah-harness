@@ -74,6 +74,8 @@ AUTHORISED_DENYLIST_MODULES = (
     "governance/protected.py",
     "owner_surface/policy.py",
     "workflows/failures.py",
+    "api/middleware/untrusted.py",
+    "dashboard/redaction.py",
 )
 
 

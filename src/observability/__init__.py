@@ -27,11 +27,11 @@ from observability.spans import (
 
 __all__ = [
     "ALIAS_PATTERN",
+    "REQUIRED_BY_KIND",
+    "REQUIRED_CORRELATION_FIELDS",
     "Correlation",
     "IncompleteCorrelation",
     "ProtectedIdentityLeak",
-    "REQUIRED_BY_KIND",
-    "REQUIRED_CORRELATION_FIELDS",
     "SpanKindName",
     "assert_alias_only",
     "current_trace_id",

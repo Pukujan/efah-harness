@@ -53,8 +53,9 @@ alone would not have given:
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Final, Iterable, Mapping
+from typing import Any, Final
 
 import httpx
 
@@ -140,7 +141,7 @@ class PlaneConfig:
     timeout_seconds: float = 20.0
 
     @classmethod
-    def from_pack(cls, pack: Any, *, environment: str = "dev") -> "PlaneConfig":
+    def from_pack(cls, pack: Any, *, environment: str = "dev") -> PlaneConfig:
         plane = pack.yaml("plane.yaml")
         block = plane["plane"]
         sync = plane.get("sync", {})
@@ -480,7 +481,7 @@ class PlaneProjection:
         self._source = source
 
     @classmethod
-    def from_pack(cls, pack: Any, **kwargs: Any) -> "PlaneProjection":
+    def from_pack(cls, pack: Any, **kwargs: Any) -> PlaneProjection:
         return cls(PlaneConfig.from_pack(pack), **kwargs)
 
     # -- port surface -------------------------------------------------------

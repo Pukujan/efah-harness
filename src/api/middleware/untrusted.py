@@ -22,6 +22,7 @@ around is worse than none.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 from typing import Any, Final
@@ -34,6 +35,7 @@ from starlette.responses import Response
 from api.context import current_context
 from api.errors import ProtectedAssetAccess, UntrustedContentRejected
 from api.middleware.limits import captured_body
+from governance.protected import denied_terms
 
 #: Instruction-shaped attempts to override the governing contract or a gate.
 INJECTION_PATTERNS: Final = tuple(
@@ -54,14 +56,15 @@ INJECTION_PATTERNS: Final = tuple(
 
 #: Section 17.2 and the brief: the sealed side is not addressable from here.
 PROTECTED_ASSET_PATTERNS: Final = tuple(
-    re.compile(pattern, re.IGNORECASE)
-    for pattern in (
-        r"efah-lab-verifier",
-        r"eval-lab-verifier",
-        r"terminusdb_protected",
-        r"TERMINUSDB_PROTECTED_PASS",
-        r"localhost:6364",
-        r"127\.0\.0\.1:6364",
+    re.compile(re.escape(term), re.IGNORECASE)
+    for term in (
+        # Derived from the pack's declared sealed_repos and the canonical
+        # protected markers rather than written out. GATE-D1-08 A2 forbids the
+        # sealed names under src/, and a denylist that hardcodes them violates
+        # the gate it exists to serve.
+        # The bare port already matches every host spelling of it, so the
+        # host:port forms would be redundant literals of a protected route.
+        *denied_terms(),
     )
 )
 
@@ -82,10 +85,8 @@ def _scannable_text(request: Request) -> str:
     parts.append(request.url.query)
     parts.append(unquote_plus(request.url.query))
     if body:
-        try:
+        with contextlib.suppress(json.JSONDecodeError, UnicodeDecodeError):
             parts.extend(_strings(json.loads(body)))
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            pass
     return "\n".join(parts)
 
 

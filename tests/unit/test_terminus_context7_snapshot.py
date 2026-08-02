@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from integrations.context7 import verify_snapshot
+from integrations.context7 import diff_loop_limitations, verify_snapshot
 
 ROOT = Path(__file__).resolve().parents[2]
 SNAPSHOT_DIR = ROOT / "project-pack" / "evidence" / "context7-snapshots"
@@ -54,6 +54,27 @@ def test_snapshot_verifies_against_the_canonical_rule(path: Path):
     """
     problems = verify_snapshot(json.loads(path.read_text()))
     assert not problems, f"{path.name}: {problems}"
+
+
+@pytest.mark.parametrize("path", _snapshots(), ids=lambda p: p.name)
+def test_snapshot_diff_loop_limitations_are_recorded_not_hidden(path: Path):
+    """A hash-only snapshot is compliant but unfalsifiable — say so.
+
+    Contract §16.1's required fields name both hashes and no body, so a snapshot
+    without one does not violate the contract. It does, however, mean nothing can
+    check the hash against anything, and §16.2's diff loop -- which compares
+    normalised documents across versions -- cannot use it. That is honest debt
+    (§18), and it belongs in the evidence package rather than in a passing test
+    nobody reads.
+    """
+    limitations = diff_loop_limitations(json.loads(path.read_text()))
+    debt = Path(__file__).resolve().parents[2] / "evidence" / "context7-honest-debt.json"
+    known = json.loads(debt.read_text()) if debt.is_file() else []
+    for item in limitations:
+        assert item in known, (
+            f"undeclared limitation: {item}. Add it to evidence/context7-honest-debt.json "
+            "or store the retrieved body."
+        )
 
 
 @pytest.mark.parametrize("path", _snapshots(), ids=lambda p: p.name)

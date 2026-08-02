@@ -39,7 +39,7 @@ DEFAULT_MAX_CONCURRENT: Final = 16
 class ThrottleMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
-        app,  # noqa: ANN001
+        app,
         *,
         rate_limit: int = DEFAULT_RATE_LIMIT,
         window_seconds: float = DEFAULT_WINDOW_SECONDS,

@@ -178,13 +178,13 @@ class ContractDriftEngine:
     def __init__(self, reader: ControlPlaneReadPort) -> None:
         self._reader = reader
 
-    def findings(self, project_id: str):  # noqa: ANN201 - returns list[DriftFindingRecord]
+    def findings(self, project_id: str):
         snapshot = self._reader.snapshot(project_id)
         if snapshot is None:
             return []
         return list(snapshot.drift_findings)
 
-    def classify_instruction(self, *, project_id: str, instruction: str):  # noqa: ANN201
+    def classify_instruction(self, *, project_id: str, instruction: str):
         from api.state import DriftFindingRecord
 
         normalised = " ".join(instruction.lower().split())

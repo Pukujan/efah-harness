@@ -112,15 +112,15 @@ def install_middleware(app: Any, *, options: dict[type, dict[str, Any]] | None =
 
 
 __all__ = [
+    "CONCERN_COVERAGE",
+    "MIDDLEWARE_ORDER",
+    "SECTION_11_4_CONCERNS",
     "AuditMiddleware",
     "AuditSink",
     "AuthenticationMiddleware",
-    "CONCERN_COVERAGE",
     "CorrelationMiddleware",
     "InputLimitsMiddleware",
-    "MIDDLEWARE_ORDER",
     "ProvenanceMiddleware",
-    "SECTION_11_4_CONCERNS",
     "SchemaValidationMiddleware",
     "ThrottleMiddleware",
     "TokenRegistry",
