@@ -1,0 +1,985 @@
+{
+  "envelope": {
+    "schema_id": "efah.evidence_package",
+    "schema_version": "1.0",
+    "contract_id": "EFAH-CONTRACT-001",
+    "contract_version": "1.1",
+    "methodology_version": "1.0.0",
+    "terminus_database": null,
+    "terminus_branch": null,
+    "terminus_commit": null,
+    "content_hash": "sha256:1f49e68b494483369883036c34b828fe1adaf9bf5af3cab2edaa898b56f313f6",
+    "created_by_alias": "release-v04",
+    "created_at": "2026-08-02T14:06:14.284820+00:00"
+  },
+  "body": {
+    "schema": "efah.evidence_package",
+    "contract_ref": "contract.md#27",
+    "gate_ref": "GATE-D3-26",
+    "built_at": "2026-08-02T14:06:14.284747+00:00",
+    "project_status": "RUNNING",
+    "fields_total": 22,
+    "fields_present": 19,
+    "fields_missing": [
+      "release_artifact_digest",
+      "visible_tests_result",
+      "auto_merged_pr_reference"
+    ],
+    "package_complete": false,
+    "field_count_discrepancy": {
+      "contract_section_27_lines": 22,
+      "gate_d3_26_a1_claim_text": "twenty-three",
+      "package_fields": 22,
+      "resolution": "the contract's own \u00a727 block is authoritative under \u00a71.2; the gate's claim text miscounts. A1's `expected` is `all_fields_present`, not a count, so the check is satisfiable either way. The gate YAML is left untouched \u2014 its assertion hash is a guardrail, and weakening a gate to resolve a wording mismatch would invert it."
+    },
+    "fields": [
+      {
+        "key": "project_status",
+        "contract_line": "Project status",
+        "value": "RUNNING",
+        "source": "evaluation.gate_runner.GateRunSummary.project_state()",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": "PASS=5 FAIL=0 UNVERIFIABLE=22. Not VERIFIED_COMPLETE: at least one gate is UNVERIFIABLE. \u00a76.2 makes VERIFIED_COMPLETE the only success terminal, so this field reports the state rather than the goal."
+      },
+      {
+        "key": "project_id_and_version",
+        "contract_line": "Project ID and version",
+        "value": {
+          "project_id": "UNAVAILABLE",
+          "version": "1.0"
+        },
+        "source": "project-pack/project.yaml",
+        "evidence_tier": "OWNER_VERIFIED",
+        "present": true,
+        "note": ""
+      },
+      {
+        "key": "contract_id_and_version",
+        "contract_line": "Contract ID and version",
+        "value": {
+          "contract_id": "EFAH-CONTRACT-001",
+          "contract_version": "1.1",
+          "amendments": [
+            "AMENDMENT-001-owner-control-surface"
+          ]
+        },
+        "source": "project-pack/project.yaml + evidence/owner-documents/",
+        "evidence_tier": "OWNER_VERIFIED",
+        "present": true,
+        "note": ""
+      },
+      {
+        "key": "terminusdb_database_branch_commit",
+        "contract_line": "TerminusDB database/branch/commit",
+        "value": {
+          "url": "http://localhost:6363",
+          "database": "efah",
+          "branches": [],
+          "commit": "UNAVAILABLE"
+        },
+        "source": "live GET /api/info and /api/db/admin/{db}/local/branch",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": "graph commit id is not exposed by the branch endpoint on this version"
+      },
+      {
+        "key": "release_repository_and_commit",
+        "contract_line": "Release repository and commit",
+        "value": {
+          "repository": "git@github-efah:Pukujan/efah-harness.git",
+          "branch": "feat/kernel-and-ci",
+          "commit": "0b0468da246c73d1a52640d9274feeed3efa7987",
+          "working_tree_clean": false
+        },
+        "source": "git rev-parse HEAD / git status --porcelain",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": ""
+      },
+      {
+        "key": "release_artifact_digest",
+        "contract_line": "Release artifact digest",
+        "value": "UNAVAILABLE",
+        "source": "no release artifact has been built",
+        "evidence_tier": "NOT_MEASURED",
+        "present": false,
+        "note": "the harness is a source distribution and no packaging step has run; a digest invented from the source tree would not be an artifact digest"
+      },
+      {
+        "key": "requirements_satisfied_over_total",
+        "contract_line": "Requirements satisfied / total",
+        "value": {
+          "satisfied": "UNAVAILABLE",
+          "total": "UNAVAILABLE"
+        },
+        "source": "requirements catalog is loadable; per-requirement satisfaction is not yet recorded",
+        "evidence_tier": "NOT_MEASURED",
+        "present": true,
+        "note": "satisfaction requires every requirement bound to a passing gate; 18 gates are NOT_YET_EXECUTABLE, so the numerator would be a guess"
+      },
+      {
+        "key": "tasks_completed_over_total",
+        "contract_line": "Tasks completed / total",
+        "value": {
+          "completed": 1,
+          "total": 2
+        },
+        "source": ".data/owner_surface_ledger.jsonl work_unit projections",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": ""
+      },
+      {
+        "key": "visible_tests_result",
+        "contract_line": "Visible tests result",
+        "value": "UNAVAILABLE",
+        "source": "no recorded test run bound to this commit",
+        "evidence_tier": "NOT_MEASURED",
+        "present": false,
+        "note": "build the package with --run-tests to bind a fresh run to HEAD"
+      },
+      {
+        "key": "integration_composition_result",
+        "contract_line": "Integration/composition result",
+        "value": {
+          "composition_findings": [],
+          "composition_finding_count": 0,
+          "modules_declared": 32
+        },
+        "source": "composition.registry live discovery + recorded walking-skeleton evidence",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": ""
+      },
+      {
+        "key": "hidden_holdout_result",
+        "contract_line": "Hidden holdout result",
+        "value": {
+          "lane": "hidden",
+          "candidate_commit": "0b0468da246c73d1a52640d9274feeed3efa7987",
+          "verdict": "UNVERIFIABLE",
+          "blocked_reason": "no protected-verifier endpoint is configured on the build side, and none may be; the sealed side is reached only through injected configuration held by the verifier service identity",
+          "holdout_content_present_on_build_side": false,
+          "verifier_outcome": {
+            "check": "schema_assert_on_verdict_payload",
+            "expected": "no_forbidden_field_present",
+            "interface_version": "1.0.0",
+            "evaluation_request_id": "EVID-0b0468da246c",
+            "state": "BLOCKED_EXTERNAL_ACCESS",
+            "permitted_submission_fields": [
+              "artifact_or_commit_identifier",
+              "allowed_runtime_inputs",
+              "evaluation_request_id",
+              "required_contract_or_oracle_version"
+            ],
+            "permitted_response_fields": [
+              "evaluation_request_id",
+              "verdict",
+              "oracle_version",
+              "oracle_health",
+              "failure_class"
+            ],
+            "submission_fields_sent": [
+              "allowed_runtime_inputs",
+              "artifact_or_commit_identifier",
+              "evaluation_request_id",
+              "required_contract_or_oracle_version"
+            ],
+            "result": null,
+            "rejected_because": [
+              "no protected-verifier endpoint is configured on the build side, and none may be; the sealed side is reached only through injected configuration held by the verifier service identity"
+            ]
+          },
+          "notes": [
+            "Sealed holdout content is not authored on the build side (repositories.yaml builder_may_read_generated_holdouts: false).",
+            "No local fallback is provided: a locally-evaluated holdout is circular."
+          ],
+          "verifier_identity": {
+            "verdict": "PASS",
+            "passed": 6,
+            "total": 6,
+            "generation_status": "BLOCKED_OWNER_DECISION: sealed holdout content is not generated while FINDING-005 is unanswered. The refusal is enforced by the generator, which requires a transport decision recorded inside the verifier's own 0700 directory - the builder cannot write it to unblock itself."
+          }
+        },
+        "source": "holdouts.suite.HoldoutLane submitted against HEAD",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": "UNVERIFIABLE is not a soft pass. No sealed holdout content exists: FINDING-005 holds generation, and the generator enforces that refusal itself. auto_merge_requirements.hidden_holdout therefore cannot be PASS."
+      },
+      {
+        "key": "mutants_seeded_killed",
+        "contract_line": "Mutants seeded/killed",
+        "value": {
+          "seeded": 25,
+          "killed": 25,
+          "kill_rate": 1.0,
+          "by_class": {
+            "implementation_mutant": {
+              "seeded": 4,
+              "killed": 4
+            },
+            "evaluator_or_oracle_mutant": {
+              "seeded": 9,
+              "killed": 9
+            },
+            "test_mutant": {
+              "seeded": 2,
+              "killed": 2
+            },
+            "workflow_or_governance_mutant": {
+              "seeded": 10,
+              "killed": 10
+            }
+          }
+        },
+        "source": "mutants.runner.run_mutation_gate against the live oracle set",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": "a kill rate of 1.0 is only as strong as the mutants are hard. FINDING-003 and FINDING-005 both bear on this: the mutant author is labelled frontier and is not, and its transport is a resold pool. Read this number with that."
+      },
+      {
+        "key": "oracle_versions_and_health",
+        "contract_line": "Oracle versions and health",
+        "value": {
+          "ORACLE-001": {
+            "oracle_version": "1.0.0",
+            "hierarchy_level": 1,
+            "declared_health_fields": [
+              "oracle_version",
+              "content_hash",
+              "fixture_suite_result",
+              "last_audit_date",
+              "checker_test_suite_result"
+            ],
+            "fixture_suite": {
+              "oracle_id": "ORACLE-001",
+              "result": "PASS",
+              "total": 12,
+              "failed": 0,
+              "outcomes": [
+                {
+                  "fixture_id": "KG-001",
+                  "kind": "known_good",
+                  "expected": "PASS",
+                  "observed": "PASS",
+                  "ok": true,
+                  "detail": "all 4 in-scope modules registered and reachable"
+                },
+                {
+                  "fixture_id": "KB-001",
+                  "kind": "known_bad",
+                  "expected": "FAIL/FAILED_WIRING",
+                  "observed": "FAIL/FAILED_WIRING",
+                  "ok": true,
+                  "detail": "module absent from the composition root: evaluation"
+                },
+                {
+                  "fixture_id": "KB-002",
+                  "kind": "known_bad",
+                  "expected": "FAIL/FAILED_WIRING",
+                  "observed": "FAIL/FAILED_WIRING",
+                  "ok": true,
+                  "detail": "module unreachable from an approved user-to-result path: evaluation"
+                },
+                {
+                  "fixture_id": "KB-003",
+                  "kind": "known_bad",
+                  "expected": "FAIL/FAILED_SCOPE",
+                  "observed": "FAIL/FAILED_SCOPE",
+                  "ok": true,
+                  "detail": "tasks imports projects's infrastructure implementation"
+                },
+                {
+                  "fixture_id": "KB-004",
+                  "kind": "known_bad",
+                  "expected": "FAIL/FAILED_SCOPE",
+                  "observed": "FAIL/FAILED_SCOPE",
+                  "ok": true,
+                  "detail": "circular dependency: projects -> tasks -> evaluation -> projects"
+                },
+                {
+                  "fixture_id": "GP-001",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/FAILED_WIRING",
+                  "observed": "FAIL/FAILED_WIRING",
+                  "ok": true,
+                  "detail": "module unreachable from an approved user-to-result path: evaluation"
+                },
+                {
+                  "fixture_id": "GP-002",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/FAILED_WIRING",
+                  "observed": "FAIL/FAILED_WIRING",
+                  "ok": true,
+                  "detail": "module unreachable from an approved user-to-result path: evaluation"
+                },
+                {
+                  "fixture_id": "GP-003",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/FAILED_WIRING",
+                  "observed": "FAIL/FAILED_WIRING",
+                  "ok": true,
+                  "detail": "evaluation.health_check is empty or a placeholder ('TODO'); evaluation.e2e_path is empty or a placeholder ('')"
+                },
+                {
+                  "fixture_id": "GP-004",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/FAILED_SCOPE",
+                  "observed": "FAIL/FAILED_SCOPE",
+                  "ok": true,
+                  "detail": "module excluded from reachability without an owner decision: evaluation"
+                },
+                {
+                  "fixture_id": "UP-composition_root_not_parseable",
+                  "kind": "unverifiable_probe",
+                  "expected": "UNVERIFIABLE",
+                  "observed": "UNVERIFIABLE",
+                  "ok": true,
+                  "detail": "composition_root_not_parseable"
+                },
+                {
+                  "fixture_id": "UP-entry_points_undeclared",
+                  "kind": "unverifiable_probe",
+                  "expected": "UNVERIFIABLE",
+                  "observed": "UNVERIFIABLE",
+                  "ok": true,
+                  "detail": "entry_points_undeclared"
+                },
+                {
+                  "fixture_id": "UP-wiring_manifest_absent_for_one_or_more_modules",
+                  "kind": "unverifiable_probe",
+                  "expected": "UNVERIFIABLE",
+                  "observed": "UNVERIFIABLE",
+                  "ok": true,
+                  "detail": "wiring_manifest_absent_for_one_or_more_modules: ['evaluation']"
+                }
+              ]
+            },
+            "health": {
+              "oracle_version": "1.0.0",
+              "content_hash": "sha256:a36b0896ba302788d7f6c35eb27a855bd71d89ef81e7e16e4ec42a9f0a1b937c",
+              "fixture_suite_result": "PASS",
+              "last_audit_date": "2026-08-02",
+              "checker_test_suite_result": "NOT_RUN_IN_THIS_PROCESS"
+            },
+            "health_source": "emitted from a real decision on fixture KG-001"
+          },
+          "ORACLE-002": {
+            "oracle_version": "1.0.0",
+            "hierarchy_level": 1,
+            "declared_health_fields": [
+              "oracle_version",
+              "content_hash",
+              "fixture_suite_result",
+              "last_audit_date",
+              "clock_skew_observed"
+            ],
+            "fixture_suite": {
+              "oracle_id": "ORACLE-002",
+              "result": "PASS",
+              "total": 12,
+              "failed": 0,
+              "outcomes": [
+                {
+                  "fixture_id": "KG-001",
+                  "kind": "known_good",
+                  "expected": "PASS",
+                  "observed": "PASS",
+                  "ok": true,
+                  "detail": "generation 4 is current and unexpired"
+                },
+                {
+                  "fixture_id": "KB-001",
+                  "kind": "known_bad",
+                  "expected": "FAIL/STALE_ASSIGNMENT",
+                  "observed": "FAIL/STALE_ASSIGNMENT",
+                  "ok": true,
+                  "detail": "lease expired at 2026-08-02T11:59:00+00:00 before the submission was observed at 2026-08-02T12:00:00+00:00"
+                },
+                {
+                  "fixture_id": "KB-002",
+                  "kind": "known_bad",
+                  "expected": "FAIL/STALE_ASSIGNMENT",
+                  "observed": "FAIL/STALE_ASSIGNMENT",
+                  "ok": true,
+                  "detail": "submission_generation 3 < current_generation 4; generation 3 was superseded at 2026-08-02T11:55:00+00:00; a later renewal does not resurrect it"
+                },
+                {
+                  "fixture_id": "KB-003",
+                  "kind": "known_bad",
+                  "expected": "FAIL/STALE_ASSIGNMENT",
+                  "observed": "FAIL/STALE_ASSIGNMENT",
+                  "ok": true,
+                  "detail": "submission targets feat/ws-a-compiler//wt/ws-e-assurance, lease owns feat/ws-e-assurance//wt/ws-e-assurance"
+                },
+                {
+                  "fixture_id": "KB-004",
+                  "kind": "known_bad",
+                  "expected": "exactly 1 PASS",
+                  "observed": "1 PASS of 2",
+                  "ok": true,
+                  "detail": "Two workers submit concurrently for the same work unit."
+                },
+                {
+                  "fixture_id": "GP-001",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/STALE_ASSIGNMENT",
+                  "observed": "FAIL/STALE_ASSIGNMENT",
+                  "ok": true,
+                  "detail": "generation 3 was superseded at 2026-08-02T11:55:00+00:00; a later renewal does not resurrect it"
+                },
+                {
+                  "fixture_id": "GP-002",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/STALE_ASSIGNMENT",
+                  "observed": "FAIL/STALE_ASSIGNMENT",
+                  "ok": true,
+                  "detail": "branch_or_worktree_owner 'implementer-i99' != lease_holder 'implementer-i12'; input_hashes differ from the lease record"
+                },
+                {
+                  "fixture_id": "GP-003",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/STALE_ASSIGNMENT",
+                  "observed": "FAIL/STALE_ASSIGNMENT",
+                  "ok": true,
+                  "detail": "submitter-supplied timestamp 2026-08-02T11:50:00+00:00 contradicts the system event at 2026-08-02T12:00:00+00:00; lease expired at 2026-08-02T11:59:00+00:00 before the submission was observed at 2026-08-02T12:00:00+00:00"
+                },
+                {
+                  "fixture_id": "GP-004",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/STALE_ASSIGNMENT",
+                  "observed": "FAIL/STALE_ASSIGNMENT",
+                  "ok": true,
+                  "detail": "submission_generation 3 < current_generation 4; generation 3 was superseded at 2026-08-02T11:55:00+00:00; a later renewal does not resurrect it; branch_or_worktree_owner 'implementer-i99' != lease_holder 'implementer-i12'"
+                },
+                {
+                  "fixture_id": "UP-lease_record_absent_from_terminusdb",
+                  "kind": "unverifiable_probe",
+                  "expected": "UNVERIFIABLE",
+                  "observed": "UNVERIFIABLE",
+                  "ok": true,
+                  "detail": "lease_record_absent_from_terminusdb"
+                },
+                {
+                  "fixture_id": "UP-submission_carries_no_lease_identifier",
+                  "kind": "unverifiable_probe",
+                  "expected": "UNVERIFIABLE",
+                  "observed": "UNVERIFIABLE",
+                  "ok": true,
+                  "detail": "submission_carries_no_lease_identifier"
+                },
+                {
+                  "fixture_id": "UP-clock_skew_exceeds_tolerance_and_expiry_is_ambiguous",
+                  "kind": "unverifiable_probe",
+                  "expected": "UNVERIFIABLE",
+                  "observed": "UNVERIFIABLE",
+                  "ok": true,
+                  "detail": "clock_skew_exceeds_tolerance_and_expiry_is_ambiguous"
+                }
+              ]
+            },
+            "health": {
+              "oracle_version": "1.0.0",
+              "content_hash": "sha256:073548d636cfe7a00bab28650798afc3298e577428808ff28f9203bc19103127",
+              "fixture_suite_result": "PASS",
+              "last_audit_date": "2026-08-02",
+              "clock_skew_observed": 0.0
+            },
+            "health_source": "emitted from a real decision on fixture KG-001"
+          },
+          "ORACLE-003": {
+            "oracle_version": "1.0.0",
+            "hierarchy_level": 2,
+            "declared_health_fields": [
+              "oracle_version",
+              "content_hash",
+              "fixture_suite_result",
+              "last_audit_date",
+              "unresolvable_reference_count"
+            ],
+            "fixture_suite": {
+              "oracle_id": "ORACLE-003",
+              "result": "PASS",
+              "total": 13,
+              "failed": 0,
+              "outcomes": [
+                {
+                  "fixture_id": "KG-001",
+                  "kind": "known_good",
+                  "expected": "PASS",
+                  "observed": "PASS",
+                  "ok": true,
+                  "detail": "1 claimed results bind to contract, commit, and named evidence"
+                },
+                {
+                  "fixture_id": "KB-001",
+                  "kind": "known_bad",
+                  "expected": "FAIL/FAILED_PROVENANCE",
+                  "observed": "FAIL/FAILED_PROVENANCE",
+                  "ok": true,
+                  "detail": "R-001: claims success with no named evidence artifact"
+                },
+                {
+                  "fixture_id": "KB-002",
+                  "kind": "known_bad",
+                  "expected": "FAIL/FAILED_PROVENANCE",
+                  "observed": "FAIL/FAILED_PROVENANCE",
+                  "ok": true,
+                  "detail": "R-001: content_hash sha256:6b7cc2c1eb832dab7c17b72f084e80f95a5dab9aceb344406e2700ac19424444 does not match recomputed sha256:0c618fced0d3e14b3d20109aecb06d829bea486b0ea98aa0bb103c685b859281"
+                },
+                {
+                  "fixture_id": "KB-003",
+                  "kind": "known_bad",
+                  "expected": "FAIL/STALE_CONTRACT_VERSION",
+                  "observed": "FAIL/STALE_CONTRACT_VERSION",
+                  "ok": true,
+                  "detail": "R-001: bound to contract version 0.2, current is 1.1"
+                },
+                {
+                  "fixture_id": "KB-004",
+                  "kind": "known_bad",
+                  "expected": "FAIL/FAILED_PROVENANCE",
+                  "observed": "FAIL/FAILED_PROVENANCE",
+                  "ok": true,
+                  "detail": "R-001: test record missing ['command', 'exit_status', 'raw_result_artifact', 'commit_binding']"
+                },
+                {
+                  "fixture_id": "KB-005",
+                  "kind": "known_bad",
+                  "expected": "FAIL/FAILED_PROVENANCE",
+                  "observed": "FAIL/FAILED_PROVENANCE",
+                  "ok": true,
+                  "detail": "R-001: evidence tier None is absent or outside the permitted five"
+                },
+                {
+                  "fixture_id": "GP-001",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/FAILED_PROVENANCE",
+                  "observed": "FAIL/FAILED_PROVENANCE",
+                  "ok": true,
+                  "detail": "R-001: evidence artifact 'oracle_003_known_good_evidence' at /nonexistent/evidence.json is not present and readable"
+                },
+                {
+                  "fixture_id": "GP-002",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/FAILED_PROVENANCE",
+                  "observed": "FAIL/FAILED_PROVENANCE",
+                  "ok": true,
+                  "detail": "R-001: evidence artifact 'oracle_003_known_good_evidence' hash sha256:e1441d1fe90bd97b6a34d8c8321efa2d23fd93a4e6f5e3ba0328fabdaeb88aa4 != recomputed sha256:fbfb8bfd9965c2d8d008e3ffbcbdfef4c645ae60a095412be4d723043ec69f46"
+                },
+                {
+                  "fixture_id": "GP-003",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/FAILED_PROVENANCE",
+                  "observed": "FAIL/FAILED_PROVENANCE",
+                  "ok": true,
+                  "detail": "R-001: claims DETERMINISTIC_ORACLE tier but its verdict path is 'model_judge'"
+                },
+                {
+                  "fixture_id": "GP-004",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/FAILED_PROVENANCE",
+                  "observed": "FAIL/FAILED_PROVENANCE",
+                  "ok": true,
+                  "detail": "R-001: repository_commit does not resolve to an existing commit"
+                },
+                {
+                  "fixture_id": "GP-005",
+                  "kind": "gaming_probe",
+                  "expected": "FAIL/FAILED_PROVENANCE",
+                  "observed": "FAIL/FAILED_PROVENANCE",
+                  "ok": true,
+                  "detail": "R-001: evidence artifact 'summary.md' is unstructured prose, not a hashed artifact; R-001: evidence artifact 'summary.md' carries no hash"
+                },
+                {
+                  "fixture_id": "UP-terminus_commit_unreachable_due_to_service_outage",
+                  "kind": "unverifiable_probe",
+                  "expected": "UNVERIFIABLE",
+                  "observed": "UNVERIFIABLE",
+                  "ok": true,
+                  "detail": "terminus_commit_unreachable_due_to_service_outage"
+                },
+                {
+                  "fixture_id": "UP-evidence_artifact_storage_unavailable",
+                  "kind": "unverifiable_probe",
+                  "expected": "UNVERIFIABLE",
+                  "observed": "UNVERIFIABLE",
+                  "ok": true,
+                  "detail": "evidence_artifact_storage_unavailable"
+                }
+              ]
+            },
+            "health": {
+              "oracle_version": "1.0.0",
+              "content_hash": "sha256:4f19daf15466d47f0c6ca54e4330251410b7b1e219d7ecad0bd7f67d9e4d48a5",
+              "fixture_suite_result": "PASS",
+              "last_audit_date": "2026-08-02",
+              "unresolvable_reference_count": 0
+            },
+            "health_source": "emitted from a real decision on fixture KG-001"
+          }
+        },
+        "source": "oracles.registry.build_oracles() with oracles.fixtures.run_fixture_suite executed",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": ""
+      },
+      {
+        "key": "scope_drift_findings_and_resolution",
+        "contract_line": "Scope-drift findings and resolution",
+        "value": {
+          "open_findings": [],
+          "resolved": [],
+          "recorded_reports": []
+        },
+        "source": "drift.engine reports recorded under evidence/",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": "findings raised this session are recorded as FINDING-003 through FINDING-006 in docs/decisions/"
+      },
+      {
+        "key": "dependency_versions_and_verification",
+        "contract_line": "Dependency versions and verification status",
+        "value": {
+          "context7_snapshots": [
+            "C7-langgraph-1.2.10-296ef01c.json",
+            "C7-plane-developers-2026-08-02-29aba5867455.json",
+            "C7-terminusdb-main-bcc5b287.json"
+          ],
+          "snapshot_count": 3,
+          "honest_debt": [
+            "C7-plane-developers-2026-08-02-29aba5867455: no stored body, so its hashes cannot be re-verified and it cannot participate in the \u00a716.2 version-diff loop"
+          ]
+        },
+        "source": "project-pack/evidence/context7-snapshots/ (hashed at retrieval, \u00a716.1)",
+        "evidence_tier": "INDEPENDENTLY_REPRODUCED",
+        "present": true,
+        "note": "the two Context7 credentials are capacity and failover, not independent sources; two agreeing retrievals from them are one source (environments.yaml)"
+      },
+      {
+        "key": "deployment_shadow_canary_evidence",
+        "contract_line": "Deployment/shadow/canary evidence where required",
+        "value": {
+          "owner_control_surface": {
+            "unit": "efah-owner-surface (systemd user unit, Restart=always, linger enabled)",
+            "exposure": "tailnet only, via tailscale serve; the app binds 127.0.0.1",
+            "gate": "GATE-D1-10",
+            "gate_result": {
+              "verdict": "PASS",
+              "passed": null,
+              "total": null
+            }
+          },
+          "shadow_canary_pilot": "UNAVAILABLE"
+        },
+        "source": "systemd unit state + evidence/GATE-D1-10-result.json",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": "\u00a722 shadow/canary/pilot has no deployed production consumer to shadow, so no such evidence exists; recorded as absent rather than as satisfied"
+      },
+      {
+        "key": "knowledge_promotions",
+        "contract_line": "Knowledge promotions",
+        "value": {
+          "promotions": [],
+          "recorded": false
+        },
+        "source": "evidence/gates/GATE-D2-18/ (knowledge.tiers promotion records)",
+        "evidence_tier": "NOT_MEASURED",
+        "present": true,
+        "note": "GATE-D2-18 passes on the promotion *rules*; no corpus has been promoted"
+      },
+      {
+        "key": "hard_gold_candidates_and_promotions",
+        "contract_line": "Hard-gold candidates/promotions",
+        "value": {
+          "candidates": [],
+          "promotions": []
+        },
+        "source": "gold.promotion \u2014 no candidate has met the reproduction bar",
+        "evidence_tier": "NOT_MEASURED",
+        "present": true,
+        "note": "\u00a728 lists 'a large calibrated gold corpus for every domain' as an explicit non-goal for this build; an empty set here is deliberate, not missing work"
+      },
+      {
+        "key": "model_aliases_and_audit_references",
+        "contract_line": "Model aliases and protected audit references",
+        "value": {
+          "aliases": {
+            "researcher": "researcher-r17",
+            "research_challenger": "challenger-x02",
+            "planner": "planner-p04",
+            "plan_challenger": "planchal-q06",
+            "implementer": "implementer-i12",
+            "integration_verifier": "wiring-w05",
+            "visible_test_author": "testauthor-t09",
+            "sealed_holdout_author": "holdout-h01",
+            "mutant_author": "mutant-m03",
+            "oracle_author": "oracle-o02",
+            "adversarial_critic": "critic-c08",
+            "judge": "judge-j03",
+            "evidence_auditor": "auditor-a07",
+            "contract_compliance_auditor": "compliance-k01",
+            "release_verifier": "release-v04"
+          },
+          "protected_audit_reference": {
+            "store": "terminusdb_protected (isolated instance, loopback only)",
+            "resolution": "owner audit path only",
+            "withheld_from": [
+              "all_task_participants",
+              "all_worker_sessions",
+              "all_roles"
+            ],
+            "verified": "the main admin credential receives HTTP 401 against it"
+          },
+          "role_separation": {
+            "required_edges": 16,
+            "mechanized_edges": 5,
+            "violated_on_current_map": [],
+            "assurance_roles_sharing_a_family": {
+              "anthropic": [
+                "contract_compliance_auditor",
+                "sealed_holdout_author",
+                "visible_test_author"
+              ],
+              "deepseek": [
+                "evidence_auditor",
+                "judge"
+              ],
+              "qwen": [
+                "integration_verifier",
+                "oracle_author"
+              ]
+            },
+            "family_separation_confidence": "label_verified"
+          }
+        },
+        "source": "model-policy.yaml alias map + models.separation.coverage_report()",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": "real model identities are deliberately absent (\u00a712.3). Family is a label: FINDING-005 measured three anthropic-labelled roles resolving to one resold account pool, so a cross-family edge may not hold at the transport."
+      },
+      {
+        "key": "timing_breakdown",
+        "contract_line": "Timing breakdown",
+        "value": {
+          "package_build_seconds": 0.253,
+          "stages": [
+            {
+              "stage": "terminusdb",
+              "seconds": 0.08
+            },
+            {
+              "stage": "requirements",
+              "seconds": 0.005
+            },
+            {
+              "stage": "tasks",
+              "seconds": 0.0
+            },
+            {
+              "stage": "composition",
+              "seconds": 0.005
+            },
+            {
+              "stage": "hidden_holdout",
+              "seconds": 0.007
+            },
+            {
+              "stage": "mutants",
+              "seconds": 0.086
+            },
+            {
+              "stage": "oracles",
+              "seconds": 0.018
+            },
+            {
+              "stage": "scope_drift",
+              "seconds": 0.001
+            },
+            {
+              "stage": "dependencies",
+              "seconds": 0.0
+            },
+            {
+              "stage": "deployment",
+              "seconds": 0.0
+            },
+            {
+              "stage": "aliases",
+              "seconds": 0.028
+            }
+          ],
+          "host": {
+            "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.39",
+            "python": "3.12.3"
+          }
+        },
+        "source": "measured during this package build",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": "per-phase project timing lives in the task ledger; this is the package build itself"
+      },
+      {
+        "key": "auto_merged_pr_reference",
+        "contract_line": "Auto-merged PR reference",
+        "value": "UNAVAILABLE",
+        "source": "no pull request has been auto-merged",
+        "evidence_tier": "NOT_MEASURED",
+        "present": false,
+        "note": "auto_merge_requirements.hidden_holdout cannot be PASS while sealed holdout content does not exist, and \u00a721.2 forbids the implementing agent self-certifying. A merged PR here would mean a gate was bypassed."
+      },
+      {
+        "key": "honest_debt_and_deferred_non_goals",
+        "contract_line": "Honest debt and deliberately deferred non-goals",
+        "value": {
+          "honest_debt": [
+            {
+              "id": "DEBT-001",
+              "title": "sealed verifier isolation is same-host and defeated by sudo",
+              "detail": "DEC-006 option B separates the verifier by OS identity on this host. The builder holds passwordless sudo and docker group membership, so the 0700 store prevents accidental exposure and makes deliberate access auditable, and prevents nothing against a determined builder.",
+              "measured": "evidence/DEC-006-verifier-identity.json (6/6, builder_cannot_escalate: false)",
+              "durable_path": "DEC-006 option A \u2014 sealed side on a separate host under an owner-held identity",
+              "reversible": true
+            },
+            {
+              "id": "DEBT-002",
+              "title": "the builder authored the generator it cannot read the output of",
+              "detail": "Role separation covers who *runs* generation and who can read the result. It does not cover who wrote the generator, which was the builder. Mitigated by the mutation gate \u2014 a generator producing weak holdouts shows up as an unkilled mutant \u2014 and recorded rather than left implicit.",
+              "measured": "DEC-006 accepted consequences",
+              "reversible": true
+            },
+            {
+              "id": "DEBT-003",
+              "title": "assurance model provenance is unverified at the transport",
+              "detail": "FINDING-005: the nine gate-bearing roles are served from resold subscription pools (channel 234 / kiro-pro, gemini-cli), measured from the owner's account log and reconfirmed on the eval gateway path. One channel serves several differently-named models, so the cross-family separation the harness enforces by alias may not exist at the transport. A degraded assurance model does not error \u2014 it emits plausible output that passes.",
+              "measured": "evidence/FINDING-005-transport-probe.json",
+              "consequence": "the mutation kill rate and any model-authored assurance artifact are weaker evidence than their numbers suggest",
+              "status": "OPEN \u2014 owner blocker FINDING-005-transport on the control surface"
+            },
+            {
+              "id": "DEBT-004",
+              "title": "no sealed holdout content exists, so hidden_holdout cannot pass",
+              "detail": "The verifier identity, store, generator and mint rule are built and measured. No holdouts have been generated, because DEBT-003 would make them worth less than the effort and they would have to be regenerated after the owner answers. hidden_holdout is UNVERIFIABLE, auto-merge is correctly blocked, and no PR has been merged.",
+              "measured": "holdouts.suite.HoldoutLane \u2192 UNVERIFIABLE / BLOCKED_EXTERNAL_ACCESS",
+              "status": "OPEN \u2014 blocked on DEBT-003"
+            },
+            {
+              "id": "DEBT-005",
+              "title": "assurance roles concentrate on one family and one upstream channel",
+              "detail": "FINDING-006: three of the nine gate-bearing assurance roles are family anthropic, and FINDING-005 measured those same three on one upstream channel. One supplier degrading takes out three assurance roles at once, silently. The missing separation *rules* are fixed \u2014 sixteen contract-required edges are now enforced from the contract text \u2014 but which model fills which role is owner data.",
+              "measured": "models.separation.coverage_report()",
+              "status": "OPEN \u2014 folded into the FINDING-005-transport blocker"
+            },
+            {
+              "id": "DEBT-006",
+              "title": "eighteen gates are not yet executable",
+              "detail": "Mostly Day 2 and Day 3 subjects that require artifacts this build has not produced. They are reported UNVERIFIABLE rather than skipped, so the board shows the shortfall instead of hiding it.",
+              "measured": "evidence/gate-run-summary.json counts",
+              "status": "OPEN"
+            },
+            {
+              "id": "DEBT-007",
+              "title": "branch protection is configured without strict mode",
+              "detail": "Required status checks exist on the repository but `strict` is off, so GitHub does not enforce 'branch up to date'. auto_merge_requirements.branch_up_to_date must therefore be enforced by the harness rather than assumed from the platform.",
+              "measured": "repository settings probe recorded in the handoff",
+              "status": "OPEN"
+            },
+            {
+              "id": "DEBT-008",
+              "title": "requirement satisfaction is not counted per requirement",
+              "detail": "The requirements catalog loads and the dependency graph is built, but binding each requirement to a passing gate is not possible while 18 gates are NOT_YET_EXECUTABLE. The numerator is left UNAVAILABLE rather than estimated.",
+              "measured": "evidence package field requirements_satisfied_over_total",
+              "status": "OPEN"
+            }
+          ],
+          "deferred_non_goals": [
+            "exhaustive support for every programming language and repository type",
+            "enterprise-scale multi-region high availability",
+            "universal formal verification",
+            "complete automated remediation of every dependency update",
+            "a large calibrated gold corpus for every domain",
+            "fully autonomous irreversible production operations without policy approval",
+            "replacing Plane, TerminusDB, LangGraph, LiteLLM or Inspect with custom equivalents",
+            "UI polish that delays the real end-to-end workflow"
+          ]
+        },
+        "source": "docs/decisions/ findings and DEC records, cross-referenced to measurements",
+        "evidence_tier": "OWNER_VERIFIED",
+        "present": true,
+        "note": ""
+      }
+    ],
+    "honest_debt": [
+      {
+        "id": "DEBT-001",
+        "title": "sealed verifier isolation is same-host and defeated by sudo",
+        "detail": "DEC-006 option B separates the verifier by OS identity on this host. The builder holds passwordless sudo and docker group membership, so the 0700 store prevents accidental exposure and makes deliberate access auditable, and prevents nothing against a determined builder.",
+        "measured": "evidence/DEC-006-verifier-identity.json (6/6, builder_cannot_escalate: false)",
+        "durable_path": "DEC-006 option A \u2014 sealed side on a separate host under an owner-held identity",
+        "reversible": true
+      },
+      {
+        "id": "DEBT-002",
+        "title": "the builder authored the generator it cannot read the output of",
+        "detail": "Role separation covers who *runs* generation and who can read the result. It does not cover who wrote the generator, which was the builder. Mitigated by the mutation gate \u2014 a generator producing weak holdouts shows up as an unkilled mutant \u2014 and recorded rather than left implicit.",
+        "measured": "DEC-006 accepted consequences",
+        "reversible": true
+      },
+      {
+        "id": "DEBT-003",
+        "title": "assurance model provenance is unverified at the transport",
+        "detail": "FINDING-005: the nine gate-bearing roles are served from resold subscription pools (channel 234 / kiro-pro, gemini-cli), measured from the owner's account log and reconfirmed on the eval gateway path. One channel serves several differently-named models, so the cross-family separation the harness enforces by alias may not exist at the transport. A degraded assurance model does not error \u2014 it emits plausible output that passes.",
+        "measured": "evidence/FINDING-005-transport-probe.json",
+        "consequence": "the mutation kill rate and any model-authored assurance artifact are weaker evidence than their numbers suggest",
+        "status": "OPEN \u2014 owner blocker FINDING-005-transport on the control surface"
+      },
+      {
+        "id": "DEBT-004",
+        "title": "no sealed holdout content exists, so hidden_holdout cannot pass",
+        "detail": "The verifier identity, store, generator and mint rule are built and measured. No holdouts have been generated, because DEBT-003 would make them worth less than the effort and they would have to be regenerated after the owner answers. hidden_holdout is UNVERIFIABLE, auto-merge is correctly blocked, and no PR has been merged.",
+        "measured": "holdouts.suite.HoldoutLane \u2192 UNVERIFIABLE / BLOCKED_EXTERNAL_ACCESS",
+        "status": "OPEN \u2014 blocked on DEBT-003"
+      },
+      {
+        "id": "DEBT-005",
+        "title": "assurance roles concentrate on one family and one upstream channel",
+        "detail": "FINDING-006: three of the nine gate-bearing assurance roles are family anthropic, and FINDING-005 measured those same three on one upstream channel. One supplier degrading takes out three assurance roles at once, silently. The missing separation *rules* are fixed \u2014 sixteen contract-required edges are now enforced from the contract text \u2014 but which model fills which role is owner data.",
+        "measured": "models.separation.coverage_report()",
+        "status": "OPEN \u2014 folded into the FINDING-005-transport blocker"
+      },
+      {
+        "id": "DEBT-006",
+        "title": "eighteen gates are not yet executable",
+        "detail": "Mostly Day 2 and Day 3 subjects that require artifacts this build has not produced. They are reported UNVERIFIABLE rather than skipped, so the board shows the shortfall instead of hiding it.",
+        "measured": "evidence/gate-run-summary.json counts",
+        "status": "OPEN"
+      },
+      {
+        "id": "DEBT-007",
+        "title": "branch protection is configured without strict mode",
+        "detail": "Required status checks exist on the repository but `strict` is off, so GitHub does not enforce 'branch up to date'. auto_merge_requirements.branch_up_to_date must therefore be enforced by the harness rather than assumed from the platform.",
+        "measured": "repository settings probe recorded in the handoff",
+        "status": "OPEN"
+      },
+      {
+        "id": "DEBT-008",
+        "title": "requirement satisfaction is not counted per requirement",
+        "detail": "The requirements catalog loads and the dependency graph is built, but binding each requirement to a passing gate is not possible while 18 gates are NOT_YET_EXECUTABLE. The numerator is left UNAVAILABLE rather than estimated.",
+        "measured": "evidence package field requirements_satisfied_over_total",
+        "status": "OPEN"
+      }
+    ],
+    "deliberately_deferred_non_goals": [
+      "exhaustive support for every programming language and repository type",
+      "enterprise-scale multi-region high availability",
+      "universal formal verification",
+      "complete automated remediation of every dependency update",
+      "a large calibrated gold corpus for every domain",
+      "fully autonomous irreversible production operations without policy approval",
+      "replacing Plane, TerminusDB, LangGraph, LiteLLM or Inspect with custom equivalents",
+      "UI polish that delays the real end-to-end workflow"
+    ]
+  }
+}

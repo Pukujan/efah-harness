@@ -21,11 +21,13 @@ mutants
 observability
 ontology
 oracles
+owner_surface
 planning
 projects
 provenance
 requirements
 research
 tasks
+verifier_identity
 workers
 workflows

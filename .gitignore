@@ -6,3 +6,9 @@ __pycache__/
 *.sqlite
 .env
 .ghtoken
+
+# Build artifacts. The release digest is recorded in the §27 evidence package;
+# the wheel itself is reproducible from the commit and is not source.
+dist/
+build/
+*.egg-info/
