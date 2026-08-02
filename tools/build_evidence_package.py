@@ -44,7 +44,7 @@ def run_visible_tests(raw_out: Path) -> dict[str, Any]:
     commit = resolve_head()
     command = [sys.executable, "-m", "pytest", "tests/", "-q", "--tb=no"]
     started = time.time()
-    proc = subprocess.run(  # noqa: S603 - fixed argv
+    proc = subprocess.run(
         command, cwd=REPO_ROOT, capture_output=True, text=True, timeout=1800
     )
     finished = time.time()
@@ -87,12 +87,12 @@ def build_artifact() -> dict[str, Any]:
     """
     from evaluation.binding import resolve_head
 
-    dirty = subprocess.run(  # noqa: S603
+    dirty = subprocess.run(
         ["git", "status", "--porcelain"], cwd=REPO_ROOT, capture_output=True, text=True, timeout=30
     ).stdout.strip()
     commit = resolve_head()
 
-    proc = subprocess.run(  # noqa: S603
+    proc = subprocess.run(
         [sys.executable, "-m", "build", "--wheel", "--outdir", "dist", "."],
         cwd=REPO_ROOT,
         capture_output=True,
@@ -134,6 +134,12 @@ def main() -> int:
     if args.run_tests:
         print("running the visible suite (this takes a few minutes)...", file=sys.stderr)
         test_report = run_visible_tests(args.out_dir / "visible-tests-raw.txt")
+        # Recorded durably so a later package build (or the gate runner, which
+        # builds its own) reads the same run rather than reporting no evidence.
+        # It carries its commit, so a stale record is detected, not reused.
+        (args.out_dir / "visible-tests-result.json").write_text(
+            json.dumps(test_report, indent=2) + "\n"
+        )
         print(f"  {test_report['result']}: {test_report['summary']}", file=sys.stderr)
 
     package = build(test_report=test_report)

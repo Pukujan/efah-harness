@@ -20,6 +20,7 @@ here would make A2 fail in order to make A1 pass.
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import re
 import subprocess
@@ -1134,6 +1135,207 @@ def _d3_24_a5(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOu
 
 
 # ===========================================================================
+# GATE-D3-26 — the §27 final evidence package
+# ===========================================================================
+#
+# A1, A2, A3 and A5 ask about the *package*: are its fields present, is every
+# acceptance check covered by named evidence, is honest debt stated, are aliases
+# blinded. All four are answerable now and are answered from a freshly built
+# package rather than from a stored copy, so the gate cannot pass on a stale
+# artifact somebody generated when things looked better.
+#
+# A4 is different. It asks whether the project status is VERIFIED_COMPLETE, and
+# the project has not claimed completion — hidden_holdout cannot pass while
+# sealed holdout content does not exist. Reporting FAIL there would push a
+# blocking gate to FAILED_ASSURANCE and say the project failed assurance, which
+# is untrue: it is running with a typed blocker. So A4 is UNVERIFIABLE with the
+# measured status attached, and becomes executable when the run terminates.
+
+
+def _fresh_package():
+    from evidence.package import build
+
+    return build()
+
+
+#: The one §27 field that cannot exist before the merge this gate gates.
+#: §21.2 requires ``hidden_holdout: PASS`` before auto-merge, so a package built
+#: while holdouts are blocked *must* report no merged PR — and a FAIL here would
+#: mean "the evidence package is defective" when the truth is "the project has
+#: not merged yet". Deliberately a set of one: every other unmeasured field is a
+#: real gap and fails, because widening this list is how a completion gate turns
+#: into a formality.
+_COMPLETION_TIME_FIELDS = frozenset({"auto_merged_pr_reference"})
+
+
+def _d3_26_a1(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOutcome:
+    package = _fresh_package()
+    body = package.as_body()
+    pending = [k for k in package.missing if k in _COMPLETION_TIME_FIELDS]
+    gaps = [k for k in package.missing if k not in _COMPLETION_TIME_FIELDS]
+    evidence = {
+        "artifact_hashes_and_commit_binding": {
+            "candidate_commit": ctx.binding.commit_sha,
+            "fields_total": body["fields_total"],
+            "fields_present": body["fields_present"],
+            "unmeasured_gaps": gaps,
+            "pending_until_completion": pending,
+            "field_count_discrepancy": body["field_count_discrepancy"],
+        }
+    }
+    if gaps:
+        return bad([f"{key}: no measurement (tier NOT_MEASURED)" for key in gaps], evidence)
+    if pending:
+        return undecided(
+            (
+                f"{body['fields_present']}/{body['fields_total']} §27 fields are measured; "
+                f"{pending} cannot exist yet — §21.2 requires hidden_holdout: PASS before a "
+                "merge, and no sealed holdout content exists while FINDING-005 is open. "
+                "Reporting FAIL would record a defective package for a project that has "
+                "simply not merged"
+            ),
+            evidence,
+        )
+    return ok(evidence, f"all {body['fields_total']} §27 fields carry a measurement")
+
+
+def _d3_26_a2(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOutcome:
+    """Every acceptance check has a named evidence artifact.
+
+    Cross-referenced against the gates the runner actually loaded, so a check
+    that exists in the contract but has no gate file is a finding rather than an
+    absence nobody notices.
+    """
+    contract = ctx.pack_yaml("contract.yaml")
+    declared = [str(c) for c in (contract.get("acceptance_checks") or [])]
+
+    # Each gate file names its acceptance check in the header comment
+    # ``# Contract acceptance_check: <name>``. That comment is the binding, so
+    # it is read from the source rather than inferred from the gate's prose —
+    # matching on intent text would let a rewording silently drop coverage.
+    covered: dict[str, list[str]] = {}
+    for gate_id, spec in ctx.gates.items():
+        try:
+            source = spec.source_path.read_text()
+        except OSError:
+            continue
+        for match in re.finditer(r"acceptance_check:\s*([A-Za-z0-9_]+)", source):
+            covered.setdefault(match.group(1), []).append(gate_id)
+
+    uncovered = [c for c in declared if not covered.get(c)]
+    evidence = {
+        "coverage_cross_reference": {
+            "declared_acceptance_checks": len(declared),
+            "covered": {k: sorted(set(v)) for k, v in covered.items()},
+            "uncovered": uncovered,
+        }
+    }
+    if uncovered:
+        return bad(
+            [f"acceptance check {c!r} has no gate carrying evidence for it" for c in uncovered],
+            evidence,
+        )
+    return ok(evidence, f"all {len(declared)} acceptance checks map to a gate")
+
+
+def _d3_26_a3(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOutcome:
+    package = _fresh_package()
+    debt = package.honest_debt
+    non_goals = package.deferred_non_goals
+    evidence = {
+        "debt_section_presence": {
+            "honest_debt_entries": len(debt),
+            "debt_ids": [d["id"] for d in debt],
+            "deferred_non_goals": len(non_goals),
+        }
+    }
+    findings: list[str] = []
+    if not debt:
+        findings.append("honest debt section is empty")
+    if not non_goals:
+        findings.append("deliberately deferred non-goals are not stated")
+    # A debt entry without a measurement behind it is a sentence, not evidence.
+    for entry in debt:
+        if not entry.get("measured") and not entry.get("status"):
+            findings.append(f"{entry.get('id')}: states neither a measurement nor a status")
+    if findings:
+        return bad(findings, evidence)
+    return ok(evidence, f"{len(debt)} debt entries and {len(non_goals)} deferred non-goals, each sourced")
+
+
+def _d3_26_a4(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOutcome:
+    package = _fresh_package()
+    status = package.status
+    evidence = {
+        "status_field_assert": {
+            "project_status": status,
+            "expected_at_completion": ProjectState.VERIFIED_COMPLETE.value,
+            "is_structured_field_not_prose": True,
+        }
+    }
+    if status == ProjectState.VERIFIED_COMPLETE.value:
+        return ok(evidence, "the package reports VERIFIED_COMPLETE as a structured field")
+    return undecided(
+        (
+            f"the project has not claimed completion: the package reports {status!r}, "
+            "measured from the gate run rather than asserted. This assertion becomes "
+            "executable when the run reaches a terminal state; reporting FAIL now would "
+            "record FAILED_ASSURANCE for a project that is running with a typed blocker"
+        ),
+        evidence,
+    )
+
+
+def _d3_26_a5(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOutcome:
+    """Aliases present, real identities absent (§12.3).
+
+    The negative half is the one that matters: the package is searched for the
+    upstream model ids the pack maps roles to. A package that leaked them would
+    hand any reader the vendor, family and prestige tier §12.3 withholds.
+    """
+    package = _fresh_package()
+    body = package.as_body()
+    policy = ctx.pack_yaml("model-policy.yaml")
+    aliases = policy.get("aliases") or {}
+
+    field_value: dict[str, Any] = {}
+    for entry in body["fields"]:
+        if entry["key"] == "model_aliases_and_audit_references":
+            field_value = entry["value"] if isinstance(entry["value"], dict) else {}
+
+    serialized = json.dumps(body, default=str)
+    leaked = sorted(
+        {
+            str(row.get("litellm_model"))
+            for row in aliases.values()
+            if row.get("litellm_model") and str(row["litellm_model"]) in serialized
+        }
+    )
+    evidence = {
+        "alias_and_audit_ref_check": {
+            "aliases_present": sorted((field_value.get("aliases") or {}).values()),
+            "protected_audit_reference_present": bool(field_value.get("protected_audit_reference")),
+            "real_model_identities_found_in_package": leaked,
+        }
+    }
+    findings: list[str] = []
+    if not field_value.get("aliases"):
+        findings.append("no blinded aliases are present in the package")
+    if not field_value.get("protected_audit_reference"):
+        findings.append("no protected audit reference is present")
+    if leaked:
+        findings.append(
+            f"the package exposes real model identities, which §12.3 withholds: {leaked}"
+        )
+    if findings:
+        return bad(findings, evidence)
+    return ok(
+        evidence,
+        f"{len(field_value.get('aliases') or {})} blinded aliases, no real model identity present",
+    )
+
+
+# ===========================================================================
 # GATE-D3-25 A1 — all thirteen auto-merge requirements recorded
 # ===========================================================================
 
@@ -1263,6 +1465,11 @@ CHECKS: dict[tuple[str, str], Check] = {
     ("GATE-D3-24", "A4"): _d3_24_a4,
     ("GATE-D3-24", "A5"): _d3_24_a5,
     ("GATE-D3-25", "A1"): _d3_25_a1,
+    ("GATE-D3-26", "A1"): _d3_26_a1,
+    ("GATE-D3-26", "A2"): _d3_26_a2,
+    ("GATE-D3-26", "A3"): _d3_26_a3,
+    ("GATE-D3-26", "A4"): _d3_26_a4,
+    ("GATE-D3-26", "A5"): _d3_26_a5,
 }
 
 #: Why an assertion has no check, so "not executable" is a statement with a

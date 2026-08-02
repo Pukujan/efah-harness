@@ -8,21 +8,19 @@
     "terminus_database": null,
     "terminus_branch": null,
     "terminus_commit": null,
-    "content_hash": "sha256:1f49e68b494483369883036c34b828fe1adaf9bf5af3cab2edaa898b56f313f6",
+    "content_hash": "sha256:b301e00ae1858ee9371ee5c1440a66aa7be4843a2776aa13d21b4e32cfdcb597",
     "created_by_alias": "release-v04",
-    "created_at": "2026-08-02T14:06:14.284820+00:00"
+    "created_at": "2026-08-02T14:21:32.761362+00:00"
   },
   "body": {
     "schema": "efah.evidence_package",
     "contract_ref": "contract.md#27",
     "gate_ref": "GATE-D3-26",
-    "built_at": "2026-08-02T14:06:14.284747+00:00",
+    "built_at": "2026-08-02T14:21:32.761292+00:00",
     "project_status": "RUNNING",
     "fields_total": 22,
-    "fields_present": 19,
+    "fields_present": 21,
     "fields_missing": [
-      "release_artifact_digest",
-      "visible_tests_result",
       "auto_merged_pr_reference"
     ],
     "package_complete": false,
@@ -35,7 +33,8 @@
     "fields": [
       {
         "key": "project_status",
-        "contract_line": "Project status",
+        "contract_line": "Project status: VERIFIED_COMPLETE",
+        "label": "Project status",
         "value": "RUNNING",
         "source": "evaluation.gate_runner.GateRunSummary.project_state()",
         "evidence_tier": "DETERMINISTIC_ORACLE",
@@ -45,6 +44,7 @@
       {
         "key": "project_id_and_version",
         "contract_line": "Project ID and version",
+        "label": "Project ID and version",
         "value": {
           "project_id": "UNAVAILABLE",
           "version": "1.0"
@@ -57,6 +57,7 @@
       {
         "key": "contract_id_and_version",
         "contract_line": "Contract ID and version",
+        "label": "Contract ID and version",
         "value": {
           "contract_id": "EFAH-CONTRACT-001",
           "contract_version": "1.1",
@@ -72,6 +73,7 @@
       {
         "key": "terminusdb_database_branch_commit",
         "contract_line": "TerminusDB database/branch/commit",
+        "label": "TerminusDB database/branch/commit",
         "value": {
           "url": "http://localhost:6363",
           "database": "efah",
@@ -86,10 +88,11 @@
       {
         "key": "release_repository_and_commit",
         "contract_line": "Release repository and commit",
+        "label": "Release repository and commit",
         "value": {
           "repository": "git@github-efah:Pukujan/efah-harness.git",
           "branch": "feat/kernel-and-ci",
-          "commit": "0b0468da246c73d1a52640d9274feeed3efa7987",
+          "commit": "96d5c244cc99a59380b41933ef312499d946d6f0",
           "working_tree_clean": false
         },
         "source": "git rev-parse HEAD / git status --porcelain",
@@ -100,15 +103,25 @@
       {
         "key": "release_artifact_digest",
         "contract_line": "Release artifact digest",
-        "value": "UNAVAILABLE",
-        "source": "no release artifact has been built",
-        "evidence_tier": "NOT_MEASURED",
-        "present": false,
-        "note": "the harness is a source distribution and no packaging step has run; a digest invented from the source tree would not be an artifact digest"
+        "label": "Release artifact digest",
+        "value": {
+          "artifact": "efah-0.1.0-py3-none-any.whl",
+          "digest": "sha256:eb53ded7b7e265ced392be03f39eb08b8975953d80be8539198965e734456c99",
+          "size_bytes": 423917,
+          "built_from_commit": "96d5c244cc99a59380b41933ef312499d946d6f0",
+          "working_tree_clean_at_build": false,
+          "producer": "python -m build --wheel (python 3.12.3)",
+          "binds_to_current_head": false
+        },
+        "source": "sha256 over the built wheel + dist/BUILD-PROVENANCE.json",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": "the artifact was not built from the current clean HEAD, so it does not identify this commit; rebuild before treating it as a release digest"
       },
       {
         "key": "requirements_satisfied_over_total",
         "contract_line": "Requirements satisfied / total",
+        "label": "Requirements satisfied / total",
         "value": {
           "satisfied": "UNAVAILABLE",
           "total": "UNAVAILABLE"
@@ -121,6 +134,7 @@
       {
         "key": "tasks_completed_over_total",
         "contract_line": "Tasks completed / total",
+        "label": "Tasks completed / total",
         "value": {
           "completed": 1,
           "total": 2
@@ -133,15 +147,38 @@
       {
         "key": "visible_tests_result",
         "contract_line": "Visible tests result",
-        "value": "UNAVAILABLE",
-        "source": "no recorded test run bound to this commit",
-        "evidence_tier": "NOT_MEASURED",
-        "present": false,
-        "note": "build the package with --run-tests to bind a fresh run to HEAD"
+        "label": "Visible tests result",
+        "value": {
+          "command": "/home/yoav/efah/.venv/bin/python -m pytest tests/ -q --tb=no",
+          "exit_status": 0,
+          "result": "PASS",
+          "summary": "968 passed, 11 skipped, 1 warning in 143.36s (0:02:23)",
+          "started_at": "2026-08-02T14:11:34Z",
+          "duration_seconds": 144.4,
+          "candidate_commit": "96d5c244cc99a59380b41933ef312499d946d6f0",
+          "raw_result_artifact": "evidence/visible-tests-raw.txt",
+          "raw_result_sha256": "sha256:6ee4f7e9bfe6ac9eb9862611c42d86bee598cb4cad49db11237b3c50a83ffbbb",
+          "environment": {
+            "python": "3.12.3",
+            "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.39",
+            "credential_names_present": [
+              "LITELLM_EVAL_MASTER_KEY",
+              "LITELLM_MASTER_KEY",
+              "PLANE_API_KEY",
+              "TERMINUSDB_ADMIN_PASS",
+              "TERMINUSDB_PROTECTED_PASS"
+            ]
+          }
+        },
+        "source": "pytest, executed and recorded with its command, exit status and commit binding",
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "present": true,
+        "note": ""
       },
       {
         "key": "integration_composition_result",
         "contract_line": "Integration/composition result",
+        "label": "Integration/composition result",
         "value": {
           "composition_findings": [],
           "composition_finding_count": 0,
@@ -155,9 +192,10 @@
       {
         "key": "hidden_holdout_result",
         "contract_line": "Hidden holdout result",
+        "label": "Hidden holdout result",
         "value": {
           "lane": "hidden",
-          "candidate_commit": "0b0468da246c73d1a52640d9274feeed3efa7987",
+          "candidate_commit": "96d5c244cc99a59380b41933ef312499d946d6f0",
           "verdict": "UNVERIFIABLE",
           "blocked_reason": "no protected-verifier endpoint is configured on the build side, and none may be; the sealed side is reached only through injected configuration held by the verifier service identity",
           "holdout_content_present_on_build_side": false,
@@ -165,7 +203,7 @@
             "check": "schema_assert_on_verdict_payload",
             "expected": "no_forbidden_field_present",
             "interface_version": "1.0.0",
-            "evaluation_request_id": "EVID-0b0468da246c",
+            "evaluation_request_id": "EVID-96d5c244cc99",
             "state": "BLOCKED_EXTERNAL_ACCESS",
             "permitted_submission_fields": [
               "artifact_or_commit_identifier",
@@ -210,6 +248,7 @@
       {
         "key": "mutants_seeded_killed",
         "contract_line": "Mutants seeded/killed",
+        "label": "Mutants seeded/killed",
         "value": {
           "seeded": 25,
           "killed": 25,
@@ -241,6 +280,7 @@
       {
         "key": "oracle_versions_and_health",
         "contract_line": "Oracle versions and health",
+        "label": "Oracle versions and health",
         "value": {
           "ORACLE-001": {
             "oracle_version": "1.0.0",
@@ -526,7 +566,7 @@
                   "expected": "FAIL/FAILED_PROVENANCE",
                   "observed": "FAIL/FAILED_PROVENANCE",
                   "ok": true,
-                  "detail": "R-001: content_hash sha256:6b7cc2c1eb832dab7c17b72f084e80f95a5dab9aceb344406e2700ac19424444 does not match recomputed sha256:0c618fced0d3e14b3d20109aecb06d829bea486b0ea98aa0bb103c685b859281"
+                  "detail": "R-001: content_hash sha256:afc39ee112eefd62a143b733908ef359f2d5d3f5db99dacf45dcce908d57c98b does not match recomputed sha256:9b404e005b8515fd3bed28783d091a05f0515c338a6eb8ba77e5c17a7cf4a72d"
                 },
                 {
                   "fixture_id": "KB-003",
@@ -628,6 +668,7 @@
       {
         "key": "scope_drift_findings_and_resolution",
         "contract_line": "Scope-drift findings and resolution",
+        "label": "Scope-drift findings and resolution",
         "value": {
           "open_findings": [],
           "resolved": [],
@@ -641,6 +682,7 @@
       {
         "key": "dependency_versions_and_verification",
         "contract_line": "Dependency versions and verification status",
+        "label": "Dependency versions and verification status",
         "value": {
           "context7_snapshots": [
             "C7-langgraph-1.2.10-296ef01c.json",
@@ -660,6 +702,7 @@
       {
         "key": "deployment_shadow_canary_evidence",
         "contract_line": "Deployment/shadow/canary evidence where required",
+        "label": "Deployment/shadow/canary evidence where required",
         "value": {
           "owner_control_surface": {
             "unit": "efah-owner-surface (systemd user unit, Restart=always, linger enabled)",
@@ -681,6 +724,7 @@
       {
         "key": "knowledge_promotions",
         "contract_line": "Knowledge promotions",
+        "label": "Knowledge promotions",
         "value": {
           "promotions": [],
           "recorded": false
@@ -693,6 +737,7 @@
       {
         "key": "hard_gold_candidates_and_promotions",
         "contract_line": "Hard-gold candidates/promotions",
+        "label": "Hard-gold candidates/promotions",
         "value": {
           "candidates": [],
           "promotions": []
@@ -705,6 +750,7 @@
       {
         "key": "model_aliases_and_audit_references",
         "contract_line": "Model aliases and protected audit references",
+        "label": "Model aliases and protected audit references",
         "value": {
           "aliases": {
             "researcher": "researcher-r17",
@@ -763,8 +809,9 @@
       {
         "key": "timing_breakdown",
         "contract_line": "Timing breakdown",
+        "label": "Timing breakdown",
         "value": {
-          "package_build_seconds": 0.253,
+          "package_build_seconds": 0.254,
           "stages": [
             {
               "stage": "terminusdb",
@@ -784,11 +831,11 @@
             },
             {
               "stage": "hidden_holdout",
-              "seconds": 0.007
+              "seconds": 0.006
             },
             {
               "stage": "mutants",
-              "seconds": 0.086
+              "seconds": 0.087
             },
             {
               "stage": "oracles",
@@ -808,7 +855,7 @@
             },
             {
               "stage": "aliases",
-              "seconds": 0.028
+              "seconds": 0.029
             }
           ],
           "host": {
@@ -824,6 +871,7 @@
       {
         "key": "auto_merged_pr_reference",
         "contract_line": "Auto-merged PR reference",
+        "label": "Auto-merged PR reference",
         "value": "UNAVAILABLE",
         "source": "no pull request has been auto-merged",
         "evidence_tier": "NOT_MEASURED",
@@ -833,6 +881,7 @@
       {
         "key": "honest_debt_and_deferred_non_goals",
         "contract_line": "Honest debt and deliberately deferred non-goals",
+        "label": "Honest debt and deliberately deferred non-goals",
         "value": {
           "honest_debt": [
             {

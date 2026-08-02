@@ -53,7 +53,7 @@ from pathlib import Path
 from typing import Any
 
 from contracts import markdown
-from governance.envelope import CompiledObject, content_hash, utc_now
+from governance.envelope import CompiledObject, utc_now
 from governance.states import ProjectState
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -91,6 +91,18 @@ class PackageField:
     note: str = ""
 
     @property
+    def label(self) -> str:
+        """The field name, without the contract's illustrative value.
+
+        §27's first line reads ``Project status: VERIFIED_COMPLETE`` — the value
+        is an example of a successful run, not a label. Rendering it verbatim
+        beside a measured status would print
+        ``Project status: VERIFIED_COMPLETE: RUNNING``, which reads as a claim
+        followed by a contradiction.
+        """
+        return self.contract_line.partition(":")[0].strip()
+
+    @property
     def present(self) -> bool:
         """Present means measured. Empty containers and the sentinel are not.
 
@@ -99,14 +111,13 @@ class PackageField:
         """
         if self.value is UNAVAILABLE or self.value is None:
             return False
-        if isinstance(self.value, (str, list, dict, tuple)) and len(self.value) == 0:
-            return False
-        return True
+        return not (isinstance(self.value, (str, list, dict, tuple)) and len(self.value) == 0)
 
     def as_body(self) -> dict[str, Any]:
         return {
             "key": self.key,
             "contract_line": self.contract_line,
+            "label": self.label,
             "value": self.value,
             "source": self.source,
             "evidence_tier": self.tier.value,
@@ -125,7 +136,10 @@ def section_27_lines() -> list[str]:
 #: Maps each §27 line to the stable key the package uses. Ordered exactly as the
 #: contract orders them, so the package can be read against §27 line by line.
 FIELD_KEYS: tuple[tuple[str, str], ...] = (
-    ("Project status", "project_status"),
+    # Verbatim, including the contract's illustrative value. Matching the
+    # contract exactly is what lets the package be diffed against §27 line by
+    # line; :attr:`PackageField.label` strips the example for display.
+    ("Project status: VERIFIED_COMPLETE", "project_status"),
     ("Project ID and version", "project_id_and_version"),
     ("Contract ID and version", "contract_id_and_version"),
     ("TerminusDB database/branch/commit", "terminusdb_database_branch_commit"),
@@ -159,7 +173,7 @@ def _read_json(path: Path) -> Any | None:
 
 def _git(*args: str) -> str | None:
     try:
-        proc = subprocess.run(  # noqa: S603 - fixed argv
+        proc = subprocess.run(
             ["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, timeout=30
         )
     except (OSError, subprocess.SubprocessError):
@@ -218,7 +232,7 @@ def _pack_identity() -> tuple[PackageField, PackageField]:
         import yaml
 
         project = yaml.safe_load((PACK_ROOT / "project.yaml").read_text()) or {}
-    except Exception:  # noqa: BLE001 - an unreadable pack is a measurement
+    except Exception:
         project = {}
     return (
         PackageField(
@@ -380,7 +394,7 @@ def _requirements() -> PackageField:
 
         items = load_requirements()
         total = len(items)
-    except Exception:  # noqa: BLE001
+    except Exception:
         total = None
     return PackageField(
         "requirements_satisfied_over_total",
@@ -427,20 +441,41 @@ def _tasks() -> PackageField:
     )
 
 
-def _tests(test_report: dict[str, Any] | None) -> PackageField:
-    if not test_report:
+def _tests(test_report: dict[str, Any] | None, commit: str | None) -> PackageField:
+    """A recorded run, or nothing — and only if it is bound to *this* commit.
+
+    §18 requires a test result to carry its command, environment, timestamp,
+    exit status, raw artifact and commit binding. A stored result from an
+    earlier commit satisfies all of those except the last, and the last is the
+    one that makes it evidence *about this candidate*. So a stale record is
+    reported as stale rather than reused — otherwise the package would keep
+    showing a green suite from whenever it last passed.
+    """
+    report = test_report or _read_json(EVIDENCE_ROOT / "visible-tests-result.json")
+    if not report:
         return PackageField(
             "visible_tests_result",
             "Visible tests result",
             UNAVAILABLE,
-            "no recorded test run bound to this commit",
+            "no recorded test run",
             Tier.NOT_MEASURED,
-            note="build the package with --run-tests to bind a fresh run to HEAD",
+            note="run tools/build_evidence_package.py --run-tests to bind a run to HEAD",
+        )
+
+    bound = report.get("candidate_commit")
+    if commit and bound and bound != commit:
+        return PackageField(
+            "visible_tests_result",
+            "Visible tests result",
+            UNAVAILABLE,
+            f"the recorded run is bound to {str(bound)[:12]}, not HEAD {commit[:12]}",
+            Tier.NOT_MEASURED,
+            note="a passing suite from another commit is not evidence about this one",
         )
     return PackageField(
         "visible_tests_result",
         "Visible tests result",
-        test_report,
+        report,
         "pytest, executed and recorded with its command, exit status and commit binding",
         Tier.DETERMINISTIC_ORACLE,
     )
@@ -460,7 +495,7 @@ def _composition() -> PackageField:
         ]
         value["composition_finding_count"] = len(findings)
         value["modules_declared"] = len(registry.declarations)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         value["composition_findings"] = UNAVAILABLE
         value["composition_error"] = f"{type(exc).__name__}: {exc}"
     if skeleton:
@@ -526,7 +561,7 @@ def _mutants() -> PackageField:
             bucket = value["by_class"].setdefault(cls, {"seeded": 0, "killed": 0})
             bucket["seeded"] += 1
             bucket["killed"] += int(bool(outcome.killed))
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return PackageField(
             "mutants_seeded_killed",
             "Mutants seeded/killed",
@@ -555,10 +590,8 @@ def _oracles() -> PackageField:
     fixtures were not run is not the health §17.4 asks for.
     """
     try:
-        from oracles.fixtures import run_fixture_suite
+        from oracles.fixtures import fixtures_for, run_fixture_suite
         from oracles.registry import build_oracles
-
-        from oracles.fixtures import fixtures_for
 
         oracles = build_oracles()
         value: dict[str, Any] = {}
@@ -594,7 +627,7 @@ def _oracles() -> PackageField:
                 "health": health,
                 "health_source": health_note,
             }
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return PackageField(
             "oracle_versions_and_health",
             "Oracle versions and health",
@@ -726,7 +759,7 @@ def _aliases() -> PackageField:
         policy = load_model_policy()
         aliases = {role: row.alias for role, row in policy.roles.items()}
         separation = coverage_report(policy)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return PackageField(
             "model_aliases_and_audit_references",
             "Model aliases and protected audit references",
@@ -992,7 +1025,7 @@ def build(*, test_report: dict[str, Any] | None = None) -> EvidencePackage:
         digest_field,
         stage("requirements", _requirements),
         stage("tasks", _tasks),
-        _tests(test_report),
+        _tests(test_report, _git("rev-parse", "HEAD")),
         stage("composition", _composition),
         stage("hidden_holdout", _hidden_holdout),
         stage("mutants", _mutants),
@@ -1019,6 +1052,15 @@ def build(*, test_report: dict[str, Any] | None = None) -> EvidencePackage:
             Tier.OWNER_VERIFIED,
         )
     )
+
+    # Each builder names its own key; the *contract line* is authoritative and
+    # comes from FIELD_KEYS, which mirrors §27 verbatim. Stamping it here rather
+    # than repeating it in twenty-two builders means a builder cannot drift from
+    # the contract's wording, and the package stays diffable against §27.
+    line_by_key = {key: line for line, key in FIELD_KEYS}
+    for f in fields:
+        if f.key in line_by_key:
+            f.contract_line = line_by_key[f.key]
 
     contract_lines = section_27_lines()
     discrepancy = {
@@ -1059,7 +1101,7 @@ def render_text(package: EvidencePackage) -> str:
                 rendered = rendered[:157] + "..."
         else:
             rendered = str(value)
-        lines.append(f"{mark} {f.contract_line}: {rendered}")
+        lines.append(f"{mark} {f.label}: {rendered}")
         lines.append(f"    tier={f.tier.value}  source={f.source}")
         if f.note:
             lines.append(f"    note: {f.note}")

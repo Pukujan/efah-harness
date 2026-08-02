@@ -16,12 +16,12 @@ EFAH — Contract §27 Final Evidence Package
     tier=DETERMINISTIC_ORACLE  source=live GET /api/info and /api/db/admin/{db}/local/branch
     note: graph commit id is not exposed by the branch endpoint on this version
 
-  Release repository and commit: {"repository": "git@github-efah:Pukujan/efah-harness.git", "branch": "feat/kernel-and-ci", "commit": "0b0468da246c73d1a52640d9274feeed3efa7987", "working_tre...
+  Release repository and commit: {"repository": "git@github-efah:Pukujan/efah-harness.git", "branch": "feat/kernel-and-ci", "commit": "96d5c244cc99a59380b41933ef312499d946d6f0", "working_tre...
     tier=DETERMINISTIC_ORACLE  source=git rev-parse HEAD / git status --porcelain
 
-! Release artifact digest: UNAVAILABLE
-    tier=NOT_MEASURED  source=no release artifact has been built
-    note: the harness is a source distribution and no packaging step has run; a digest invented from the source tree would not be an artifact digest
+  Release artifact digest: {"artifact": "efah-0.1.0-py3-none-any.whl", "digest": "sha256:eb53ded7b7e265ced392be03f39eb08b8975953d80be8539198965e734456c99", "size_bytes": 423917, "built...
+    tier=DETERMINISTIC_ORACLE  source=sha256 over the built wheel + dist/BUILD-PROVENANCE.json
+    note: the artifact was not built from the current clean HEAD, so it does not identify this commit; rebuild before treating it as a release digest
 
   Requirements satisfied / total: {"satisfied": "UNAVAILABLE", "total": "UNAVAILABLE"}
     tier=NOT_MEASURED  source=requirements catalog is loadable; per-requirement satisfaction is not yet recorded
@@ -30,14 +30,13 @@ EFAH — Contract §27 Final Evidence Package
   Tasks completed / total: {"completed": 1, "total": 2}
     tier=DETERMINISTIC_ORACLE  source=.data/owner_surface_ledger.jsonl work_unit projections
 
-! Visible tests result: UNAVAILABLE
-    tier=NOT_MEASURED  source=no recorded test run bound to this commit
-    note: build the package with --run-tests to bind a fresh run to HEAD
+  Visible tests result: {"command": "/home/yoav/efah/.venv/bin/python -m pytest tests/ -q --tb=no", "exit_status": 0, "result": "PASS", "summary": "968 passed, 11 skipped, 1 warning...
+    tier=DETERMINISTIC_ORACLE  source=pytest, executed and recorded with its command, exit status and commit binding
 
   Integration/composition result: {"composition_findings": [], "composition_finding_count": 0, "modules_declared": 32}
     tier=DETERMINISTIC_ORACLE  source=composition.registry live discovery + recorded walking-skeleton evidence
 
-  Hidden holdout result: {"lane": "hidden", "candidate_commit": "0b0468da246c73d1a52640d9274feeed3efa7987", "verdict": "UNVERIFIABLE", "blocked_reason": "no protected-verifier endpoi...
+  Hidden holdout result: {"lane": "hidden", "candidate_commit": "96d5c244cc99a59380b41933ef312499d946d6f0", "verdict": "UNVERIFIABLE", "blocked_reason": "no protected-verifier endpoi...
     tier=DETERMINISTIC_ORACLE  source=holdouts.suite.HoldoutLane submitted against HEAD
     note: UNVERIFIABLE is not a soft pass. No sealed holdout content exists: FINDING-005 holds generation, and the generator enforces that refusal itself. auto_merge_requirements.hidden_holdout therefore cannot be PASS.
 
@@ -72,7 +71,7 @@ EFAH — Contract §27 Final Evidence Package
     tier=DETERMINISTIC_ORACLE  source=model-policy.yaml alias map + models.separation.coverage_report()
     note: real model identities are deliberately absent (§12.3). Family is a label: FINDING-005 measured three anthropic-labelled roles resolving to one resold account pool, so a cross-family edge may not hold at the transport.
 
-  Timing breakdown: {"package_build_seconds": 0.253, "stages": [{"stage": "terminusdb", "seconds": 0.08}, {"stage": "requirements", "seconds": 0.005}, {"stage": "tasks", "second...
+  Timing breakdown: {"package_build_seconds": 0.254, "stages": [{"stage": "terminusdb", "seconds": 0.08}, {"stage": "requirements", "seconds": 0.005}, {"stage": "tasks", "second...
     tier=DETERMINISTIC_ORACLE  source=measured during this package build
     note: per-phase project timing lives in the task ledger; this is the package build itself
 
@@ -85,8 +84,8 @@ EFAH — Contract §27 Final Evidence Package
 
 ------------------------------------------------------------------------------
 project status : RUNNING
-fields present : 19/22
-missing        : release_artifact_digest, visible_tests_result, auto_merged_pr_reference
+fields present : 21/22
+missing        : auto_merged_pr_reference
 honest debt    : 8 entries
 
 A final prose summary without this package is not completion (§27).
