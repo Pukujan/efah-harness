@@ -32,10 +32,9 @@ without parsing prose.
 from __future__ import annotations
 
 import argparse
-import importlib
 import json
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -43,12 +42,18 @@ from typing import Any
 from contracts.compiler import CompiledProject, compile_pack
 from governance.compiler import CompilationError
 from governance.states import ProjectState
-from integrations.pack import PackValidationError, ProjectPack, load_pack
+from integrations.pack import PackValidationError, load_pack
 
 #: Section 6.2 terminal states -> process exit codes.
+#: Contract §6.2: a run ends only at a terminal state, and "a worker completing
+#: a task, opening a PR, or passing visible tests is not a terminal project
+#: state". RUNNING therefore exits NON-zero: exiting 0 while still running is
+#: precisely the "mostly done" report autonomy-policy.yaml lists under
+#: `not_terminal`, and it would tell CI the project succeeded when it has not
+#: finished. VERIFIED_COMPLETE is the only success.
 EXIT_CODES: dict[ProjectState, int] = {
     ProjectState.VERIFIED_COMPLETE: 0,
-    ProjectState.RUNNING: 0,
+    ProjectState.RUNNING: 1,
     ProjectState.BLOCKED_OWNER_DECISION: 10,
     ProjectState.BLOCKED_EXTERNAL_ACCESS: 11,
     ProjectState.FAILED_CONTRACT: 20,
@@ -56,20 +61,6 @@ EXIT_CODES: dict[ProjectState, int] = {
     ProjectState.FAILED_INFRASTRUCTURE: 22,
     ProjectState.CANCELED: 23,
 }
-
-#: Candidate module paths for the lanes this CLI does not own. First hit wins.
-TERMINUS_IMPORTERS: tuple[tuple[str, str], ...] = (
-    ("integrations.terminus", "import_pack"),
-    ("integrations.terminusdb", "import_pack"),
-    ("ontology.terminus", "import_pack"),
-    ("provenance.terminus", "import_pack"),
-)
-LANGGRAPH_RUNNERS: tuple[tuple[str, str], ...] = (
-    ("workflows.project_graph", "run_project"),
-    ("workflows.runner", "run_project"),
-    ("composition.root", "run_project"),
-)
-
 
 @dataclass
 class LaneResult:
@@ -119,59 +110,56 @@ class RunReport:
         }
 
 
-def _resolve(candidates: Sequence[tuple[str, str]]) -> tuple[Callable[..., Any] | None, str]:
-    """Find the first importable ``module:attribute`` among *candidates*."""
-    tried: list[str] = []
-    for module_name, attribute in candidates:
-        tried.append(f"{module_name}:{attribute}")
-        try:
-            module = importlib.import_module(module_name)
-        except ImportError:
-            continue
-        function = getattr(module, attribute, None)
-        if callable(function):
-            return function, f"{module_name}:{attribute}"
-    return None, "none of " + ", ".join(tried)
+def _walking_skeleton(pack_root: Path, *, mode: str) -> list[LaneResult]:
+    """Run the real §14.4 path through the composition root.
 
+    Earlier this resolved lane entry points by guessing module:attribute names
+    across candidate paths, because the lanes were being built in parallel and
+    their public names were not yet fixed. They are now, and the composition
+    root is the single place that constructs them -- so the CLI calls that
+    rather than searching for it.
+    """
+    import asyncio
 
-def _terminus_import(pack: ProjectPack, compiled: CompiledProject) -> LaneResult:
-    function, where = _resolve(TERMINUS_IMPORTERS)
-    if function is None:
-        return LaneResult(
-            name="terminusdb_import",
-            available=False,
-            detail=(
-                f"no TerminusDB importer on the path ({where}). Contract Section 6.1 step 2 is not executed; "
-                "the compiled objects are not persisted to an isolated branch. This lane is WS-B's."
-            ),
-        )
+    from composition.root import HarnessConfig, StationStatus, run_walking_skeleton
+
     try:
-        result = function(pack=pack, compiled=compiled)
+        run = asyncio.run(run_walking_skeleton(HarnessConfig(pack_root=pack_root)))
     except Exception as exc:  # a lane failure must not crash intake
-        return LaneResult(
-            name="terminusdb_import",
-            available=True,
-            detail=f"{where} raised {type(exc).__name__}: {exc}",
+        return [
+            LaneResult(
+                name="walking_skeleton",
+                available=False,
+                detail=f"composition root raised {type(exc).__name__}: {exc}",
+            )
+        ]
+
+    # `available` means EXERCISED, not merely "did not raise". A station whose
+    # dependency is genuinely absent must surface as a blocker rather than
+    # reading as fine -- the sealed verifier being unreachable is the single
+    # most consequential gap in this run, and reporting it as "ok" would bury it.
+    lanes = [
+        LaneResult(
+            name=f"{station.station:02d}-{station.name.replace(' ', '_')}",
+            available=station.status is StationStatus.EXERCISED,
+            detail=f"{station.status}: {station.detail}",
+            result=station.evidence or None,
         )
-    return LaneResult(name="terminusdb_import", available=True, detail=f"imported via {where}", result=result)
-
-
-def _langgraph_run(pack: ProjectPack, compiled: CompiledProject, mode: str) -> LaneResult:
-    function, where = _resolve(LANGGRAPH_RUNNERS)
-    if function is None:
-        return LaneResult(
-            name="langgraph_run",
-            available=False,
+        for station in run.stations
+    ]
+    lanes.append(
+        LaneResult(
+            name="composition_verifier",
+            available=not run.composition_findings,
             detail=(
-                f"no LangGraph project runner on the path ({where}). Contract Section 6.1 steps 9-10 are not "
-                "executed; the run stops after compilation. This lane is WS-C's."
+                "§5.2 wiring complete: every registered module is reachable from an entrypoint"
+                if not run.composition_findings
+                else "; ".join(run.composition_findings)
             ),
+            result=run.as_evidence(),
         )
-    try:
-        result = function(pack=pack, compiled=compiled, mode=mode)
-    except Exception as exc:
-        return LaneResult(name="langgraph_run", available=True, detail=f"{where} raised {type(exc).__name__}: {exc}")
-    return LaneResult(name="langgraph_run", available=True, detail=f"ran via {where}", result=result)
+    )
+    return lanes
 
 
 def run_project(pack_root: str | Path, *, mode: str = "autonomous", start_workflow: bool = True) -> RunReport:
@@ -211,16 +199,25 @@ def run_project(pack_root: str | Path, *, mode: str = "autonomous", start_workfl
         report.problems.extend(f["detail"] for f in report.compiler_summary["blocking_findings"])
         return report
 
-    report.lanes.append(_terminus_import(pack, compiled))
     if start_workflow:
-        report.lanes.append(_langgraph_run(pack, compiled, mode))
+        report.lanes.extend(_walking_skeleton(Path(pack_root), mode=mode))
 
     unavailable = [lane.name for lane in report.lanes if not lane.available]
     if unavailable:
+        # Distinguish a lane that FAILED from one whose dependency is absent.
+        # Contract Section 6.2 has separate states for these, and collapsing
+        # them would report an outstanding owner decision as an assurance
+        # failure -- or worse, the reverse.
+        failed = [lane.name for lane in report.lanes if lane.detail.startswith("FAILED")]
+        report.state = (
+            ProjectState.FAILED_ASSURANCE if failed else ProjectState.BLOCKED_EXTERNAL_ACCESS
+        )
         report.problems.append(
             "compiled successfully but the run did not reach a terminal project state: "
             f"lanes not on the path: {unavailable}"
         )
+        return report
+
     report.state = ProjectState.RUNNING
     return report
 

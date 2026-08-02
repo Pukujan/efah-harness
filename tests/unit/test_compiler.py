@@ -387,21 +387,44 @@ def test_judge_is_advisory_until_calibrated():
 
 
 def test_cli_run_validates_compiles_and_reports():
+    """AMENDED when the composition root landed.
+
+    This previously asserted RUNNING, because the TerminusDB and LangGraph lanes
+    were unmerged and the CLI could only compile. Both are wired now, and the
+    run reaches BLOCKED_EXTERNAL_ACCESS: the sealed verifier (station 11) is
+    genuinely unreachable pending owner question Q1. Reporting RUNNING while a
+    required service is absent would be the "mostly done" state contract §6.2
+    exists to forbid.
+    """
     report = run_project(PACK_ROOT, mode="autonomous")
     assert report.validated is True
     assert report.compiled is True
-    assert report.state is ProjectState.RUNNING
+    assert report.state is ProjectState.BLOCKED_EXTERNAL_ACCESS
+    assert any("protected_verifier" in p for p in report.problems)
     assert report.compiler_summary["compiles"] is True
     assert report.compiler_summary["contract_version"] == CONTRACT_VERSION
 
 
-def test_cli_reports_unmerged_lanes_by_name_instead_of_crashing():
+def test_cli_runs_every_walking_skeleton_station():
+    """AMENDED when the composition root landed.
+
+    This previously asserted exactly two lanes, both unavailable, each naming the
+    workstream that owed it. That was the honest report while the lanes were
+    being built in parallel. They are merged now, so the CLI runs the real §14.4
+    path and the assertion becomes the stronger one: every station appears, and
+    an unavailable station states why rather than naming an owner.
+    """
     report = run_project(PACK_ROOT, mode="autonomous")
     lanes = {lane.name: lane for lane in report.lanes}
-    assert set(lanes) == {"terminusdb_import", "langgraph_run"}
+    assert "composition_verifier" in lanes
+    stations = [n for n in lanes if n[:2].isdigit()]
+    assert len(stations) >= 15, f"§14.4 has fifteen stations, saw {len(stations)}"
+    assert any(n.endswith("owner_control_surface") for n in stations), "AMENDMENT-001 station missing"
     for lane in lanes.values():
         if not lane.available:
-            assert "WS-" in lane.detail, "an unavailable lane must name its owner"
+            assert "§" in lane.detail or "Q1" in lane.detail, (
+                "an unavailable station must state why, not merely that it is absent"
+            )
 
 
 def test_cli_reports_a_bad_pack_as_failed_contract(tmp_path: Path):
@@ -416,9 +439,18 @@ def test_cli_parses_the_contract_command_line():
     assert (args.domain, args.action, args.pack, args.mode) == ("project", "run", "./project-pack", "autonomous")
 
 
-def test_cli_main_exits_zero_on_the_real_pack(capsys):
+def test_cli_exit_code_distinguishes_running_from_complete(capsys):
+    """AMENDED: RUNNING no longer exits 0.
+
+    Contract §6.2 is explicit that a run ends only at a terminal state, and
+    autonomy-policy.yaml lists "mostly done" under `not_terminal`. A compile that
+    has not reached VERIFIED_COMPLETE exiting 0 would tell CI the project
+    succeeded when it has not finished -- the exact report the contract forbids.
+    VERIFIED_COMPLETE is now the only zero exit.
+    """
     code = main(["project", "compile", str(PACK_ROOT), "--json"])
-    assert code == EXIT_CODES[ProjectState.RUNNING] == 0
+    assert code == EXIT_CODES[ProjectState.RUNNING] != 0
+    assert EXIT_CODES[ProjectState.VERIFIED_COMPLETE] == 0
     assert "compiler" in capsys.readouterr().out
 
 
