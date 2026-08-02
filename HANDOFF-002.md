@@ -35,14 +35,21 @@ self-certifying.
 
 ## The one thing running
 
-**Owner control surface**, `http://100.93.66.35:8088/owner/` — systemd user unit
-`efah-owner-surface`, `Restart=always`, linger enabled. Survives reboot.
+**Owner control surface**, `http://gravebuster.tail733a0f.ts.net:8088/owner/`
+
+**Use the hostname. The bare IP returns 404 on purpose** — the app listens on
+`127.0.0.1` only and `tailscale serve` publishes it to the tailnet, routing by
+`Host` header. Binding the literal tailnet IP is what made it unreachable from
+the owner's phone; see FINDING-004.
+
+systemd user unit `efah-owner-surface`, `Restart=always`, linger enabled.
 Credential in `/home/yoav/.efah/surface.env` (0600, `TERMINUSDB_ADMIN_PASS`
 only; the protected credential is deliberately absent).
 
 ```bash
 systemctl --user status efah-owner-surface
-curl -s http://100.93.66.35:8088/owner/health
+tailscale serve status        # must show "(tailnet only)"
+curl -s http://gravebuster.tail733a0f.ts.net:8088/owner/health
 ```
 
 ---
@@ -159,6 +166,13 @@ question round (`autonomy-policy.yaml` forbids drip questions).
   §6.2 forbids. `VERIFIED_COMPLETE` is the only zero exit.
 - **The composition registry caught its own author** — twelve modules declared
   and unreachable. Trust it over your own diagram.
+- **An assertion naming a client-side condition cannot be satisfied by a
+  server-side observation.** GATE-D1-10 A9 was reported PASS on a 390px
+  screenshot taken *on this host*, while the owner could not open the page at
+  all. A9 now requires a recorded command whose origin is neither loopback nor
+  this host's tailnet address. See FINDING-004 — and note the first version of
+  that very check counted a *missing* origin as off-host, i.e. absence as
+  success, the same error inside its own remedy.
 - **Global throttle is account-wide: 90 req/min**, shared by every process via a
   file lock. An unthrottled fan-out self-inflicts 429s that are indistinguishable
   from genuine model failure — i.e. fabricated evidence.
