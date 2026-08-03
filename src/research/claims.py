@@ -19,42 +19,84 @@ says what the citation says it says.
 That is the gap this closes, and the mechanism is deliberately dumb:
 
 **A citation records a quote and a location. The validator re-reads the source
-and checks the quote is actually there, byte for byte.**
+and checks that quote is really there, byte for byte, at that location.**
 
-A model that invents a plausible-looking citation fails deterministically, at
-:data:`CitationStatus.UNSUPPORTED`, with no judge in the verdict path. This is
-the §17.3 hierarchy applied to citations — an exact execution/state check
-outranks a calibrated model judge, and "does this string occur at this offset in
-this file" is as exact as checks get.
+Every check below is an exact string, byte, or arithmetic comparison. No model
+participates in any verdict, which is what lets §17.3 rank this above a
+calibrated judge: "does this string occur inside this span of this file" is as
+exact as checks get.
 
 Three failure modes are separated, because conflating them hides the interesting
 one:
 
 ``UNSUPPORTED``
-    The quote is not in the source. The citation was fabricated, or the location
-    is wrong. This is the hallucination signal.
+    The quote is not in the source, or not at the location the citation names.
+    The citation was fabricated, or the location was invented. This is the
+    hallucination signal.
 ``STALE``
     The quote is there, but the source's content hash no longer matches the one
     recorded at retrieval. The claim was true and may not be now — §15.7's
     invalidation rule, applied per claim rather than per corpus.
 ``UNRESOLVABLE``
-    The source pointer does not resolve at all. Distinct from ``UNSUPPORTED``:
-    a missing file is an infrastructure problem, an absent quote is a
-    truthfulness problem, and treating them alike would let a deleted file read
-    as a lie or a lie read as a missing file.
+    The source pointer does not resolve, points outside the repository, or names
+    bytes that are not text. Distinct from ``UNSUPPORTED``: a missing file is an
+    infrastructure problem, an absent quote is a truthfulness problem, and
+    treating them alike would let a deleted file read as a lie or a lie read as
+    a missing file.
+``MALFORMED``
+    The citation record is structurally invalid before anything is read — a
+    missing §7.3 field, a quote too short to be evidence, a location that names
+    nothing checkable. A malformed citation never counts as support and never
+    leaves a claim ``SUPPORTED``.
+
+Why a quote has a minimum size (:data:`MINIMUM_QUOTE_CHARACTERS`)
+-----------------------------------------------------------------
+The quote check is only evidence if finding the quote is *improbable by
+chance*. ``quote="the"`` occurs in essentially every English document, so
+"the quote is present in the source" carries no information about the claim; it
+verifies against any file at any location. A floor on quote size is therefore
+not decoration on the check, it is the condition under which the check means
+anything, and it is mechanical: a character count and a token count, computed
+after whitespace normalisation, with no judgement involved.
+
+The floor is stated as a constant rather than a heuristic so it can be argued
+with. It is deliberately low — a short contract clause fragment must still be
+citable — and it is a *necessary*, never a sufficient, condition.
+
+Why linkage is only a lexical overlap floor
+--------------------------------------------
+A quote can be long, real, correctly located, and about something else entirely.
+The honest fix would be to ask whether the quote bears on the statement, and
+that is a semantic judgement. §7.3's gate declares
+``model_judge_in_verdict_path: false``, so this module may not make one: adding
+a model here would forfeit the property that makes the whole check outrank a
+judge in the §17.3 hierarchy.
+
+What is left is the strongest deterministic approximation available without a
+model: :func:`statement_quote_overlap` requires the statement and the quote to
+share at least :data:`MINIMUM_STATEMENT_QUOTE_OVERLAP` content words (case
+folded, stopwords dropped, one crude plural fold). This catches the case where
+a real quote is bolted onto an unrelated statement — the realistic gaming move,
+because a fabricator finds it easier to quote something true than to quote
+something true *and* on topic.
+
+**Stated plainly, because it is the residual and not a solved problem:** a
+determined author defeats the linkage floor by copying one word of the statement
+into the quoted range, or by wording the statement in the source's vocabulary.
+Lexical overlap is not relevance. This module does not, and with the no-judge
+constraint cannot, decide whether a verified quote *entails* the claim. It also
+false-rejects in the other direction: a genuinely supporting quote that shares
+no vocabulary with the statement is reported as unevidenced, which errs toward
+"not proven" and is the direction an evidence check should err in.
 
 What this module does not do
 -----------------------------
-It does not decide whether the quote, once verified to exist, actually *entails*
-the claim. That is a judgment, and §17.5 makes an uncalibrated judge advisory.
-What it guarantees is narrower and checkable: the source exists, it is unchanged,
-and it contains the words the claim says it contains. Entailment is left to the
-adversarial critic, whose output is advisory by construction.
-
-The honest consequence: a determined model could quote a real source accurately
-and still draw a false conclusion from it. That is a weaker attack than
-inventing a source, it leaves a verifiable trail, and it is the residue recorded
-in the honest-debt ledger rather than papered over.
+It does not decide entailment (above). It does not check that the *rest* of the
+source, outside the quoted span, fails to contradict the claim. It does not stop
+an author citing a real, correctly located, on-topic quote and drawing a false
+conclusion from it. That is a weaker attack than inventing a source, it leaves a
+verifiable trail, and it is the residue recorded in the honest-debt ledger
+rather than papered over.
 """
 
 from __future__ import annotations
@@ -70,6 +112,23 @@ from typing import Any
 from governance.envelope import CompiledObject, KnowledgeTier, utc_now
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+
+#: A quote shorter than this is not evidence: it occurs by chance. Both floors
+#: apply, and both are measured after whitespace normalisation. See the module
+#: docstring for the argument; these numbers are the argument's parameters and
+#: are meant to be argued with, not treated as magic.
+MINIMUM_QUOTE_CHARACTERS = 24
+MINIMUM_QUOTE_TOKENS = 4
+
+#: Content words a statement and its quote must share. One is a floor, not a
+#: relevance test — see "Why linkage is only a lexical overlap floor".
+MINIMUM_STATEMENT_QUOTE_OVERLAP = 1
+
+#: A cited line range wider than this is not an "exact supporting location"
+#: (§7.3). Enforced on line ranges only, because a range's width is knowable
+#: from the citation alone. Section references are exempt: their width is the
+#: document's own structure, not the author's choice.
+MAXIMUM_LOCATION_LINES = 120
 
 
 class SourceClass(StrEnum):
@@ -135,13 +194,15 @@ class SupportKind(StrEnum):
 
 class CitationStatus(StrEnum):
     VERIFIED = "VERIFIED"
-    #: The quote is not present in the source. The hallucination signal.
+    #: The quote is not present in the source, or not at the cited location.
+    #: The hallucination signal.
     UNSUPPORTED = "UNSUPPORTED"
     #: Present, but the source changed since retrieval (§15.7).
     STALE = "STALE"
     #: The pointer does not resolve. Infrastructure, not truthfulness.
     UNRESOLVABLE = "UNRESOLVABLE"
-    #: Structurally invalid — a required §7.3 field is missing.
+    #: Structurally invalid — a required §7.3 field is missing, the quote is too
+    #: short to be evidence, or the location names nothing checkable.
     MALFORMED = "MALFORMED"
 
 
@@ -160,29 +221,182 @@ class SourceUnreadable(RuntimeError):
     """The source pointer could not be read. Distinct from a bad quote."""
 
 
+# -- location grammar -------------------------------------------------------
+#
+# §7.3 requires an "exact supporting location". Free-form prose cannot be
+# checked, and an unchecked location is worse than none: the pre-hardening
+# version of this module echoed the author's location string back inside the
+# VERIFIED detail as though it had confirmed it. So the grammar is closed and
+# small — if a location does not parse, the citation is MALFORMED, and the
+# author is told which forms exist.
+
+_SECTION_LOCATION = re.compile(r"^\s*(?:§|sec(?:tion)?\.?\s+)\s*(\d+(?:\.\d+)*)", re.IGNORECASE)
+_LINE_LOCATION = re.compile(
+    # the separator class covers hyphen, en dash, em dash, colon, and "to"
+    r"^\s*(?:lines?\s+|L)(\d+)(?:\s*(?:[-\u2013\u2014:]|to\s+)\s*L?(\d+))?\b",
+    re.IGNORECASE,
+)
+_HEADING = re.compile(r"^(#{1,6})\s+§?\s*([0-9]+(?:\.[0-9]+)*)(?![0-9.])")
+
+#: The forms a location may take, quoted back to the author on failure.
+LOCATION_GRAMMAR = "'§7.3', 'section 7.3', 'lines 10-20', 'line 10', or 'L10-L20'"
+
+
+@dataclass(frozen=True)
+class SourceLocation:
+    """A parsed :attr:`Citation.exact_location`: a section id or a line range."""
+
+    section_id: str | None = None
+    first_line: int | None = None
+    last_line: int | None = None
+
+    @property
+    def line_count(self) -> int | None:
+        if self.first_line is None or self.last_line is None:
+            return None
+        return self.last_line - self.first_line + 1
+
+
+def parse_location(exact_location: str) -> SourceLocation | None:
+    """Parse a location string, or return ``None`` if it names nothing checkable.
+
+    Descriptive text after the location is ignored — ``"§7.3 Source assurance"``
+    parses as section ``7.3`` — so a human-readable citation stays legal while
+    the machine-checkable part stays mandatory.
+    """
+    text = str(exact_location or "")
+    section = _SECTION_LOCATION.match(text)
+    if section:
+        return SourceLocation(section_id=section.group(1))
+    lines = _LINE_LOCATION.match(text)
+    if lines:
+        first = int(lines.group(1))
+        last = int(lines.group(2)) if lines.group(2) else first
+        return SourceLocation(first_line=first, last_line=last)
+    return None
+
+
+def locate(text: str, location: SourceLocation) -> str | None:
+    """Return the text the location selects, or ``None`` if it selects nothing.
+
+    ``None`` means the location does not exist in this source — a section id
+    with no heading, a line range past the end of the file, a reversed range.
+    That is a citation failure, not an infrastructure failure: the author named
+    a place that is not there.
+    """
+    lines = text.splitlines()
+    if location.section_id is not None:
+        return _section_body(lines, location.section_id)
+
+    first, last = location.first_line, location.last_line
+    if first is None or last is None or first < 1 or last < first or last > len(lines):
+        return None
+    return "\n".join(lines[first - 1 : last])
+
+
+def _section_body(lines: list[str], section_id: str) -> str | None:
+    """The markdown section headed *section_id*, up to the next same-or-higher heading.
+
+    Markdown headings are the only section structure this understands. A source
+    without them cannot be cited by section — it must be cited by line range,
+    which is the honest answer rather than searching the whole file and calling
+    that a location.
+    """
+    start: int | None = None
+    level = 0
+    for index, line in enumerate(lines):
+        heading = _HEADING.match(line)
+        if heading and heading.group(2) == section_id:
+            start = index
+            level = len(heading.group(1))
+            break
+    if start is None:
+        return None
+
+    end = len(lines)
+    for index in range(start + 1, len(lines)):
+        heading = _HEADING.match(lines[index])
+        if heading and len(heading.group(1)) <= level:
+            end = index
+            break
+    return "\n".join(lines[start:end])
+
+
+# -- quote substantiveness and statement linkage ----------------------------
+
+_WORD = re.compile(r"[a-z0-9]+")
+
+#: Words carrying no linkage signal. Small on purpose: every word dropped here
+#: is a word an author cannot use to connect a statement to its source, and
+#: normative words ("must", "shall", "never") are deliberately *not* dropped.
+_STOPWORDS = frozenset(
+    {
+        "the", "and", "that", "this", "these", "those", "for", "from", "with",
+        "not", "but", "are", "was", "were", "been", "being", "has", "have",
+        "had", "its", "any", "all", "can", "will", "would", "should", "which",
+        "when", "then", "than", "there", "their", "them", "they", "into",
+        "onto", "over", "under", "such", "only", "also", "each", "other",
+        "some", "more", "most", "very", "upon", "about", "because", "while",
+        "does", "did", "who", "whom", "whose", "how", "why", "what", "where",
+    }
+)
+
+
+def content_tokens(text: str) -> set[str]:
+    """Lower-cased content words, stopwords dropped, crude plural fold applied.
+
+    The plural fold (a single trailing ``s`` removed from tokens longer than
+    three characters) is deliberately crude rather than a stemmer: it is four
+    lines of arithmetic on strings, it is the same on every host and every run,
+    and it costs no dependency. It exists so "claim" and "claims" link.
+    """
+    tokens: set[str] = set()
+    for raw in _WORD.findall(text.lower()):
+        if len(raw) < 3 or raw in _STOPWORDS:
+            continue
+        folded = raw[:-1] if len(raw) > 3 and raw.endswith("s") else raw
+        if folded in _STOPWORDS:
+            continue
+        tokens.add(folded)
+    return tokens
+
+
+def statement_quote_overlap(statement: str, quote: str) -> set[str]:
+    """Content words shared by a statement and a quote.
+
+    The deterministic stand-in for relevance. Its limits are stated in the
+    module docstring and are real: this is a floor, not a relevance judgement.
+    """
+    return content_tokens(statement) & content_tokens(quote)
+
+
 @dataclass(frozen=True)
 class Citation:
     """The §7.3 record. All eleven fields, none optional by accident."""
 
-    #: (1) source ID and (2) URL or file pointer.
+    #: (1) source ID and (2) URL or file pointer. The pointer is a path relative
+    #: to the repository root; absolute paths and ``..`` escapes are refused by
+    #: :func:`read_source_bytes`.
     source_id: str
     source_pointer: str
     #: (3) source class and authority.
     source_class: SourceClass
     #: (4) publication/update date and (5) retrieval date.
     retrieved_at: str
-    #: (6) exact supporting location — a line range, an anchor, a section id.
-    #: Free-form because sources differ, but it must be specific enough that a
-    #: human can go and look.
+    #: (6) exact supporting location — a section id or a line range, in one of
+    #: the forms in :data:`LOCATION_GRAMMAR`. It is *checked*, not recorded: the
+    #: quote must occur inside the span this selects.
     exact_location: str
     #: The words the claim rests on. This is what makes the citation checkable:
-    #: without a quote there is nothing to verify against the source.
+    #: without a quote there is nothing to verify against the source. Subject to
+    #: :data:`MINIMUM_QUOTE_CHARACTERS` and :data:`MINIMUM_QUOTE_TOKENS`.
     quote: str
     #: (7) direct support versus inference.
     support_kind: SupportKind
     #: (8) applicability to the actual dependency/version/task.
     applicability: str
-    #: (9) content hash at retrieval + (10) retrieval provenance.
+    #: (9) content hash at retrieval + (10) retrieval provenance. The hash is
+    #: over the source's raw bytes.
     content_hash: str
     retrieval_provenance: str
     published_at: str | None = None
@@ -191,7 +405,7 @@ class Citation:
     inference_step: str | None = None
 
     def structural_findings(self) -> list[str]:
-        """Missing §7.3 fields, before anything is read from disk."""
+        """Everything checkable from the record alone, before anything is read."""
         findings: list[str] = []
         for name in (
             "source_id",
@@ -212,7 +426,46 @@ class Citation:
             )
         if self.content_hash and not re.match(r"^sha256:[0-9a-f]{64}$", self.content_hash):
             findings.append("content_hash is not a sha256 digest recorded at retrieval")
+        findings.extend(self._quote_findings())
+        findings.extend(self._location_findings())
         return findings
+
+    def _quote_findings(self) -> list[str]:
+        quote = _normalise(self.quote or "")
+        if not quote:
+            return []
+        findings: list[str] = []
+        if len(quote) < MINIMUM_QUOTE_CHARACTERS:
+            findings.append(
+                f"quote is {len(quote)} characters; §7.3 evidence requires at least "
+                f"{MINIMUM_QUOTE_CHARACTERS}. A quote this short occurs by chance, so "
+                "finding it in the source says nothing about the claim"
+            )
+        tokens = len(quote.split())
+        if tokens < MINIMUM_QUOTE_TOKENS:
+            findings.append(
+                f"quote is {tokens} word(s); §7.3 evidence requires at least "
+                f"{MINIMUM_QUOTE_TOKENS}, for the same reason"
+            )
+        return findings
+
+    def _location_findings(self) -> list[str]:
+        raw = str(self.exact_location or "").strip()
+        if not raw:
+            return []
+        location = parse_location(raw)
+        if location is None:
+            return [
+                f"exact_location {raw!r} names nothing a check can resolve; §7.3 requires an "
+                f"exact supporting location, written as one of {LOCATION_GRAMMAR}"
+            ]
+        span = location.line_count
+        if span is not None and span > MAXIMUM_LOCATION_LINES:
+            return [
+                f"exact_location spans {span} lines, wider than the {MAXIMUM_LOCATION_LINES}-line "
+                "limit; a range that wide is a search, not an exact supporting location"
+            ]
+        return []
 
     def as_body(self) -> dict[str, Any]:
         return {
@@ -267,8 +520,41 @@ def _normalise(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def read_source(pointer: str) -> str:
-    """Resolve a source pointer to text.
+def _resolve_pointer(pointer: str) -> Path:
+    """Resolve a pointer to a file inside this repository, or refuse.
+
+    A citation names evidence in the repository under audit. Reading outside it
+    is not a stricter check, it is a different one: the host's ``/etc`` is not
+    reviewable, not committed, not hashed at a known revision, and differs per
+    machine, so a citation to it can never be reproduced by anyone else. Both
+    ways out — a leading ``/`` and a ``..`` walk — are refused, and the refusal
+    is after ``resolve()`` so a symlink out is refused too.
+    """
+    raw = str(pointer or "").strip()
+    if not raw:
+        raise SourceUnreadable("empty source pointer")
+    if Path(raw).is_absolute():
+        raise SourceUnreadable(
+            f"{pointer}: absolute pointers are refused; cite a path relative to the repository root"
+        )
+    path = (REPO_ROOT / raw).resolve()
+    if not path.is_relative_to(REPO_ROOT):
+        raise SourceUnreadable(
+            f"{pointer}: resolves to {path}, outside the repository; a citation must point at "
+            "evidence anyone can re-read at a known revision"
+        )
+    if not path.is_file():
+        raise SourceUnreadable(f"{pointer} does not resolve to a file on this host")
+    return path
+
+
+def read_source_bytes(pointer: str) -> bytes:
+    """Resolve a source pointer to its raw bytes.
+
+    Bytes, not text, because the content hash must be over what is actually on
+    disk. Decoding first and hashing the result loses information: two files
+    differing only in bytes that decode to the same replacement character hash
+    identically, which defeats staleness detection exactly where it matters.
 
     Only local pointers resolve here. A remote URL must have been snapshotted
     and hashed at retrieval (§16.1) and cited by its snapshot path — verifying
@@ -276,33 +562,64 @@ def read_source(pointer: str) -> str:
     one the claim was made against, and would silently pass when the page had
     changed underneath it.
     """
-    path = (REPO_ROOT / pointer).resolve() if not pointer.startswith("/") else Path(pointer)
-    if not path.is_file():
-        raise SourceUnreadable(f"{pointer} does not resolve to a file on this host")
+    path = _resolve_pointer(pointer)
     try:
-        return path.read_text(errors="replace")
+        return path.read_bytes()
     except OSError as exc:
         raise SourceUnreadable(f"{pointer}: {exc}") from exc
 
 
-def verify_citation(citation: Citation, *, reader=read_source) -> CitationCheck:
-    """Re-read the source and check the quote is really in it.
+def decode_source(pointer: str, data: bytes) -> str:
+    """Decode source bytes as UTF-8, strictly.
+
+    Strictly, and with the encoding named, for two reasons. Naming it makes the
+    result host-independent — ``read_text()`` without an encoding follows the
+    machine's locale, so the same repository could verify on one host and not on
+    another. Failing rather than substituting replacement characters makes a
+    binary source say so: before this, a ``.pyc`` decoded to mojibake, missed
+    the quote or mismatched the hash, and was reported as STALE — a claim about
+    a file having *changed*, which nobody had checked and which was usually
+    false. UNRESOLVABLE is the honest status: the pointer resolves, but a
+    byte-exact quote check is not defined over these bytes.
+    """
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise SourceUnreadable(
+            f"{pointer}: not UTF-8 text ({exc}); a quote cannot be checked against a "
+            "binary source, and reporting it as changed would be a claim nobody verified"
+        ) from exc
+
+
+def read_source(pointer: str) -> str:
+    """Resolve a source pointer to decoded text. Raises for binary sources."""
+    return decode_source(pointer, read_source_bytes(pointer))
+
+
+def verify_citation(citation: Citation, *, reader=read_source_bytes) -> CitationCheck:
+    """Re-read the source and check the quote is really there, where it says.
 
     Deterministic. No model participates. This is the check that makes a
-    fabricated citation fail rather than pass.
+    fabricated citation fail rather than pass. *reader* must return ``bytes``:
+    the hash is over what was read, so a reader that returns text has already
+    made a decoding decision this function would have to trust.
     """
     structural = citation.structural_findings()
     if structural:
         return CitationCheck(citation, CitationStatus.MALFORMED, "; ".join(structural))
 
     try:
-        text = reader(citation.source_pointer)
+        data = reader(citation.source_pointer)
+        if not isinstance(data, bytes):
+            raise TypeError(f"reader returned {type(data).__name__}; verify_citation requires bytes")
+        text = decode_source(citation.source_pointer, data)
     except SourceUnreadable as exc:
         return CitationCheck(citation, CitationStatus.UNRESOLVABLE, str(exc))
 
-    observed = "sha256:" + hashlib.sha256(text.encode()).hexdigest()
+    observed = "sha256:" + hashlib.sha256(data).hexdigest()
+    quote = _normalise(citation.quote)
 
-    if _normalise(citation.quote) not in _normalise(text):
+    if quote not in _normalise(text):
         # Checked before staleness on purpose. A source that changed *and* never
         # contained the quote is a fabrication, and reporting it as merely stale
         # would let the interesting failure hide behind the boring one.
@@ -312,6 +629,35 @@ def verify_citation(citation: Citation, *, reader=read_source) -> CitationCheck:
             (
                 f"the quoted text does not occur in {citation.source_pointer}; "
                 "the citation does not support the claim"
+            ),
+            observed,
+        )
+
+    # The location is checked, not echoed. A citation whose quote is somewhere
+    # in a long file but nowhere near the section it names has not shown what it
+    # says it shows, and the pre-hardening version of this function reported
+    # that case as VERIFIED with the unchecked location quoted back in the
+    # detail string.
+    location = parse_location(citation.exact_location)
+    span = locate(text, location) if location is not None else None
+    if span is None:
+        return CitationCheck(
+            citation,
+            CitationStatus.UNSUPPORTED,
+            (
+                f"the cited location {citation.exact_location!r} does not exist in "
+                f"{citation.source_pointer}; the quote occurs elsewhere in the file, but the "
+                "citation points at nothing"
+            ),
+            observed,
+        )
+    if quote not in _normalise(span):
+        return CitationCheck(
+            citation,
+            CitationStatus.UNSUPPORTED,
+            (
+                f"the quoted text occurs in {citation.source_pointer} but not at "
+                f"{citation.exact_location!r}; the cited location does not contain it"
             ),
             observed,
         )
@@ -340,11 +686,14 @@ def verify_citation(citation: Citation, *, reader=read_source) -> CitationCheck:
 class Claim:
     """A statement, and what it rests on.
 
-    ``load_bearing`` is the switch §7.3 turns on. A claim that nothing depends
-    on may be uncited; a claim a requirement, decision, or test depends on may
-    not. Marking a load-bearing claim as incidental to dodge the check is the
-    obvious attack, which is why :func:`validate_claim` treats a stated
-    ``affected_requirement`` as making the claim load-bearing regardless.
+    ``load_bearing`` records the author's intent and is reported in the body. It
+    buys nothing: :func:`validate_claim` applies the same evidence rules to every
+    claim, so an incidental claim with no citations is ``INSUFFICIENT_EVIDENCE``
+    rather than ``SUPPORTED``. It used to be a bypass — an uncited claim marked
+    incidental returned ``SUPPORTED`` at T4, which made ``load_bearing=False``
+    the cheapest way to launder an unevidenced statement into the tier system.
+    ``SUPPORTED`` now means "the evidence was checked and held", never "there
+    was nothing to check".
     """
 
     claim_id: str
@@ -419,24 +768,28 @@ class ClaimValidation:
         )
 
 
-def validate_claim(claim: Claim, *, reader=read_source) -> ClaimValidation:
-    """§15.4's "citation and claim validation", as a deterministic check."""
+def validate_claim(claim: Claim, *, reader=read_source_bytes) -> ClaimValidation:
+    """§15.4's "citation and claim validation", as a deterministic check.
+
+    The order of the tests below is the order of interest, not convenience: a
+    fabricated quote outranks a broken record, a broken record outranks a weak
+    one, and staleness is reported last because it is the only failure that says
+    the claim may once have been true.
+    """
     checks = [verify_citation(c, reader=reader) for c in claim.citations]
     findings: list[str] = []
 
-    if not claim.is_load_bearing:
-        return ClaimValidation(
-            claim,
-            ClaimVerdict.SUPPORTED if not checks else _verdict_from(checks, findings),
-            checks,
-            findings,
-        )
-
     if not claim.citations:
-        findings.append(
-            "a load-bearing claim with no citation; §7.3 requires a source record "
-            "for every load-bearing claim"
-        )
+        if claim.is_load_bearing:
+            findings.append(
+                "a load-bearing claim with no citation; §7.3 requires a source record "
+                "for every load-bearing claim"
+            )
+        else:
+            findings.append(
+                "an uncited claim; it may be true, but nothing here shows it, and "
+                "'incidental' is not evidence"
+            )
         return ClaimValidation(claim, ClaimVerdict.INSUFFICIENT_EVIDENCE, checks, findings)
 
     fabricated = [c for c in checks if c.status is CitationStatus.UNSUPPORTED]
@@ -444,8 +797,23 @@ def validate_claim(claim: Claim, *, reader=read_source) -> ClaimValidation:
         findings.extend(f"{c.citation.source_id}: {c.detail}" for c in fabricated)
         return ClaimValidation(claim, ClaimVerdict.UNSUPPORTED, checks, findings)
 
-    malformed = [c for c in checks if c.status is CitationStatus.MALFORMED]
-    findings.extend(f"{c.citation.source_id}: {c.detail}" for c in malformed)
+    # A malformed or unresolvable citation used to be recorded and then ignored,
+    # so one good citation carried a claim that also carried an empty one. An
+    # evidence record with an invalid entry in it has not been checked; it has
+    # been partly checked, and the honest verdict for partly checked is that the
+    # evidence is insufficient.
+    unchecked = [
+        c
+        for c in checks
+        if c.status in (CitationStatus.MALFORMED, CitationStatus.UNRESOLVABLE)
+    ]
+    if unchecked:
+        findings.extend(f"{c.citation.source_id}: {c.detail}" for c in unchecked)
+        findings.append(
+            "a claim is supported only when every citation on it checks out; "
+            f"{len(unchecked)} of {len(checks)} did not"
+        )
+        return ClaimValidation(claim, ClaimVerdict.INSUFFICIENT_EVIDENCE, checks, findings)
 
     verified = [c for c in checks if c.counts_as_support]
     if not verified:
@@ -456,7 +824,7 @@ def validate_claim(claim: Claim, *, reader=read_source) -> ClaimValidation:
         stale = [c for c in checks if c.status is CitationStatus.STALE]
         return ClaimValidation(
             claim,
-            ClaimVerdict.STALE if stale and not malformed else ClaimVerdict.INSUFFICIENT_EVIDENCE,
+            ClaimVerdict.STALE if stale else ClaimVerdict.INSUFFICIENT_EVIDENCE,
             checks,
             findings,
         )
@@ -484,20 +852,28 @@ def validate_claim(claim: Claim, *, reader=read_source) -> ClaimValidation:
         )
         return ClaimValidation(claim, ClaimVerdict.INSUFFICIENT_EVIDENCE, checks, findings)
 
+    # The linkage floor. Deterministic, weak, and honest about being weak: see
+    # "Why linkage is only a lexical overlap floor" in the module docstring.
+    linked = [
+        c
+        for c in direct
+        if len(statement_quote_overlap(claim.statement, c.citation.quote))
+        >= MINIMUM_STATEMENT_QUOTE_OVERLAP
+    ]
+    if not linked:
+        findings.append(
+            "no verified quote shares a content word with the statement; the quotes are "
+            "real but nothing mechanical connects them to what is being claimed. This is a "
+            "lexical floor, not a relevance judgement — §7.3's gate forbids a model judge "
+            "in this path, so relevance is not decidable here"
+        )
+        return ClaimValidation(claim, ClaimVerdict.INSUFFICIENT_EVIDENCE, checks, findings)
+
     if any(c.status is CitationStatus.STALE for c in checks):
         findings.append("at least one source has changed since retrieval; revalidate (§15.7)")
         return ClaimValidation(claim, ClaimVerdict.STALE, checks, findings)
 
     return ClaimValidation(claim, ClaimVerdict.SUPPORTED, checks, findings)
-
-
-def _verdict_from(checks: list[CitationCheck], findings: list[str]) -> ClaimVerdict:
-    if any(c.status is CitationStatus.UNSUPPORTED for c in checks):
-        findings.append("a citation does not support the claim")
-        return ClaimVerdict.UNSUPPORTED
-    if any(c.status is CitationStatus.STALE for c in checks):
-        return ClaimVerdict.STALE
-    return ClaimVerdict.SUPPORTED
 
 
 def cite_repo_file(
@@ -513,11 +889,11 @@ def cite_repo_file(
 ) -> Citation:
     """Build a citation to a file in this repository, hashing it now.
 
-    A convenience for the common case, and the hash is taken from the file
-    rather than accepted from a caller — a caller-supplied hash is a caller-
-    supplied claim, which is the thing being checked.
+    A convenience for the common case, and the hash is taken from the file's raw
+    bytes rather than accepted from a caller — a caller-supplied hash is a
+    caller-supplied claim, which is the thing being checked.
     """
-    text = read_source(path)
+    data = read_source_bytes(path)
     return Citation(
         source_id=source_id,
         source_pointer=path,
@@ -527,7 +903,7 @@ def cite_repo_file(
         quote=quote,
         support_kind=support_kind,
         applicability=applicability,
-        content_hash="sha256:" + hashlib.sha256(text.encode()).hexdigest(),
+        content_hash="sha256:" + hashlib.sha256(data).hexdigest(),
         retrieval_provenance=f"read from the working tree at {REPO_ROOT}",
         inference_step=inference_step,
     )
