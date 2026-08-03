@@ -1505,6 +1505,7 @@ CHECKS: dict[tuple[str, str], Check] = {
 # Structural: this file had grown to the point where the registry at the bottom
 # was the only place a reader could see what is covered. Keeping the map here
 # and the checks next door preserves that one-screen view.
+from evaluation.checks_audit_followup import CHECKS_AUDIT_FOLLOWUP  # noqa: E402
 from evaluation.checks_d1_03 import CHECKS_D1_03  # noqa: E402
 from evaluation.checks_d1_04 import CHECKS_D1_04  # noqa: E402
 from evaluation.checks_d1_05 import CHECKS_D1_05  # noqa: E402
@@ -1514,6 +1515,7 @@ from evaluation.checks_d2_12 import CHECKS_D2_12  # noqa: E402
 from evaluation.checks_d2_21 import CHECKS_D2_21  # noqa: E402
 from evaluation.checks_d2_22 import CHECKS_D2_22  # noqa: E402
 
+CHECKS.update(CHECKS_AUDIT_FOLLOWUP)
 CHECKS.update(CHECKS_D1_03)
 CHECKS.update(CHECKS_D1_04)
 CHECKS.update(CHECKS_D1_05)
@@ -1537,7 +1539,19 @@ NOT_EXECUTABLE_REASONS: dict[tuple[str, str], str] = {
         "builder token is configured for this runner."
     ),
     ("GATE-D1-09", "A1"): "the artifact registry is not yet built (WS-A/WS-B).",
-    ("GATE-D1-09", "A3"): "OTel span emission is not yet built (observability lane).",
+    # ("GATE-D1-09", "A3") was recorded here as "OTel span emission is not yet
+    # built (observability lane)". That was FALSE by the time anyone read it:
+    # REQUIRED_CORRELATION_FIELDS carries all eleven, efah_span enforces them per
+    # emitter, live emitters exist in the API middleware and the Plane adapter,
+    # and a span test proved it through an InMemorySpanExporter. The 2026-08-02
+    # gate audit found the reason, not the gap.
+    #
+    # A stale reason is its own failure mode, and the opposite of the one this
+    # project guards against: not claiming proof it does not have, but recording
+    # an inability it no longer has, so nobody looks again. Worth stating because
+    # ("GATE-D1-08", "A3") below is stale in the same direction -- DEC-003
+    # measured that App's installation scope live -- and is kept only because its
+    # replacement needs a GitHub client that does not exist yet.
     ("GATE-D3-25", "A2"): "requires a live pull request and a CI run.",
     ("GATE-D3-25", "A3"): "requires a live pull request and a CI run.",
     ("GATE-D3-25", "A4"): "requires a live merge actor on a real pull request.",
