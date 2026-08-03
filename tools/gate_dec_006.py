@@ -10,9 +10,10 @@ A  the verifier service identity exists and is a different uid from the builder
 B  the builder's attempt to read the sealed store is refused by the kernel
 C  the generator is root-owned, so the account that runs it cannot rewrite it
 D  the sudoers grant is scoped to the generator and grants no unrestricted command
-E  the seam returns a valid receipt shape and no content, invoked for real
-F  the generator's duplicated constants match the harness — models and the
-   closed failure-reason vocabulary
+E  the seam returns a valid receipt shape and no content, invoked for real, and
+   an unpinned grade is refused instead of answered with a freshly minted exam
+F  the generator's duplicated constants match the harness — models, the closed
+   failure-reason vocabulary and the closed run-mode vocabulary
 
 F exists because the generator is deliberately unable to import the harness — it
 would otherwise depend on code the builder can rewrite, which would make the
@@ -48,6 +49,7 @@ from verifier_identity.identity import measure  # noqa: E402
 from verifier_identity.seam import (  # noqa: E402
     PERMITTED_RECEIPT_FIELDS,
     GenerationRequest,
+    GenerationRunMode,
     GenerationSeam,
     GeneratorFailureReason,
 )
@@ -121,9 +123,17 @@ def check_d(m) -> dict[str, Any]:
 def check_e(m) -> dict[str, Any]:
     """Invoke the seam for real and inspect what came back.
 
-    The generator refuses while FINDING-005 is unanswered, which is the point:
-    the refusal is a valid receipt with a typed failure class, so the seam is
-    exercised end to end without generating anything.
+    The probe asks for a ``GRADE`` with no pinned exam, which the generator
+    refuses as ``EXAM_NOT_PINNED``. That is the check doing two jobs at once:
+    the refusal is a valid receipt with a typed class and a typed reason, so the
+    seam is exercised end to end, **and** it is the assertion that an unpinned
+    grade cannot silently become a fresh exam.
+
+    It used to ask for ``target_count=1`` and take whatever came back. While
+    FINDING-005 was open that cost nothing, because the generator refused before
+    spending. DEC-007 answered it, and the same call then began minting a real
+    exercise on every gate run — three minutes and two frontier completions to
+    establish that a receipt has the right shape. This costs neither.
     """
     if not m.provisioned:
         return _result("E", "the seam returns a receipt shape and no content", False,
@@ -134,27 +144,38 @@ def check_e(m) -> dict[str, Any]:
             generation_request_id=f"GEN-PROBE-{int(time.time())}",
             candidate_commit="0" * 40,
             contract_version="1.1",
-            target_count=1,
+            mode=GenerationRunMode.GRADE,
+            exam_id=None,
         )
     )
     evidence = outcome.as_evidence()
     receipt = evidence.get("receipt") or {}
-    shape_ok = bool(receipt) and set(receipt) <= set(PERMITTED_RECEIPT_FIELDS) | {"mint_accepted"}
+    shape_ok = bool(receipt) and set(receipt) <= set(PERMITTED_RECEIPT_FIELDS) | {
+        "mint_accepted", "gate_eligible",
+    }
+    refused_unpinned = (
+        receipt.get("failure_reason") == GeneratorFailureReason.EXAM_NOT_PINNED.value
+        and receipt.get("run_mode") == GenerationRunMode.GRADE.value
+        and receipt.get("gate_eligible") is False
+    )
     return _result(
         "E",
-        "the seam returns a valid receipt shape and no content",
-        bool(shape_ok and not evidence["rejected_because"]),
-        f"state={evidence['state']} exit_status={receipt.get('exit_status')} "
+        "the seam returns a valid receipt shape and no content, and an unpinned "
+        "grade is refused rather than answered with a fresh exam",
+        bool(shape_ok and refused_unpinned and not evidence["rejected_because"]),
+        f"state={evidence['state']} run_mode={receipt.get('run_mode')} "
+        f"exit_status={receipt.get('exit_status')} "
         f"failure_class={receipt.get('failure_class')} "
         f"failure_reason={receipt.get('failure_reason')}",
         receipt=receipt,
+        refused_unpinned_grade=refused_unpinned,
         stderr_read_by_builder=evidence["stderr_read_by_builder"],
         stdout_bytes_discarded=evidence["stdout_bytes_discarded"],
     )
 
 
-def generator_failure_reasons() -> set[str]:
-    """The generator's copy of the closed vocabulary, read from its source.
+def generator_literal_tuple(name: str) -> set[str]:
+    """One of the generator's duplicated closed vocabularies, read from source.
 
     Parsed with ``ast`` rather than imported: importing it would run a program
     whose entire purpose is to run under a different identity, and rather than a
@@ -166,7 +187,7 @@ def generator_failure_reasons() -> set[str]:
         if not isinstance(node, ast.AnnAssign | ast.Assign):
             continue
         targets = node.targets if isinstance(node, ast.Assign) else [node.target]
-        if not any(isinstance(t, ast.Name) and t.id == "FAILURE_REASONS" for t in targets):
+        if not any(isinstance(t, ast.Name) and t.id == name for t in targets):
             continue
         if not isinstance(node.value, ast.Tuple):
             break  # present but no longer a literal tuple: report as absent
@@ -196,9 +217,11 @@ def check_f() -> dict[str, Any]:
         if actual != want:
             drift.append(f"{name}: generator has {actual!r}, pack has {want!r}")
 
-    # The other duplicated constant. A reason the seam does not know is a
-    # receipt the seam rejects, so this drift costs the diagnosis outright.
-    theirs = generator_failure_reasons()
+    # The other duplicated constants. A reason the seam does not know is a
+    # receipt the seam rejects, so this drift costs the diagnosis outright; a
+    # run mode the seam does not know is a receipt the seam rejects **and** a
+    # verdict nobody can act on, so it costs the gate.
+    theirs = generator_literal_tuple("FAILURE_REASONS")
     ours = {r.value for r in GeneratorFailureReason}
     if theirs != ours:
         drift.append(
@@ -206,14 +229,25 @@ def check_f() -> dict[str, Any]:
             f"seam-only {sorted(ours - theirs)}"
         )
 
+    their_modes = generator_literal_tuple("RUN_MODES")
+    our_modes = {m.value for m in GenerationRunMode}
+    if their_modes != our_modes:
+        drift.append(
+            f"RUN_MODES: generator-only {sorted(their_modes - our_modes)}, "
+            f"seam-only {sorted(our_modes - their_modes)}"
+        )
+
     # And the copy that actually runs. Comparing source to source proves the two
     # halves of the repository agree; it says nothing about the root-owned file
     # under /opt, which is what `sudo` executes. Since SEAM_VERSION 1.1.0 the
-    # seam requires a `failure_reason` on every failure receipt, so a generator
-    # installed before that emits receipts this side rejects — and the rejection
-    # arrives as FAILED_PROVENANCE with no reason, which is precisely the
-    # undiagnosable state the field was added to end. Better a named gate
-    # failure that says "re-run provision.sh".
+    # seam requires a `failure_reason` on every failure receipt, and since 1.2.0
+    # a `run_mode` on every receipt at all, so a generator installed before
+    # either emits receipts this side rejects — and the rejection arrives as
+    # FAILED_PROVENANCE with no reason, which is precisely the undiagnosable
+    # state those fields were added to end. Worse for 1.2.0: an installed
+    # generator that predates the split still mints an exercise for every call,
+    # so a gate wired to it is measuring the exam. Better a named gate failure
+    # that says "re-run provision.sh".
     installed = Path("/opt/efah-verifier/bin/generate-holdouts")
     deployed_matches: bool | None = None
     try:
@@ -225,7 +259,10 @@ def check_f() -> dict[str, Any]:
             drift.append(
                 f"{installed} differs from {GENERATOR_SOURCE.name}; the sealed side is "
                 "running a different program from the one in the repository — re-run "
-                "deploy/verifier/provision.sh under the owner's authority"
+                "deploy/verifier/provision.sh under the owner's authority. Until that "
+                "is done the installed generator predates SEAM_VERSION 1.2.0, mints a "
+                "new exercise on every call and emits receipts without run_mode, so no "
+                "grade verdict from it is gate-eligible"
             )
 
     return _result(
@@ -234,11 +271,13 @@ def check_f() -> dict[str, Any]:
         "generator matches its source",
         not drift,
         "; ".join(drift)
-        or f"models match the pack; {len(ours)} failure reasons match the seam; "
-           "the installed generator matches its source",
+        or f"models match the pack; {len(ours)} failure reasons and "
+           f"{len(our_modes)} run modes match the seam; the installed generator "
+           "matches its source",
         expected=expected,
         found=found,
         failure_reasons=sorted(ours),
+        run_modes=sorted(our_modes),
         deployed_matches_source=deployed_matches,
     )
 
@@ -271,11 +310,27 @@ def main() -> int:
         "checks": checks,
         "identity_measurement": m.as_body(),
         "honest_debt": m.as_body()["honest_debt"],
+        # E and F share one cause and one remedy, and saying so is the
+        # difference between a gate that is failing and a gate that is failing
+        # for a reason nobody has written down. Both go green the moment the
+        # sealed side runs the generator that is in this repository.
+        "blocked_by_provisioning": (
+            "SEAM_VERSION 1.2.0 splits minting from grading. The installed "
+            "/opt/efah-verifier/bin/generate-holdouts predates it: it does not accept "
+            "--mode, so the seam gets no receipt (check E) and the installed bytes "
+            "differ from the source (check F). Remedy, once: run "
+            "deploy/verifier/provision.sh under the owner's authority. Measured "
+            "against a staged copy of the identical source under the same identity, "
+            "check E returns exit 8 / GRADE / EXAM_NOT_PINNED and passes."
+        ),
         "generation_status": (
-            "BLOCKED_OWNER_DECISION: sealed holdout content is not generated while "
-            "FINDING-005 is unanswered. The refusal is enforced by the generator, "
-            "which requires a transport decision recorded inside the verifier's own "
-            "0700 directory - the builder cannot write it to unblock itself."
+            "DEC-007 answered FINDING-005 as option D, so minting is unblocked. "
+            "Minting and grading are now separate verbs: a mint authors an exam, "
+            "validates it to kill_rate 1.0 and freezes it under its own content "
+            "hash; a grade loads a frozen exam by that hash and makes no model "
+            "call at all. A grade with no pinned exam is refused as "
+            "EXAM_NOT_PINNED, which is what check E probes. Only a GRADE receipt "
+            "is gate_eligible - a mint receipt is a claim about the exam."
         ),
     }
 

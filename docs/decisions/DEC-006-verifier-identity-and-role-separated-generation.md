@@ -105,6 +105,28 @@ generator importing `src/` would depend on code the builder can rewrite, which
 would make the separation theatre. The price of that independence is a
 duplicated constant; the mitigation is a check that compares the two.
 
+## AMENDED 2026-08-03 — minting and grading are separate verbs
+
+The section below is preserved as written; DEC-007 answered FINDING-005 as
+option D and generation is no longer blocked. What replaced the blocker is
+FINDING-010: with generation unblocked, one command both authored an exam and
+scored against it, so twenty-five runs on one commit produced twenty-five
+different exams and the gate passed about 45% of the time. **The variance being
+gated on was in the exam, not in the candidate.**
+
+`--mode MINT` authors and freezes an exam under its own content hash, and only
+if every seeded mutant dies. `--mode GRADE --exam-id sha256:…` loads that frozen
+exam and runs a candidate against it with no model in the path. `--mode` has no
+default; a grade with no pin is `EXAM_NOT_PINNED`, not a fresh exam. The receipt
+carries `run_mode`, and only a `GRADE` receipt is `gate_eligible` — a mint says
+an exam exists and says nothing about any code. That is SEAM_VERSION 1.2.0 and
+it obliges the sealed side to be re-provisioned in step, which check F says by
+name.
+
+Measured: six grade runs of one candidate against one frozen exam return one
+verdict, and a deliberately failing candidate returns one different verdict, six
+times. `evidence/grade-reproducibility.json`.
+
 ## Generation has not run, and the refusal is mechanical
 
 FINDING-005 measured that the assurance roles are served from resold

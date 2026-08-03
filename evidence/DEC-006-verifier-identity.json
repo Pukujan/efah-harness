@@ -6,9 +6,9 @@
   "oracle_type": "deterministic_execution_or_state",
   "model_judge_in_verdict_path": false,
   "evidence_tier": "DETERMINISTIC_ORACLE",
-  "measured_at": "2026-08-03T15:23:14Z",
+  "measured_at": "2026-08-03T17:03:06Z",
   "verdict": "FAIL",
-  "passed": 5,
+  "passed": 4,
   "total": 6,
   "checks": [
     {
@@ -42,24 +42,11 @@
     },
     {
       "check": "E",
-      "claim": "the seam returns a valid receipt shape and no content",
-      "passed": true,
-      "detail": "state=PASSED exit_status=0 failure_class=None failure_reason=None",
-      "receipt": {
-        "generation_request_id": "GEN-PROBE-1785770447",
-        "exit_status": 0,
-        "holdout_count": 1,
-        "mutant_count": 3,
-        "killed_count": 3,
-        "kill_rate": 1.0,
-        "store_content_hash": "sha256:c7a80261a0522c3de32be1186d23175256804499c545a1d40f816b3857ff7955",
-        "generator_version": "1.0.0",
-        "oracle_version": "holdout-mint-1.0.0",
-        "generated_at": "2026-08-03T15:23:14Z",
-        "failure_class": null,
-        "failure_reason": null,
-        "mint_accepted": true
-      },
+      "claim": "the seam returns a valid receipt shape and no content, and an unpinned grade is refused rather than answered with a fresh exam",
+      "passed": false,
+      "detail": "state=FAILED_PROVENANCE run_mode=None exit_status=None failure_class=None failure_reason=None",
+      "receipt": {},
+      "refused_unpinned_grade": false,
       "stderr_read_by_builder": false,
       "stdout_bytes_discarded": 0
     },
@@ -67,7 +54,7 @@
       "check": "F",
       "claim": "the generator's duplicated constants match the harness, and the installed generator matches its source",
       "passed": false,
-      "detail": "/opt/efah-verifier/bin/generate-holdouts differs from generator.py; the sealed side is running a different program from the one in the repository \u2014 re-run deploy/verifier/provision.sh under the owner's authority",
+      "detail": "/opt/efah-verifier/bin/generate-holdouts differs from generator.py; the sealed side is running a different program from the one in the repository \u2014 re-run deploy/verifier/provision.sh under the owner's authority. Until that is done the installed generator predates SEAM_VERSION 1.2.0, mints a new exercise on every call and emits receipts without run_mode, so no grade verdict from it is gate-eligible",
       "expected": {
         "HOLDOUT_AUTHOR_MODEL": "claude-opus-4-8",
         "MUTANT_AUTHOR_MODEL": "kimi-k2.7-code"
@@ -78,7 +65,11 @@
       },
       "failure_reasons": [
         "BASELINE_HOLDOUTS_FAILED",
+        "CANDIDATE_FAILED_HOLDOUTS",
         "CREDENTIAL_ABSENT",
+        "EXAM_CONTENT_HASH_MISMATCH",
+        "EXAM_NOT_FOUND",
+        "EXAM_NOT_PINNED",
         "HOLDOUT_AUTHOR_EMPTY_GENERATION",
         "HOLDOUT_AUTHOR_TRUNCATED",
         "HOLDOUT_AUTHOR_UNPARSEABLE",
@@ -97,6 +88,10 @@
         "THROTTLE_STATE_ABSENT",
         "TRANSPORT_DECISION_UNRECORDED",
         "UNCLASSIFIED_EXCEPTION"
+      ],
+      "run_modes": [
+        "GRADE",
+        "MINT"
       ],
       "deployed_matches_source": false
     }
@@ -186,5 +181,6 @@
     "durable_path": "DEC-006 option A - sealed side on a separate host under an owner-held identity",
     "reversible": "the submission interface does not change, so regenerating under an owner-held identity later costs nothing already built"
   },
-  "generation_status": "BLOCKED_OWNER_DECISION: sealed holdout content is not generated while FINDING-005 is unanswered. The refusal is enforced by the generator, which requires a transport decision recorded inside the verifier's own 0700 directory - the builder cannot write it to unblock itself."
+  "blocked_by_provisioning": "SEAM_VERSION 1.2.0 splits minting from grading. The installed /opt/efah-verifier/bin/generate-holdouts predates it: it does not accept --mode, so the seam gets no receipt (check E) and the installed bytes differ from the source (check F). Remedy, once: run deploy/verifier/provision.sh under the owner's authority. Measured against a staged copy of the identical source under the same identity, check E returns exit 8 / GRADE / EXAM_NOT_PINNED and passes.",
+  "generation_status": "DEC-007 answered FINDING-005 as option D, so minting is unblocked. Minting and grading are now separate verbs: a mint authors an exam, validates it to kill_rate 1.0 and freezes it under its own content hash; a grade loads a frozen exam by that hash and makes no model call at all. A grade with no pinned exam is refused as EXAM_NOT_PINNED, which is what check E probes. Only a GRADE receipt is gate_eligible - a mint receipt is a claim about the exam."
 }

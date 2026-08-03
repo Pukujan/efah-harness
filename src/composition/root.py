@@ -28,6 +28,8 @@ precise failure the walking-skeleton phase exists to catch.
 
 from __future__ import annotations
 
+import contextlib
+import json
 import os
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -395,14 +397,25 @@ async def run_walking_skeleton(config: HarnessConfig) -> SkeletonRun:
     # program. The excuse outlived the thing it excused, which is the failure
     # Section 26 names and the one this phase exists to catch.
     #
-    # ``target_count=1`` because this is a wiring proof, not an assurance
-    # campaign: the station's obligation under Section 14.4 is that the service
-    # is *exercised with evidence*, and the figure is recorded so nobody reads
-    # a one-holdout run as a release gate. The generator takes minutes; that is
-    # the honest cost of calling it instead of describing it.
+    # The station **grades**; it does not mint. Minting on every skeleton run
+    # is what it used to do, and it meant every run invented a new exercise:
+    # 25 runs on one commit, 25 different reference implementations, PASS about
+    # 45% of the time. The variance was in the exam, not in the candidate.
+    #
+    # So the exam is pinned. ``evidence/sealed-exam-pin.json`` names a frozen
+    # exam by its content hash, minted once by ``tools/mint_sealed_exam.py``,
+    # and this station grades against that. The pin is not a secret — it is a
+    # hash, and holding it grants no ability to read the set — so keeping it on
+    # the builder's side costs nothing and makes the binding auditable.
+    #
+    # With no pin recorded, the station reports UNAVAILABLE and says so. It does
+    # **not** fall back to minting one: a gate that quietly generates its own
+    # exam when it cannot find the agreed one is the exact behaviour being
+    # removed, and the fallback would be indistinguishable from the fix.
     try:
         from verifier_identity.seam import (
             GenerationRequest,
+            GenerationRunMode,
             GenerationSeam,
             default_identity,
         )
@@ -414,12 +427,17 @@ async def run_walking_skeleton(config: HarnessConfig) -> SkeletonRun:
         # which is the boundary working: a request id is an identifier, not a
         # place to smuggle bytes inward.
         stamp = "".join(c for c in run.started_at if c.isalnum())
+        pin_path = Path(__file__).resolve().parents[2] / "evidence" / "sealed-exam-pin.json"
+        exam_id = None
+        if pin_path.is_file():
+            exam_id = (json.loads(pin_path.read_text()) or {}).get("exam_id")
         outcome = GenerationSeam(default_identity()).generate(
             GenerationRequest(
                 generation_request_id=f"skeleton-{repo_head[:12]}-{stamp}",
                 candidate_commit=repo_head,
                 contract_version=CONTRACT_VERSION,
-                target_count=1,
+                mode=GenerationRunMode.GRADE,
+                exam_id=exam_id,
             )
         )
         receipt = outcome.receipt
@@ -427,17 +445,40 @@ async def run_walking_skeleton(config: HarnessConfig) -> SkeletonRun:
             # No receipt means the seam could not enter the identity at all --
             # sudo absent, generator missing, the store unprovisioned. That is
             # genuinely unavailable, and the seam already says why.
-            record(11, "protected verifier call", StationStatus.UNAVAILABLE,
-                   "; ".join(outcome.rejected_because)
-                   or "the verifier identity returned no receipt",
-                   rejected_because=list(outcome.rejected_because))
+            #
+            # Except for one case it cannot say, because the failure happens
+            # inside a program whose stderr is discarded by design: an installed
+            # generator older than SEAM_VERSION 1.2.0 does not understand
+            # ``--mode`` at all, exits on a usage error and emits no receipt.
+            # From here that is indistinguishable from a broken seam, so the
+            # comparison gate_dec_006 check F makes is made here too and the
+            # remedy is named rather than left to be inferred.
+            detail = "; ".join(outcome.rejected_because) or (
+                "the verifier identity returned no receipt"
+            )
+            source = Path(__file__).resolve().parents[2] / "deploy" / "verifier" / "generator.py"
+            stale = None
+            with contextlib.suppress(OSError):
+                stale = default_identity().generator.read_bytes() != source.read_bytes()
+            if stale:
+                detail += (
+                    " — the installed generator differs from deploy/verifier/generator.py "
+                    "and predates SEAM_VERSION 1.2.0, so it does not accept --mode and "
+                    "cannot grade a pinned exam. §17.2 remedy: re-run "
+                    "deploy/verifier/provision.sh under the owner's authority"
+                )
+            record(11, "protected verifier call", StationStatus.UNAVAILABLE, detail,
+                   rejected_because=list(outcome.rejected_because),
+                   installed_generator_is_stale=stale,
+                   exam_pinned=exam_id is not None)
         else:
             # A receipt is evidence the service ran. Its exit status is the
             # verifier's verdict on the candidate and is NOT this station's
             # verdict -- HOLDOUT_FAILURE means the seam worked and the holdout
             # found something, which is the station succeeding at its job.
             record(11, "protected verifier call", StationStatus.EXERCISED,
-                   f"generated under {outcome.invoked_as}: "
+                   f"graded under {outcome.invoked_as} against exam "
+                   f"{receipt.exam_id[:19]}...: "
                    f"{receipt.holdout_count} holdout(s), {receipt.mutant_count} mutant(s), "
                    f"{receipt.killed_count} killed (kill_rate {receipt.kill_rate}); "
                    f"exit {receipt.exit_status}"
@@ -448,6 +489,13 @@ async def run_walking_skeleton(config: HarnessConfig) -> SkeletonRun:
                    # discarded by design so there is no second place to look.
                    + (f"/{receipt.failure_reason}" if receipt.failure_reason else ""),
                    invoked_as=outcome.invoked_as,
+                   run_mode=receipt.run_mode,
+                   exam_pinned=exam_id is not None,
+                   # The station records whether this receipt is something a
+                   # release gate may act on, rather than leaving that to be
+                   # inferred from an exit status that means different things in
+                   # the two modes.
+                   gate_eligible=receipt.gate_eligible,
                    holdout_count=receipt.holdout_count,
                    mutant_count=receipt.mutant_count,
                    killed_count=receipt.killed_count,

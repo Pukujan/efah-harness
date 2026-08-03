@@ -43,6 +43,43 @@ future edit passes one in by mistake: it is coerced to
 ``UNCLASSIFIED_EXCEPTION`` and the text goes to the sealed log where it
 belongs. The seam validates the same list from the other side.
 
+Minting is not grading
+----------------------
+This program has two verbs and refuses to do both in one breath.
+
+``--mode MINT`` authors a reference implementation, the holdouts that pin it and
+the mutants that attack it, runs the mutation gate, and — only if every mutant
+dies — **freezes** the set under ``store/exams/<hex>/`` and returns the exam's
+content hash. ``--mode GRADE --exam-id sha256:…`` makes no model call at all: it
+loads that frozen exam, re-verifies that it still hashes to its own name, and
+runs a candidate against it.
+
+The reason is measured. On 2026-08-03, 25 runs on one commit produced 25
+different exercises and passed roughly 45% of the time. The request body carried
+``temperature: 0`` and nothing else, the request id never entered a prompt, and
+the mutant prompt embeds the previous call's output — so the *subject* was
+regenerated too and the variance compounded. The variance being measured was in
+the exam, not in the candidate, and a gate wired to that answers a different
+question every time it runs.
+
+The cheap fix was measured first and failed. ``seed`` is accepted by this
+gateway — ``CONFIGURATIONGUIDE.md`` lists it as universally supported, in a list
+about *parameter acceptance* — but ``evidence/generation-determinism-probe.json``
+records three identical seeded requests to each author producing three distinct
+completions, with no ``system_fingerprint`` to tell an honoured seed from a
+dropped one. So no ``seed`` is sent below: a parameter measured not to work,
+which the client cannot verify was honoured, is manufactured confidence with a
+configuration line to point at. The exam is frozen instead.
+
+An exam the builder can query is an exam the builder can learn
+--------------------------------------------------------------
+``GRADE`` is an oracle, and an oracle that answers pass/fail can be interrogated
+a bit at a time. That is inherent to any holdout gate rather than specific to
+this one, and DEC-006 already carries the shape of it as accepted debt. What is
+done about it here: the exam has an identity, every grade run names it in the
+receipt, and a set that has been queried enough to be inferred is re-minted
+under a new identity. Recorded, not pretended away.
+
 Holdouts are not oracles
 ------------------------
 Contract §17.3 ranks a deterministic execution or state check above a calibrated
@@ -79,11 +116,17 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-GENERATOR_VERSION = "1.0.0"
-ORACLE_VERSION = "holdout-mint-1.0.0"
+GENERATOR_VERSION = "1.1.0"
+ORACLE_VERSION = "holdout-exam-1.1.0"
 
 VERIFIER_HOME = Path("/var/lib/efah-verifier")
 SEALED_STORE = VERIFIER_HOME / "store"
+
+#: Frozen exams, one directory per exam, named for its own content hash. A
+#: minted set moves here and is never rewritten; a grade run reads from here and
+#: writes nothing. The scratch directories above (``reference/``, ``holdouts/``,
+#: ``mutants/``) remain what a mint uses while it is still deciding.
+SEALED_EXAMS = SEALED_STORE / "exams"
 VERIFIER_ETC = VERIFIER_HOME / "etc"
 VERIFIER_LOG = VERIFIER_HOME / "log"
 CREDENTIAL = VERIFIER_ETC / "eval.env"
@@ -139,6 +182,11 @@ FAILURE_REASONS: tuple[str, ...] = (
     "CREDENTIAL_ABSENT",
     "TARGET_COUNT_NOT_POSITIVE",
     "THROTTLE_STATE_ABSENT",
+    # the exam pin — a grade run that does not name a frozen exam is the
+    # 2026-08-03 behaviour, and it is now a refusal rather than a default
+    "EXAM_NOT_PINNED",
+    "EXAM_NOT_FOUND",
+    "EXAM_CONTENT_HASH_MISMATCH",
     # the holdout author
     "HOLDOUT_AUTHOR_EMPTY_GENERATION",
     "HOLDOUT_AUTHOR_TRUNCATED",
@@ -157,9 +205,29 @@ FAILURE_REASONS: tuple[str, ...] = (
     "BASELINE_HOLDOUTS_FAILED",
     "MUTANT_RUN_NOT_A_VERDICT",
     "KILL_RATE_BELOW_THRESHOLD",
+    # the graded candidate. Distinct from BASELINE_HOLDOUTS_FAILED on purpose:
+    # "the exam is broken" and "the candidate failed the exam" were the same
+    # token while one command did both jobs, and telling them apart is the
+    # entire point of splitting the command.
+    "CANDIDATE_FAILED_HOLDOUTS",
     # the honest bucket, never a free string
     "UNCLASSIFIED_EXCEPTION",
 )
+
+#: The second closed vocabulary, and the smaller one. A receipt has to say which
+#: verb produced it, because a mint receipt and a grade verdict are not the same
+#: claim and were previously indistinguishable — ``exit 0`` meant "a set was
+#: minted" and a gate read it as "the candidate passed".
+#:
+#: Duplicated in ``src/verifier_identity/seam.py`` as ``GenerationRunMode`` and
+#: compared by ``tools/gate_dec_006.py`` check F, exactly like
+#: :data:`FAILURE_REASONS`.
+RUN_MODES: tuple[str, ...] = ("MINT", "GRADE")
+
+#: A pinned exam id is used as a **path component**, so it is matched against
+#: this before it is joined to anything. ``--exam-id ../../etc`` is otherwise a
+#: traversal handed to the one process that can read the sealed store.
+_EXAM_ID_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
 def emit_failure_reason(reason: str | None) -> str | None:
@@ -174,6 +242,19 @@ def emit_failure_reason(reason: str | None) -> str | None:
     if reason is None:
         return None
     return reason if reason in FAILURE_REASONS else "UNCLASSIFIED_EXCEPTION"
+
+
+def emit_run_mode(mode: str) -> str:
+    """The same membership discipline for the smaller vocabulary.
+
+    There is no honest bucket here and there must not be one: an unrecognised
+    mode is not a run whose verb is unclear, it is a program that has been
+    edited into a state where it does not know what it did. ``MINT`` is the
+    conservative coercion because a mint receipt is never gate-eligible on the
+    other side, so a confused generator degrades to "this proves nothing about
+    a candidate" rather than to a verdict.
+    """
+    return mode if mode in RUN_MODES else "MINT"
 
 
 class GeneratorFailure(RuntimeError):
@@ -212,7 +293,12 @@ def emit(receipt: dict[str, Any]) -> None:
 
 
 def failure(
-    request_id: str, exit_status: int, failure_class: str, store_hash: str, reason: str
+    request_id: str,
+    exit_status: int,
+    failure_class: str,
+    store_hash: str,
+    reason: str,
+    run_mode: str = "MINT",
 ) -> int:
     """A receipt for a run that minted nothing.
 
@@ -234,6 +320,7 @@ def failure(
             "generator_version": GENERATOR_VERSION,
             "oracle_version": ORACLE_VERSION,
             "generated_at": utc_now(),
+            "run_mode": emit_run_mode(run_mode),
             "failure_class": failure_class,
             "failure_reason": emit_failure_reason(reason),
         }
@@ -256,6 +343,167 @@ def store_content_hash() -> str:
             digest.update(path.relative_to(SEALED_STORE).as_posix().encode())
             digest.update(path.read_bytes())
     return "sha256:" + digest.hexdigest()
+
+
+# -- the frozen exam -------------------------------------------------------
+# An exam is a directory named for the hash of its own contents. That is what
+# makes it an artifact with an identity rather than "whatever is in the store
+# right now", which is what the previous single-command design actually gated
+# on: ``store_content_hash`` ranged over the whole store, so it moved when a
+# log rotated and moved when a temporary directory was cleaned up, and two runs
+# of the same exam never agreed on what to call it.
+
+
+#: Written beside the frozen files, deliberately **outside** the hash. The
+#: identity is the exam, not the paperwork about it; including the manifest
+#: would make the id depend on a timestamp and stop being reproducible.
+EXAM_MANIFEST = "manifest.json"
+
+
+def exam_content_hash(exam_dir: Path) -> str:
+    """The exam's identity: a hash over its files, in sorted path order.
+
+    Same construction as :func:`store_content_hash` and scoped to one exam, so
+    it can be recomputed on load and compared to the directory's own name. That
+    comparison is the only real protection the frozen set has: the files are
+    owned by ``efah-verifier``, which is the account that runs this program, so
+    read-only modes are a guard rail and not a boundary. A rewritten exam is
+    therefore not prevented — it is **detected**, as
+    ``EXAM_CONTENT_HASH_MISMATCH``, before any verdict rests on it.
+    """
+    digest = hashlib.sha256()
+    for path in sorted(exam_dir.rglob("*")):
+        if not path.is_file() or path.name == EXAM_MANIFEST:
+            continue
+        digest.update(path.relative_to(exam_dir).as_posix().encode())
+        digest.update(path.read_bytes())
+    return "sha256:" + digest.hexdigest()
+
+
+def exam_dir_for(exam_id: str) -> Path:
+    """Resolve a pinned id to a directory, refusing anything that is not an id.
+
+    The id arrives as a command-line argument and becomes a path component, so
+    the pattern check is a traversal guard and not a formality: the process it
+    would be handed to is the one process on this host that can read the sealed
+    store.
+    """
+    if not _EXAM_ID_PATTERN.match(exam_id or ""):
+        raise GeneratorFailure(
+            "EXAM_NOT_FOUND",
+            "the pinned exam id is not a sha256 content hash, so it names no exam",
+        )
+    return SEALED_EXAMS / exam_id.split(":", 1)[1]
+
+
+def freeze_exam(
+    subject: Path,
+    holdouts: list[Path],
+    mutants: list[Path],
+    args: argparse.Namespace,
+    decision: str,
+    log: Log,
+) -> tuple[str, Path]:
+    """Copy a validated set into ``exams/<hex>/`` and return its identity.
+
+    Called only after the mutation gate has accepted the set. Staged first and
+    hashed in place, then moved under its own name — an exam that appears in
+    ``exams/`` is one that already passed, so a crashed mint cannot leave a
+    half-written directory that a later grade run would pin.
+    """
+    import shutil
+    import tempfile
+
+    SEALED_EXAMS.mkdir(parents=True, exist_ok=True)
+    staging = Path(tempfile.mkdtemp(dir=str(SEALED_EXAMS), prefix=".staging-"))
+    try:
+        (staging / "reference").mkdir()
+        shutil.copy(subject, staging / "reference" / "subject.py")
+        (staging / "holdouts").mkdir()
+        for holdout in holdouts:
+            shutil.copy(holdout, staging / "holdouts" / holdout.name)
+        (staging / "mutants").mkdir()
+        for mutant in mutants:
+            shutil.copy(mutant, staging / "mutants" / mutant.name)
+
+        exam_id = exam_content_hash(staging)
+        target = exam_dir_for(exam_id)
+        # The manifest says what this exam is *of*, so a verdict months later
+        # can be bound to a commit and a transport decision without reading a
+        # single holdout. It is written after hashing and excluded from it.
+        (staging / EXAM_MANIFEST).write_text(
+            json.dumps(
+                {
+                    "exam_id": exam_id,
+                    "minted_at": utc_now(),
+                    "minted_by_request": args.request_id,
+                    "candidate_commit": args.candidate_commit,
+                    "contract_version": args.contract_version,
+                    "generator_version": GENERATOR_VERSION,
+                    "oracle_version": ORACLE_VERSION,
+                    "transport_decision": decision,
+                    "holdout_author_model": HOLDOUT_AUTHOR_MODEL,
+                    "mutant_author_model": MUTANT_AUTHOR_MODEL,
+                    "holdout_count": len(holdouts),
+                    "mutant_count": len(mutants),
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+        if target.exists():
+            # Byte-identical to an exam already frozen. Nothing to do, and
+            # certainly nothing to overwrite.
+            log.write(f"exam already frozen: {exam_id}")
+            shutil.rmtree(staging, ignore_errors=True)
+            return exam_id, target
+        staging.rename(target)
+    except Exception:
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
+
+    for path in sorted(target.rglob("*")):
+        path.chmod(0o500 if path.is_dir() else 0o400)
+    target.chmod(0o500)
+    log.write(f"froze exam {exam_id}: {len(holdouts)} holdout(s), {len(mutants)} mutant(s)")
+    return exam_id, target
+
+
+def load_exam(exam_id: str, log: Log) -> tuple[Path, list[Path], list[Path]]:
+    """Load a frozen exam, or refuse. No model participates in this path.
+
+    Both refusals are typed, because "you did not pin an exam", "the exam you
+    pinned is not here" and "the exam you pinned is not what it says it is" are
+    three different things to go and fix, and all three used to arrive as a
+    fresh exercise generated on the spot.
+    """
+    exam_dir = exam_dir_for(exam_id)
+    if not exam_dir.is_dir():
+        raise GeneratorFailure(
+            "EXAM_NOT_FOUND",
+            f"no frozen exam under {SEALED_EXAMS} for the pinned id",
+        )
+    actual = exam_content_hash(exam_dir)
+    if actual != exam_id:
+        raise GeneratorFailure(
+            "EXAM_CONTENT_HASH_MISMATCH",
+            "the frozen exam no longer hashes to its own name; it has been "
+            "rewritten since it was minted and no verdict may rest on it",
+        )
+
+    subject = exam_dir / "reference" / "subject.py"
+    holdouts = sorted((exam_dir / "holdouts").glob("*.py"))
+    mutants = sorted((exam_dir / "mutants").glob("*.py"))
+    if not subject.is_file() or not holdouts or not mutants:
+        raise GeneratorFailure(
+            "EXAM_NOT_FOUND",
+            "the pinned exam is missing its reference, its holdouts or its mutants",
+        )
+    log.write(
+        f"loaded exam {exam_id}: {len(holdouts)} holdout(s), {len(mutants)} mutant(s)"
+    )
+    return subject, holdouts, mutants
 
 
 def read_credential() -> str | None:
@@ -367,7 +615,7 @@ def call_model(
             "stream_options": {"include_usage": True},
         }
     ).encode()
-    request = urllib.request.Request(  # noqa: S310 - fixed https base url
+    request = urllib.request.Request(  # fixed https base url
         f"{EVAL_BASE_URL}/v1/chat/completions",
         data=body,
         headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
@@ -377,7 +625,7 @@ def call_model(
     chunks: list[str] = []
     finish: str | None = None
     echoed: str | None = None
-    with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:  # noqa: S310
+    with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
         for raw in response:
             line = raw.decode("utf-8", errors="replace").strip()
             if not line.startswith("data:"):
@@ -420,14 +668,31 @@ def call_model(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate sealed release holdouts.")
+    parser = argparse.ArgumentParser(description="Mint or grade sealed release holdouts.")
     parser.add_argument("--request-id", required=True)
     parser.add_argument("--candidate-commit", required=True)
     parser.add_argument("--contract-version", required=True)
     parser.add_argument("--target-count", type=int, default=0)
+    # No default. A default here is how one command came to mean both verbs,
+    # and how a gate came to read "a set was minted" as "the candidate passed".
+    parser.add_argument("--mode", required=True, choices=list(RUN_MODES))
+    parser.add_argument("--exam-id", default=None)
+    #: Optional, GRADE only. A directory holding the candidate's ``subject.py``.
+    #: Absent, the exam's own reference is graded — which is the run that proves
+    #: the exam still behaves, and is what the reproducibility measurement uses.
+    parser.add_argument("--candidate-path", default=None)
     args = parser.parse_args()
 
+    # A usage error, not a runtime condition, so it is left to argparse rather
+    # than given a token: an exam id means "grade this one", and a mint that
+    # accepted it would be choosing its own answer before authoring the exam.
+    if args.mode == "MINT" and args.exam_id:
+        parser.error("--exam-id is meaningless in MINT mode; a mint decides its own id")
+    if args.mode == "MINT" and args.candidate_path:
+        parser.error("--candidate-path is meaningless in MINT mode")
+
     request_id = args.request_id
+    mode = emit_run_mode(args.mode)
     store_hash = store_content_hash()
 
     # Refuse to run anywhere but inside the verifier identity. If this program
@@ -437,11 +702,75 @@ def main() -> int:
 
     who = pwd.getpwuid(os.geteuid()).pw_name
     if who != "efah-verifier":
-        return failure(request_id, 3, "PROTECTED_ACCESS", store_hash, "NOT_VERIFIER_IDENTITY")
+        return failure(
+            request_id, 3, "PROTECTED_ACCESS", store_hash, "NOT_VERIFIER_IDENTITY", mode
+        )
 
     log = Log(request_id)
-    log.write(f"start request={request_id} commit={args.candidate_commit} as={who}")
+    log.write(f"start request={request_id} mode={mode} commit={args.candidate_commit} as={who}")
 
+    if mode == "GRADE":
+        return _grade(args, request_id, store_hash, log)
+    return _mint(args, request_id, store_hash, log)
+
+
+def _grade(args: argparse.Namespace, request_id: str, store_hash: str, log: Log) -> int:
+    """Run a candidate against a frozen exam. Deterministic; no model call.
+
+    The refusal at the top is the change this whole file exists for. Grading
+    against an exam minted in the same breath was the previous behaviour and it
+    measured the exam rather than the candidate — 25 runs on one commit, 25
+    different exercises, PASS about 45% of the time. An unpinned grade is now
+    ``EXAM_NOT_PINNED`` and exit 8, which a gate can act on, rather than a
+    freshly generated exercise, which a gate cannot.
+
+    Nothing here calls a model, reads a credential or takes the throttle: a
+    grade run costs a few seconds of pytest and no money, which is what makes
+    running it five times a reasonable thing to ask for.
+    """
+    if not args.exam_id:
+        log.write("refused: grade requested without a pinned exam")
+        return failure(
+            request_id, 8, "ORACLE_INVALID", store_hash, "EXAM_NOT_PINNED", "GRADE"
+        )
+
+    try:
+        subject, holdouts, mutants = load_exam(args.exam_id, log)
+        candidate = subject
+        if args.candidate_path:
+            candidate = Path(args.candidate_path) / "subject.py"
+            if not candidate.is_file():
+                raise GeneratorFailure(
+                    "CANDIDATE_FAILED_HOLDOUTS",
+                    "the candidate path holds no subject.py to grade",
+                )
+            log.write("grading a submitted candidate in place of the exam's reference")
+        # Whose code sits in the baseline slot decides what a failing baseline
+        # means. With a submitted candidate there, the exam is not the suspect.
+        baseline_reason = (
+            "CANDIDATE_FAILED_HOLDOUTS" if args.candidate_path else "BASELINE_HOLDOUTS_FAILED"
+        )
+        killed, gate_problems = run_mutation_gate(
+            candidate, holdouts, mutants, log, baseline_reason=baseline_reason
+        )
+    except Exception as exc:  # the class is the channel, not the text
+        log.write(f"failed: {type(exc).__name__}: {exc}\n{traceback.format_exc()}")
+        failure_class, reason = _classify(exc)
+        return failure(request_id, 1, failure_class, store_hash, reason, "GRADE")
+
+    return _emit_verdict(
+        request_id, "GRADE", args.exam_id, holdouts, mutants, killed, gate_problems, log
+    )
+
+
+def _mint(args: argparse.Namespace, request_id: str, store_hash: str, log: Log) -> int:
+    """Author an exam, validate it to kill_rate 1.0, and freeze it. Or refuse.
+
+    A mint receipt is **never** a verdict about a candidate, and the seam knows
+    that from ``run_mode`` rather than by convention. What a successful mint
+    produces is an identity — ``store_content_hash`` is the frozen exam's id,
+    and it is the only thing a later grade run can be pinned to.
+    """
     decision = transport_decision()
     if decision is None:
         # FINDING-005 is unanswered. Holdouts generated through an unverifiable
@@ -449,7 +778,8 @@ def main() -> int:
         # minted now would have to be discarded and regenerated after the answer.
         log.write("refused: FINDING-005 transport decision not recorded")
         return failure(
-            request_id, 4, "ORACLE_INVALID", store_hash, "TRANSPORT_DECISION_UNRECORDED"
+            request_id, 4, "ORACLE_INVALID", store_hash,
+            "TRANSPORT_DECISION_UNRECORDED", "MINT",
         )
     log.write(f"transport decision recorded: {decision}")
 
@@ -457,13 +787,13 @@ def main() -> int:
     if not api_key:
         log.write("refused: no eval-gateway credential installed")
         return failure(
-            request_id, 5, "INFRASTRUCTURE_FAILURE", store_hash, "CREDENTIAL_ABSENT"
+            request_id, 5, "INFRASTRUCTURE_FAILURE", store_hash, "CREDENTIAL_ABSENT", "MINT"
         )
 
     if args.target_count <= 0:
         log.write("refused: target_count must be positive")
         return failure(
-            request_id, 6, "ORACLE_INVALID", store_hash, "TARGET_COUNT_NOT_POSITIVE"
+            request_id, 6, "ORACLE_INVALID", store_hash, "TARGET_COUNT_NOT_POSITIVE", "MINT"
         )
 
     try:
@@ -471,13 +801,34 @@ def main() -> int:
         subject, holdouts = generate_subject_and_holdouts(api_key, args, log)
         mutants = generate_mutants(api_key, args, subject, log)
         killed, gate_problems = run_mutation_gate(subject, holdouts, mutants, log)
-    except Exception as exc:  # noqa: BLE001 - the class is the channel, not the text
+        exam_id = store_hash
+        if bool(holdouts) and bool(mutants) and not gate_problems and len(killed) == len(mutants):
+            # Frozen only after the gate accepted it. A set below 1.0 leaves the
+            # store exactly as it found it: no exam, no id, nothing to pin.
+            exam_id, _ = freeze_exam(subject, holdouts, mutants, args, decision, log)
+    except Exception as exc:  # the class is the channel, not the text
         # The message may quote generated content, so it goes to the sealed log
         # and the builder receives a typed class and a typed reason only.
         log.write(f"failed: {type(exc).__name__}: {exc}\n{traceback.format_exc()}")
         failure_class, reason = _classify(exc)
-        return failure(request_id, 1, failure_class, store_content_hash(), reason)
+        return failure(request_id, 1, failure_class, store_content_hash(), reason, "MINT")
 
+    return _emit_verdict(
+        request_id, "MINT", exam_id, holdouts, mutants, killed, gate_problems, log
+    )
+
+
+def _emit_verdict(
+    request_id: str,
+    mode: str,
+    store_hash: str,
+    holdouts: list[Path],
+    mutants: list[Path],
+    killed: list[Path],
+    gate_problems: list[tuple[str, str]],
+    log: Log,
+) -> int:
+    """The one shape both verbs report through, so they cannot drift apart."""
     kill_rate = (len(killed) / len(mutants)) if mutants else 0.0
     # A gate problem voids the score outright. DEC-006's mint rule is that a
     # holdout set below 1.0 is refused; a set whose *gate* could not decide is
@@ -491,19 +842,17 @@ def main() -> int:
         for problem_reason, detail in gate_problems:
             log.write(f"gate problem [{problem_reason}]: {detail}")
 
-    # Why the mint refused, in the order that matters to whoever reads it. A
-    # gate that could not decide outranks a kill rate below 1.0, because the
-    # kill rate is meaningless when the gate is broken — and the two are the
-    # difference between "the holdouts are weak" and "the holdouts measured
-    # nothing", which the receipt previously reported identically as
-    # ``exit 7, HOLDOUT_FAILURE``.
+    # Why it refused, in the order that matters to whoever reads it. A gate that
+    # could not decide outranks a kill rate below 1.0, because the kill rate is
+    # meaningless when the gate is broken — and the two are the difference
+    # between "the holdouts are weak" and "the holdouts measured nothing", which
+    # the receipt previously reported identically as ``exit 7, HOLDOUT_FAILURE``.
     reason: str | None = None
     if not accepted:
         reason = gate_problems[0][0] if gate_problems else "KILL_RATE_BELOW_THRESHOLD"
-        # DEC-006: the mint refuses a set below 1.0. The generated files stay in
-        # the store for the owner to inspect; they are simply not minted.
         log.write(
-            f"mint refused [{reason}]: kill_rate={kill_rate:.4f} over {len(mutants)} mutants"
+            f"{mode.lower()} refused [{reason}]: kill_rate={kill_rate:.4f} "
+            f"over {len(mutants)} mutants"
         )
 
     emit(
@@ -514,10 +863,15 @@ def main() -> int:
             "mutant_count": len(mutants),
             "killed_count": len(killed),
             "kill_rate": round(kill_rate, 6),
-            "store_content_hash": store_content_hash(),
+            # In both modes this is the frozen exam's identity, not a hash over
+            # the whole store. The old whole-store hash moved when a log rotated
+            # and when a temp directory was cleaned up, so two runs of the same
+            # exam never agreed on what to call it — which is no identity at all.
+            "store_content_hash": store_hash,
             "generator_version": GENERATOR_VERSION,
             "oracle_version": ORACLE_VERSION,
             "generated_at": utc_now(),
+            "run_mode": emit_run_mode(mode),
             "failure_class": None if accepted else "HOLDOUT_FAILURE",
             "failure_reason": emit_failure_reason(reason),
         }
@@ -721,7 +1075,7 @@ def assert_runner_available() -> None:
             "TEST_RUNNER_UNAVAILABLE",
             f"test runner {TEST_RUNNER} is absent; no verdict is possible",
         )
-    probe = subprocess.run(  # noqa: S603 - fixed argv
+    probe = subprocess.run(  # fixed argv
         [str(TEST_RUNNER), "-m", "pytest", "--version"],
         capture_output=True, text=True, timeout=60,
     )
@@ -736,7 +1090,7 @@ def assert_runner_available() -> None:
 def _run_pytest(directory: Path, holdouts: list[Path]) -> int:
     import subprocess
 
-    result = subprocess.run(  # noqa: S603 - fixed argv
+    result = subprocess.run(  # fixed argv
         [str(TEST_RUNNER), "-m", "pytest", "-q", "--no-header", "-p", "no:cacheprovider",
          *[h.name for h in holdouts]],
         cwd=directory,
@@ -749,9 +1103,23 @@ def _run_pytest(directory: Path, holdouts: list[Path]) -> int:
 
 
 def run_mutation_gate(
-    subject: Path, holdouts: list[Path], mutants: list[Path], log: Log
+    subject: Path,
+    holdouts: list[Path],
+    mutants: list[Path],
+    log: Log,
+    *,
+    baseline_reason: str = "BASELINE_HOLDOUTS_FAILED",
 ) -> tuple[list[Path], list[tuple[str, str]]]:
     """Deterministic. No model participates in this verdict path (§17.4).
+
+    ``baseline_reason`` names what a failing baseline *means*, which depends on
+    whose code is in the baseline slot. Minting puts the reference there, so a
+    failure is ``BASELINE_HOLDOUTS_FAILED`` — the exam is broken. Grading a
+    submitted candidate puts the candidate there, so a failure is
+    ``CANDIDATE_FAILED_HOLDOUTS`` — the exam worked and the candidate did not.
+    One token for both was tolerable while one command did both jobs; it is the
+    difference between "fix the generator" and "fix the code" and it should
+    never have been a single word.
 
     Sound version. Three things the first one got wrong:
 
@@ -783,13 +1151,12 @@ def run_mutation_gate(
         for h in holdouts:
             shutil.copy(h, base / h.name)
         baseline_code = _run_pytest(base, holdouts)
-        log.write(f"baseline (correct subject): pytest exit {baseline_code}")
+        log.write(f"baseline ({subject.parent.name}/subject.py): pytest exit {baseline_code}")
         if baseline_code != 0:
             problems.append((
-                "BASELINE_HOLDOUTS_FAILED",
-                f"holdouts do not pass against the correct implementation (pytest exit "
-                f"{baseline_code}); a suite that fails on correct code kills every mutant "
-                "and tests nothing",
+                baseline_reason,
+                f"the holdouts do not pass against the subject in the baseline slot "
+                f"(pytest exit {baseline_code})",
             ))
             return [], problems
 
