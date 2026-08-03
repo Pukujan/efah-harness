@@ -31,6 +31,7 @@ from verifier_identity.seam import (
     GenerationReceipt,
     GenerationRequest,
     GenerationSeam,
+    GeneratorFailureReason,
     SeamOutcome,
     validate_receipt,
 )
@@ -41,6 +42,7 @@ __all__ = [
     "GenerationReceipt",
     "GenerationRequest",
     "GenerationSeam",
+    "GeneratorFailureReason",
     "SeamOutcome",
     "VerifierIdentity",
     "default_identity",

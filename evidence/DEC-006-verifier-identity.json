@@ -6,9 +6,9 @@
   "oracle_type": "deterministic_execution_or_state",
   "model_judge_in_verdict_path": false,
   "evidence_tier": "DETERMINISTIC_ORACLE",
-  "measured_at": "2026-08-02T18:18:44Z",
-  "verdict": "PASS",
-  "passed": 6,
+  "measured_at": "2026-08-03T15:23:14Z",
+  "verdict": "FAIL",
+  "passed": 5,
   "total": 6,
   "checks": [
     {
@@ -44,37 +44,61 @@
       "check": "E",
       "claim": "the seam returns a valid receipt shape and no content",
       "passed": true,
-      "detail": "state=VERIFYING exit_status=7 failure_class=HOLDOUT_FAILURE",
+      "detail": "state=PASSED exit_status=0 failure_class=None failure_reason=None",
       "receipt": {
-        "generation_request_id": "GEN-PROBE-1785694694",
-        "exit_status": 7,
+        "generation_request_id": "GEN-PROBE-1785770447",
+        "exit_status": 0,
         "holdout_count": 1,
         "mutant_count": 3,
-        "killed_count": 1,
-        "kill_rate": 0.333333,
-        "store_content_hash": "sha256:c792d51c4e300a7cffa2e61aa054180ff68eea7cc3b12dbc6d73192aa23d7f4c",
+        "killed_count": 3,
+        "kill_rate": 1.0,
+        "store_content_hash": "sha256:c7a80261a0522c3de32be1186d23175256804499c545a1d40f816b3857ff7955",
         "generator_version": "1.0.0",
         "oracle_version": "holdout-mint-1.0.0",
-        "generated_at": "2026-08-02T18:18:44Z",
-        "failure_class": "HOLDOUT_FAILURE",
-        "mint_accepted": false
+        "generated_at": "2026-08-03T15:23:14Z",
+        "failure_class": null,
+        "failure_reason": null,
+        "mint_accepted": true
       },
       "stderr_read_by_builder": false,
       "stdout_bytes_discarded": 0
     },
     {
       "check": "F",
-      "claim": "the generator's model assignments match model-policy.yaml",
-      "passed": true,
-      "detail": "generator constants match the pack",
+      "claim": "the generator's duplicated constants match the harness, and the installed generator matches its source",
+      "passed": false,
+      "detail": "/opt/efah-verifier/bin/generate-holdouts differs from generator.py; the sealed side is running a different program from the one in the repository \u2014 re-run deploy/verifier/provision.sh under the owner's authority",
       "expected": {
         "HOLDOUT_AUTHOR_MODEL": "claude-opus-4-8",
-        "MUTANT_AUTHOR_MODEL": "gemini-3.5-flash"
+        "MUTANT_AUTHOR_MODEL": "kimi-k2.7-code"
       },
       "found": {
         "HOLDOUT_AUTHOR_MODEL": "claude-opus-4-8",
-        "MUTANT_AUTHOR_MODEL": "gemini-3.5-flash"
-      }
+        "MUTANT_AUTHOR_MODEL": "kimi-k2.7-code"
+      },
+      "failure_reasons": [
+        "BASELINE_HOLDOUTS_FAILED",
+        "CREDENTIAL_ABSENT",
+        "HOLDOUT_AUTHOR_EMPTY_GENERATION",
+        "HOLDOUT_AUTHOR_TRUNCATED",
+        "HOLDOUT_AUTHOR_UNPARSEABLE",
+        "KILL_RATE_BELOW_THRESHOLD",
+        "MODEL_ECHO_MISMATCH",
+        "MODEL_HTTP_ERROR",
+        "MODEL_RATE_LIMITED",
+        "MODEL_TRANSPORT_FAILURE",
+        "MUTANT_AUTHOR_EMPTY_GENERATION",
+        "MUTANT_AUTHOR_TRUNCATED",
+        "MUTANT_AUTHOR_UNPARSEABLE",
+        "MUTANT_RUN_NOT_A_VERDICT",
+        "NOT_VERIFIER_IDENTITY",
+        "TARGET_COUNT_NOT_POSITIVE",
+        "TEST_RUNNER_UNAVAILABLE",
+        "THROTTLE_STATE_ABSENT",
+        "TRANSPORT_DECISION_UNRECORDED",
+        "UNCLASSIFIED_EXCEPTION"
+      ],
+      "deployed_matches_source": false
     }
   ],
   "identity_measurement": {

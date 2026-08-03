@@ -14,6 +14,7 @@ failure modes that would make the evidence say something untrue.
 
 from __future__ import annotations
 
+import ast
 import json
 from pathlib import Path
 
@@ -33,6 +34,7 @@ from verifier_identity.seam import (
     PERMITTED_RECEIPT_FIELDS,
     GenerationRequest,
     GenerationSeam,
+    GeneratorFailureReason,
     validate_receipt,
 )
 
@@ -48,7 +50,25 @@ GOOD = {
     "oracle_version": "holdout-mint-1.0.0",
     "generated_at": "2026-08-02T13:49:19Z",
     "failure_class": None,
+    "failure_reason": None,
 }
+
+#: A failed receipt. Both enumerated fields are set, because the seam requires
+#: a failure to say why.
+FAILED = {
+    **GOOD,
+    "exit_status": 1,
+    "holdout_count": 0,
+    "mutant_count": 0,
+    "killed_count": 0,
+    "kill_rate": 0.0,
+    "failure_class": FailureClass.ORACLE_INVALID.value,
+    "failure_reason": GeneratorFailureReason.MUTANT_AUTHOR_EMPTY_GENERATION.value,
+}
+
+#: What a leak would actually look like: a fragment of a holdout body. Used as
+#: the negative control everywhere a field could be widened into a message.
+HOLDOUT_FRAGMENT = "def test_refuses(): assert subject.Machine().to('ARMED') is False"
 
 
 def test_a_well_formed_receipt_validates():
@@ -120,11 +140,268 @@ def test_failure_class_must_be_a_typed_class():
     assert receipt is None
     assert any("not a typed class" in f for f in findings)
 
+    # A class now travels with its reason; see the failure-reason block below.
     receipt, findings = validate_receipt(
-        {**GOOD, "exit_status": 7, "failure_class": FailureClass.HOLDOUT_FAILURE.value}
+        {
+            **GOOD,
+            "exit_status": 7,
+            "failure_class": FailureClass.HOLDOUT_FAILURE.value,
+            "failure_reason": GeneratorFailureReason.KILL_RATE_BELOW_THRESHOLD.value,
+        }
     )
     assert findings == []
     assert receipt is not None and receipt.failure_class is FailureClass.HOLDOUT_FAILURE
+
+
+# -- the failure reason: a diagnosis, not a message ------------------------
+#
+# stderr is sent to DEVNULL by design, so a generator failure is otherwise
+# invisible from the build side: `exit 1, ORACLE_INVALID` covered an unanswered
+# transport decision, a truncated mutant author and an absent pytest alike. The
+# receipt therefore carries the reason itself — and the only way to do that
+# without reopening the channel stderr was closed for is a closed vocabulary.
+def test_a_free_form_failure_reason_is_refused():
+    """The point of the field: an enum, never a string.
+
+    A generator that could write prose here would have a text channel into the
+    builder process, which is the one thing DEC-006 says must not exist. It does
+    not matter that this particular string is plausible-looking English; what
+    matters is that no string outside the vocabulary is accepted.
+    """
+    for value in (
+        "the mutant author returned nothing",
+        HOLDOUT_FRAGMENT,
+        "MUTANT_AUTHOR_EMPTY_GENERATION: kimi-k2.7-code returned an empty generation",
+        "mutant_author_empty_generation",  # the right token, wrong case
+        "MUTANT_AUTHOR_EMPTY_GENERATION ",  # ... and with a trailing space
+        "",
+        42,
+        ["MUTANT_AUTHOR_EMPTY_GENERATION"],
+        {"reason": "MUTANT_AUTHOR_EMPTY_GENERATION"},
+    ):
+        receipt, findings = validate_receipt({**FAILED, "failure_reason": value})
+        assert receipt is None, f"failure_reason={value!r} was accepted"
+        assert any("closed vocabulary" in f for f in findings)
+
+
+def test_a_rejected_failure_reason_is_not_quoted_back_to_the_builder():
+    """The refusal must not become the channel the field is not.
+
+    ``rejected_because`` is carried into the builder's evidence record, so a
+    finding that quoted the value it rejected would deliver exactly the bytes
+    the closed vocabulary refused to deliver.
+    """
+    receipt, findings = validate_receipt({**FAILED, "failure_reason": HOLDOUT_FRAGMENT})
+    assert receipt is None
+    blob = json.dumps(findings)
+    assert HOLDOUT_FRAGMENT not in blob
+    assert "subject.Machine" not in blob and "ARMED" not in blob
+
+
+def test_a_rejected_failure_class_is_not_quoted_back_either():
+    """Same hole, the older field. It was quoting the string it refused."""
+    receipt, findings = validate_receipt({**FAILED, "failure_class": HOLDOUT_FRAGMENT})
+    assert receipt is None
+    assert HOLDOUT_FRAGMENT not in json.dumps(findings)
+    assert any("not a typed class" in f for f in findings)
+
+
+def test_an_out_of_range_count_is_not_quoted_back_either():
+    """An unbounded integer is an unbounded number of bits."""
+    payload_bits = 10 ** 400 + 12345
+    receipt, findings = validate_receipt({**GOOD, "holdout_count": payload_bits})
+    assert receipt is None
+    assert str(payload_bits) not in json.dumps(findings)
+    assert any("holdout_count" in f for f in findings)
+
+
+@pytest.mark.parametrize("reason", sorted(r.value for r in GeneratorFailureReason))
+def test_every_reason_in_the_vocabulary_is_accepted(reason):
+    """The allowlist and the validator move together or the field is useless."""
+    receipt, findings = validate_receipt({**FAILED, "failure_reason": reason})
+    assert findings == []
+    assert receipt is not None
+    assert receipt.failure_reason is GeneratorFailureReason(reason)
+    assert receipt.as_body()["failure_reason"] == reason
+
+
+def test_a_reported_failure_must_say_which_failure():
+    """`ORACLE_INVALID` with no reason is the state this field exists to end."""
+    payload = {**FAILED, "failure_reason": None}
+    receipt, findings = validate_receipt(payload)
+    assert receipt is None
+    assert any("must report which failure" in f for f in findings)
+
+    # Absent is the same as null; a generator cannot opt out by omission.
+    receipt, findings = validate_receipt({k: v for k, v in payload.items() if k != "failure_reason"})
+    assert receipt is None
+    assert any("must report which failure" in f for f in findings)
+
+
+def test_a_reason_without_a_class_is_refused():
+    receipt, findings = validate_receipt(
+        {**GOOD, "failure_reason": GeneratorFailureReason.KILL_RATE_BELOW_THRESHOLD.value}
+    )
+    assert receipt is None
+    assert any("not a classified failure" in f for f in findings)
+
+
+def test_a_successful_receipt_carries_no_reason():
+    receipt, findings = validate_receipt(dict(GOOD))
+    assert findings == []
+    assert receipt is not None and receipt.failure_reason is None
+    assert receipt.as_body()["failure_reason"] is None
+
+
+def test_the_vocabulary_distinguishes_the_causes_that_collapsed_into_one_class():
+    """The measured motivation, asserted rather than described.
+
+    On 2026-08-03 four conditions were indistinguishable at the seam because all
+    four report ``ORACLE_INVALID``. Each must now be separately nameable.
+    """
+    names = {r.value for r in GeneratorFailureReason}
+    assert {
+        "TRANSPORT_DECISION_UNRECORDED",
+        "TARGET_COUNT_NOT_POSITIVE",
+        "MUTANT_AUTHOR_EMPTY_GENERATION",
+        "TEST_RUNNER_UNAVAILABLE",
+    } <= names
+    # And the exit-7 pair, which is the one that matters for a gate: a weak
+    # holdout set and a set that measured nothing both exit 7, HOLDOUT_FAILURE.
+    assert {"KILL_RATE_BELOW_THRESHOLD", "BASELINE_HOLDOUTS_FAILED"} <= names
+
+
+def test_the_generator_holds_the_same_vocabulary():
+    """The generator cannot import this module, so the copies are compared.
+
+    DEC-006: a generator that imported the builder's tree would be a generator
+    the builder controls. The price is a duplicated constant; the check is this.
+    A reason the seam does not know is a receipt the seam rejects, which would
+    turn a diagnosable failure back into an unexplained one.
+    """
+    source = Path(__file__).resolve().parents[2] / "deploy" / "verifier" / "generator.py"
+    tree = ast.parse(source.read_text())
+    theirs: set[str] | None = None
+    for node in tree.body:
+        if not isinstance(node, ast.AnnAssign | ast.Assign):
+            continue
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        if not any(isinstance(t, ast.Name) and t.id == "FAILURE_REASONS" for t in targets):
+            continue
+        assert isinstance(node.value, ast.Tuple), "FAILURE_REASONS must be a literal tuple"
+        theirs = {
+            e.value for e in node.value.elts
+            if isinstance(e, ast.Constant) and isinstance(e.value, str)
+        }
+    assert theirs is not None, "the generator no longer declares FAILURE_REASONS"
+    assert theirs == {r.value for r in GeneratorFailureReason}
+
+
+def _load_generator():
+    """Import the sealed generator by path. It is stdlib-only, so this is safe.
+
+    It is not on the import path and must not be: it is installed root-owned to
+    ``/opt/efah-verifier/bin`` and runs under another identity. Loading the
+    source here tests the copy that ``provision.sh`` installs.
+    """
+    import importlib.util
+
+    source = Path(__file__).resolve().parents[2] / "deploy" / "verifier" / "generator.py"
+    spec = importlib.util.spec_from_file_location("_sealed_generator_under_test", source)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_generator_refuses_to_emit_a_reason_it_does_not_recognise():
+    """Belt and braces, on the side that writes the field.
+
+    The seam rejecting a free string protects the builder. This protects the
+    *evidence*: a future edit that passed an exception message through would
+    otherwise produce a receipt the seam refuses outright, losing the diagnosis
+    entirely. Membership is checked once more at the point of emission, so an
+    unrecognised value degrades to ``UNCLASSIFIED_EXCEPTION`` rather than
+    escaping or destroying the receipt.
+    """
+    generator = _load_generator()
+
+    assert generator.emit_failure_reason(None) is None
+    assert (
+        generator.emit_failure_reason("MUTANT_AUTHOR_EMPTY_GENERATION")
+        == "MUTANT_AUTHOR_EMPTY_GENERATION"
+    )
+    for smuggled in (HOLDOUT_FRAGMENT, "kimi-k2.7-code returned an empty generation", ""):
+        assert generator.emit_failure_reason(smuggled) == "UNCLASSIFIED_EXCEPTION"
+
+    # And the coerced value is itself one the seam accepts.
+    receipt, findings = validate_receipt(
+        {**FAILED, "failure_reason": generator.emit_failure_reason(HOLDOUT_FRAGMENT)}
+    )
+    assert findings == []
+    assert receipt is not None
+    assert receipt.failure_reason is GeneratorFailureReason.UNCLASSIFIED_EXCEPTION
+
+
+def test_the_generator_classifies_the_measured_failure_as_the_mutant_author():
+    """The 2026-08-03 zero-holdout run, reproduced as a unit.
+
+    ``kimi-k2.7-code`` returned ``finish_reason=length`` with zero content
+    deltas. The generator raised, ``_classify`` fell through to
+    ``ORACLE_INVALID``, and the receipt said ``holdout_count: 0`` — although the
+    holdouts had been authored and written to the store. The class is unchanged
+    (it is the right §10.6 class); the reason is the part that was missing.
+    """
+    generator = _load_generator()
+
+    truncated = generator.GeneratorFailure(
+        "MUTANT_AUTHOR_TRUNCATED", "kimi-k2.7-code generation was truncated"
+    )
+    assert generator._classify(truncated) == ("ORACLE_INVALID", "MUTANT_AUTHOR_TRUNCATED")
+
+    empty = generator.GeneratorFailure(
+        "MUTANT_AUTHOR_EMPTY_GENERATION", "kimi-k2.7-code returned an empty generation"
+    )
+    assert generator._classify(empty) == ("ORACLE_INVALID", "MUTANT_AUTHOR_EMPTY_GENERATION")
+
+    # The same class, three different diagnoses — which is the whole complaint.
+    assert generator._classify(
+        generator.GeneratorFailure("TEST_RUNNER_UNAVAILABLE", "no pytest")
+    ) == ("ORACLE_INVALID", "TEST_RUNNER_UNAVAILABLE")
+
+    # An untyped exception is not silently promoted to a specific diagnosis.
+    assert generator._classify(ValueError("something")) == (
+        "ORACLE_INVALID",
+        "UNCLASSIFIED_EXCEPTION",
+    )
+    # ... and a lie about the reason does not survive classification either.
+    assert generator._classify(generator.GeneratorFailure(HOLDOUT_FRAGMENT, "x")) == (
+        "ORACLE_INVALID",
+        "UNCLASSIFIED_EXCEPTION",
+    )
+
+
+def test_the_generators_failure_receipt_validates_at_the_seam(capsys):
+    """End to end on the shape: what the generator writes, the seam accepts.
+
+    The two sides are separately written and separately validated, so the only
+    thing that proves they meet is feeding one to the other.
+    """
+    generator = _load_generator()
+
+    exit_status = generator.failure(
+        "GEN-0001", 1, "ORACLE_INVALID", "sha256:" + "b" * 64, "MUTANT_AUTHOR_TRUNCATED"
+    )
+    assert exit_status == 1
+
+    emitted = json.loads(capsys.readouterr().out.strip())
+    assert set(emitted) <= set(PERMITTED_RECEIPT_FIELDS)
+
+    receipt, findings = validate_receipt(emitted)
+    assert findings == []
+    assert receipt is not None
+    assert receipt.failure_reason is GeneratorFailureReason.MUTANT_AUTHOR_TRUNCATED
+    assert receipt.mint_accepted is False
 
 
 def test_a_non_object_receipt_is_rejected():

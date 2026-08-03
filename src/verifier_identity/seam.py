@@ -40,6 +40,26 @@ it to ``DEVNULL``. Stdout is read with a hard byte cap and only the last
 non-empty line is parsed; the rest is discarded inside this function and never
 reaches a returned value.
 
+The cost of that, and what pays it
+-----------------------------------
+Discarding stderr is correct and stays. Its consequence is that a generator
+failure is otherwise undiagnosable from this side: exit 1 and
+``ORACLE_INVALID`` cover an unanswered owner decision, a truncated mutant
+author and an absent pytest alike, and on 2026-08-03 they did. So the generator
+reports its own reason **inside the receipt**, as
+:class:`GeneratorFailureReason` — a closed vocabulary validated by membership,
+not a message validated by pattern. The distinction is the whole point: a
+pattern admits every string that matches it, an enumeration admits twenty
+strings that are written down in this file. Holdout text cannot be one of them.
+
+Rejections are a channel too
+-----------------------------
+A finding that quotes the value it rejected hands the rejected value to the
+builder — ``rejected_because`` is carried in :meth:`SeamOutcome.as_evidence`.
+So findings name the field and its type and never interpolate a value that has
+not already passed a bound. That is why the messages below read as they do; it
+is not squeamishness about detail.
+
 What this does not defend against
 ----------------------------------
 The builder authored the generator. It cannot read the output, but it wrote the
@@ -58,6 +78,7 @@ import re
 import shutil
 import subprocess
 from dataclasses import dataclass, field
+from enum import StrEnum
 from typing import Any
 
 from governance.envelope import CompiledObject, utc_now
@@ -66,7 +87,16 @@ from verifier_identity.identity import VerifierIdentity, default_identity
 
 #: The interface version of the seam itself. Semver over the receipt shape; a
 #: change to the permitted field set is a change to the isolation property.
-SEAM_VERSION = "1.0.0"
+#:
+#: 1.1.0 adds ``failure_reason`` and requires it whenever ``failure_class`` is
+#: set. **A generator older than this cannot satisfy it**: its failure receipts
+#: omit the field and are rejected here. That is deliberate — the alternative is
+#: an optional diagnosis, which is the same as no diagnosis once anything stops
+#: sending it — but it means the sealed side must be re-provisioned in step, so
+#: ``tools/gate_dec_006.py`` compares the installed copy against the source and
+#: fails loudly rather than leaving a stale generator to produce receipts this
+#: side refuses for reasons the receipt cannot explain.
+SEAM_VERSION = "1.1.0"
 
 #: The only keys a receipt may carry. Compare with
 #: ``evaluation.verifier_client.PERMITTED_RESPONSE_FIELDS`` — same discipline,
@@ -83,7 +113,58 @@ PERMITTED_RECEIPT_FIELDS: tuple[str, ...] = (
     "oracle_version",
     "generated_at",
     "failure_class",
+    "failure_reason",
 )
+
+
+class GeneratorFailureReason(StrEnum):
+    """Why the generator failed, at a granularity the §10.6 classes do not have.
+
+    ``FailureClass`` answers "is this worth retrying"; it is coarse on purpose
+    and four unrelated conditions share ``ORACLE_INVALID``. This answers "what
+    broke", and it is the only diagnosis available on this side of the seam
+    because stderr is discarded.
+
+    **Closed by construction.** Validation is set membership against these
+    members — not a regex, not a length bound. A regex over a "short
+    identifier" would still admit an unbounded number of distinct strings and
+    therefore an unbounded number of bits; twenty names admit fewer than five.
+    That is what makes this a diagnosis and not a channel.
+
+    The generator holds the same list as ``FAILURE_REASONS`` because it cannot
+    import this module (DEC-006: a generator that imported the builder's tree
+    would be a generator the builder controls). ``tools/gate_dec_006.py`` and
+    ``tests/unit/test_verifier_identity_seam.py`` compare the two copies, so
+    drift fails a gate instead of passing quietly.
+    """
+
+    # refusals — the generator declined before spending anything
+    NOT_VERIFIER_IDENTITY = "NOT_VERIFIER_IDENTITY"
+    TRANSPORT_DECISION_UNRECORDED = "TRANSPORT_DECISION_UNRECORDED"
+    CREDENTIAL_ABSENT = "CREDENTIAL_ABSENT"
+    TARGET_COUNT_NOT_POSITIVE = "TARGET_COUNT_NOT_POSITIVE"
+    THROTTLE_STATE_ABSENT = "THROTTLE_STATE_ABSENT"
+    # the holdout author
+    HOLDOUT_AUTHOR_EMPTY_GENERATION = "HOLDOUT_AUTHOR_EMPTY_GENERATION"
+    HOLDOUT_AUTHOR_TRUNCATED = "HOLDOUT_AUTHOR_TRUNCATED"
+    HOLDOUT_AUTHOR_UNPARSEABLE = "HOLDOUT_AUTHOR_UNPARSEABLE"
+    # the mutant author
+    MUTANT_AUTHOR_EMPTY_GENERATION = "MUTANT_AUTHOR_EMPTY_GENERATION"
+    MUTANT_AUTHOR_TRUNCATED = "MUTANT_AUTHOR_TRUNCATED"
+    MUTANT_AUTHOR_UNPARSEABLE = "MUTANT_AUTHOR_UNPARSEABLE"
+    # the transport to either author
+    MODEL_ECHO_MISMATCH = "MODEL_ECHO_MISMATCH"
+    MODEL_RATE_LIMITED = "MODEL_RATE_LIMITED"
+    MODEL_HTTP_ERROR = "MODEL_HTTP_ERROR"
+    MODEL_TRANSPORT_FAILURE = "MODEL_TRANSPORT_FAILURE"
+    # the deterministic gate
+    TEST_RUNNER_UNAVAILABLE = "TEST_RUNNER_UNAVAILABLE"
+    BASELINE_HOLDOUTS_FAILED = "BASELINE_HOLDOUTS_FAILED"
+    MUTANT_RUN_NOT_A_VERDICT = "MUTANT_RUN_NOT_A_VERDICT"
+    KILL_RATE_BELOW_THRESHOLD = "KILL_RATE_BELOW_THRESHOLD"
+    # the honest bucket, never a free string
+    UNCLASSIFIED_EXCEPTION = "UNCLASSIFIED_EXCEPTION"
+
 
 #: A content hash identifies a set without revealing it, and §18 requires one on
 #: every artifact. Pinned to exactly 64 hex digits so the field cannot be widened
@@ -153,6 +234,9 @@ class GenerationReceipt:
     oracle_version: str
     generated_at: str
     failure_class: FailureClass | None = None
+    #: Present exactly when ``failure_class`` is. Never on a success — a run
+    #: that minted a set has nothing to explain.
+    failure_reason: GeneratorFailureReason | None = None
 
     @property
     def mint_accepted(self) -> bool:
@@ -182,6 +266,7 @@ class GenerationReceipt:
             "oracle_version": self.oracle_version,
             "generated_at": self.generated_at,
             "failure_class": self.failure_class.value if self.failure_class else None,
+            "failure_reason": self.failure_reason.value if self.failure_reason else None,
             "mint_accepted": self.mint_accepted,
         }
 
@@ -199,7 +284,9 @@ def validate_receipt(payload: Any) -> tuple[GenerationReceipt | None, list[str]]
             "carries a status and counts, not generator output"
         )
     missing = sorted(
-        set(PERMITTED_RECEIPT_FIELDS) - set(payload) - {"failure_class", "kill_rate"}
+        set(PERMITTED_RECEIPT_FIELDS)
+        - set(payload)
+        - {"failure_class", "failure_reason", "kill_rate"}
     )
     if missing:
         findings.append(f"receipt omits required fields: {missing}")
@@ -212,7 +299,10 @@ def validate_receipt(payload: Any) -> tuple[GenerationReceipt | None, list[str]]
             findings.append(f"{name}: expected an integer, got {type(value).__name__}")
             return None
         if not 0 <= value <= _MAX_COUNT:
-            findings.append(f"{name}: {value} is outside the permitted range 0..{_MAX_COUNT}")
+            # The value is not quoted back. An out-of-range integer is
+            # unbounded in width, and a finding is carried into the builder's
+            # evidence — quoting it would make the rejection itself the channel.
+            findings.append(f"{name}: outside the permitted range 0..{_MAX_COUNT}")
             return None
         return value
 
@@ -243,15 +333,36 @@ def validate_receipt(payload: Any) -> tuple[GenerationReceipt | None, list[str]]
     oracle_version = _pattern("oracle_version", _VERSION_PATTERN)
     generated_at = _pattern("generated_at", _TIMESTAMP_PATTERN)
 
+    # Neither of the two enumerated fields quotes the value it rejected. That is
+    # deliberate: a free-form ``failure_class`` was already refused before this
+    # change, but the refusal message carried the refused string into
+    # ``rejected_because`` and out into the builder's evidence — the field was
+    # closed and the complaint about it was not.
     raw_class = payload.get("failure_class")
     failure_class: FailureClass | None = None
     if raw_class is not None:
         if not isinstance(raw_class, str) or raw_class not in {f.value for f in FailureClass}:
             findings.append(
-                f"failure_class {raw_class!r} is not a typed class; only typed classes cross the seam"
+                "failure_class: not a typed class; only typed classes cross the seam"
             )
         else:
             failure_class = FailureClass(raw_class)
+
+    raw_reason = payload.get("failure_reason")
+    failure_reason: GeneratorFailureReason | None = None
+    if raw_reason is not None:
+        if (
+            not isinstance(raw_reason, str)
+            or raw_reason not in {r.value for r in GeneratorFailureReason}
+        ):
+            findings.append(
+                "failure_reason: not a member of the closed vocabulary; the reason a "
+                "generation failed crosses the seam as an enumerated token, never as a "
+                "message, because stderr is discarded precisely so that generated text "
+                "cannot ride back"
+            )
+        else:
+            failure_reason = GeneratorFailureReason(raw_reason)
 
     raw_rate = payload.get("kill_rate")
     kill_rate: float | None = None
@@ -260,12 +371,30 @@ def validate_receipt(payload: Any) -> tuple[GenerationReceipt | None, list[str]]
     elif isinstance(raw_rate, bool) or not isinstance(raw_rate, (int, float)):
         findings.append(f"kill_rate: expected a number, got {type(raw_rate).__name__}")
     elif not 0.0 <= float(raw_rate) <= 1.0:
-        findings.append(f"kill_rate: {raw_rate} is outside 0.0..1.0")
+        findings.append("kill_rate: outside 0.0..1.0")
     else:
         kill_rate = float(raw_rate)
 
     if findings:
         return None, findings
+
+    # A failure that does not say why is the state this field exists to end.
+    # Enforced rather than encouraged: an optional diagnosis is one a generator
+    # can quietly stop sending, and the seam would be back to `ORACLE_INVALID`
+    # with no way to tell which of four conditions produced it. The pairing is
+    # symmetric — a run that minted a set has nothing to explain, so a reason
+    # without a class is an inconsistent receipt and is rejected, not repaired.
+    if failure_class is not None and failure_reason is None:
+        findings.append(
+            "failure_class is set but failure_reason is absent; a generator that "
+            "reports a failure must report which failure, because the builder "
+            "cannot read the generator's stderr or its log"
+        )
+    if failure_reason is not None and failure_class is None:
+        findings.append(
+            "failure_reason is set but failure_class is absent; a reason without a "
+            "class is not a classified failure"
+        )
 
     assert killed_count is not None and mutant_count is not None
     if killed_count > mutant_count:
@@ -299,6 +428,7 @@ def validate_receipt(payload: Any) -> tuple[GenerationReceipt | None, list[str]]
             oracle_version=oracle_version,
             generated_at=generated_at,
             failure_class=failure_class,
+            failure_reason=failure_reason,
         ),
         [],
     )

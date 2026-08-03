@@ -11,14 +11,17 @@ B  the builder's attempt to read the sealed store is refused by the kernel
 C  the generator is root-owned, so the account that runs it cannot rewrite it
 D  the sudoers grant is scoped to the generator and grants no unrestricted command
 E  the seam returns a valid receipt shape and no content, invoked for real
-F  the generator's model assignments match model-policy.yaml
+F  the generator's duplicated constants match the harness — models and the
+   closed failure-reason vocabulary
 
 F exists because the generator is deliberately unable to import the harness — it
 would otherwise depend on code the builder can rewrite, which would make the
 separation theatre. The cost of that independence is a duplicated constant, and
 the mitigation for a duplicated constant is a check that compares them. Drift
 here would mean the sealed side is quietly using a different model from the one
-the pack records, which is a §18 provenance failure.
+the pack records, which is a §18 provenance failure — or emitting a
+``failure_reason`` this side would refuse, which turns every failed generation
+into a rejected receipt and loses the diagnosis the field exists to carry.
 
 Run from the **builder** identity. Run as root and the store becomes readable,
 B passes for the wrong reason, and the evidence says something untrue — so a
@@ -27,6 +30,7 @@ root invocation is refused.
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 import sys
@@ -45,6 +49,7 @@ from verifier_identity.seam import (  # noqa: E402
     PERMITTED_RECEIPT_FIELDS,
     GenerationRequest,
     GenerationSeam,
+    GeneratorFailureReason,
 )
 
 GENERATOR_SOURCE = REPO_ROOT / "deploy" / "verifier" / "generator.py"
@@ -140,11 +145,37 @@ def check_e(m) -> dict[str, Any]:
         "the seam returns a valid receipt shape and no content",
         bool(shape_ok and not evidence["rejected_because"]),
         f"state={evidence['state']} exit_status={receipt.get('exit_status')} "
-        f"failure_class={receipt.get('failure_class')}",
+        f"failure_class={receipt.get('failure_class')} "
+        f"failure_reason={receipt.get('failure_reason')}",
         receipt=receipt,
         stderr_read_by_builder=evidence["stderr_read_by_builder"],
         stdout_bytes_discarded=evidence["stdout_bytes_discarded"],
     )
+
+
+def generator_failure_reasons() -> set[str]:
+    """The generator's copy of the closed vocabulary, read from its source.
+
+    Parsed with ``ast`` rather than imported: importing it would run a program
+    whose entire purpose is to run under a different identity, and rather than a
+    regex because the value being compared is a *set of literals* — a regex
+    would silently agree with a tuple that had been reordered into nonsense.
+    """
+    tree = ast.parse(GENERATOR_SOURCE.read_text())
+    for node in tree.body:
+        if not isinstance(node, ast.AnnAssign | ast.Assign):
+            continue
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        if not any(isinstance(t, ast.Name) and t.id == "FAILURE_REASONS" for t in targets):
+            continue
+        if not isinstance(node.value, ast.Tuple):
+            break  # present but no longer a literal tuple: report as absent
+        return {
+            element.value
+            for element in node.value.elts
+            if isinstance(element, ast.Constant) and isinstance(element.value, str)
+        }
+    return set()
 
 
 def check_f() -> dict[str, Any]:
@@ -164,13 +195,51 @@ def check_f() -> dict[str, Any]:
         found[name] = actual
         if actual != want:
             drift.append(f"{name}: generator has {actual!r}, pack has {want!r}")
+
+    # The other duplicated constant. A reason the seam does not know is a
+    # receipt the seam rejects, so this drift costs the diagnosis outright.
+    theirs = generator_failure_reasons()
+    ours = {r.value for r in GeneratorFailureReason}
+    if theirs != ours:
+        drift.append(
+            f"FAILURE_REASONS: generator-only {sorted(theirs - ours)}, "
+            f"seam-only {sorted(ours - theirs)}"
+        )
+
+    # And the copy that actually runs. Comparing source to source proves the two
+    # halves of the repository agree; it says nothing about the root-owned file
+    # under /opt, which is what `sudo` executes. Since SEAM_VERSION 1.1.0 the
+    # seam requires a `failure_reason` on every failure receipt, so a generator
+    # installed before that emits receipts this side rejects — and the rejection
+    # arrives as FAILED_PROVENANCE with no reason, which is precisely the
+    # undiagnosable state the field was added to end. Better a named gate
+    # failure that says "re-run provision.sh".
+    installed = Path("/opt/efah-verifier/bin/generate-holdouts")
+    deployed_matches: bool | None = None
+    try:
+        deployed_matches = installed.read_bytes() == GENERATOR_SOURCE.read_bytes()
+    except OSError as exc:
+        drift.append(f"installed generator could not be read: {type(exc).__name__}")
+    else:
+        if not deployed_matches:
+            drift.append(
+                f"{installed} differs from {GENERATOR_SOURCE.name}; the sealed side is "
+                "running a different program from the one in the repository — re-run "
+                "deploy/verifier/provision.sh under the owner's authority"
+            )
+
     return _result(
         "F",
-        "the generator's model assignments match model-policy.yaml",
+        "the generator's duplicated constants match the harness, and the installed "
+        "generator matches its source",
         not drift,
-        "; ".join(drift) or "generator constants match the pack",
+        "; ".join(drift)
+        or f"models match the pack; {len(ours)} failure reasons match the seam; "
+           "the installed generator matches its source",
         expected=expected,
         found=found,
+        failure_reasons=sorted(ours),
+        deployed_matches_source=deployed_matches,
     )
 
 

@@ -441,7 +441,12 @@ async def run_walking_skeleton(config: HarnessConfig) -> SkeletonRun:
                    f"{receipt.holdout_count} holdout(s), {receipt.mutant_count} mutant(s), "
                    f"{receipt.killed_count} killed (kill_rate {receipt.kill_rate}); "
                    f"exit {receipt.exit_status}"
-                   + (f", {receipt.failure_class}" if receipt.failure_class else ""),
+                   + (f", {receipt.failure_class}" if receipt.failure_class else "")
+                   # The reason, not only the class. `ORACLE_INVALID` alone left
+                   # nobody able to tell an unanswered transport decision from a
+                   # mutant author that returned nothing, and stderr is
+                   # discarded by design so there is no second place to look.
+                   + (f"/{receipt.failure_reason}" if receipt.failure_reason else ""),
                    invoked_as=outcome.invoked_as,
                    holdout_count=receipt.holdout_count,
                    mutant_count=receipt.mutant_count,
@@ -449,6 +454,7 @@ async def run_walking_skeleton(config: HarnessConfig) -> SkeletonRun:
                    kill_rate=receipt.kill_rate,
                    verifier_exit_status=receipt.exit_status,
                    verifier_failure_class=receipt.failure_class,
+                   verifier_failure_reason=receipt.failure_reason,
                    store_content_hash=receipt.store_content_hash,
                    generator_version=receipt.generator_version,
                    oracle_version=receipt.oracle_version)

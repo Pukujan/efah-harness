@@ -20,6 +20,29 @@ completions, tracebacks, the holdouts themselves — is written inside the seale
 store, which the builder cannot read. **stderr is not a channel**: the caller
 sends it to ``/dev/null``, so anything written there is lost rather than leaked.
 
+Saying why, without saying what
+-------------------------------
+Because stderr is discarded by design, a failure here is otherwise
+undiagnosable from the build side: the builder sees ``exit 1`` and
+``ORACLE_INVALID`` and cannot tell a truncated mutant author from an
+unanswered owner decision from a missing pytest. That was measured — a run on
+2026-08-03 reported ``holdout_count: 0, ORACLE_INVALID`` when the holdouts had
+in fact been authored correctly and written to the store, and the *mutant*
+author had come back with ``finish_reason=length`` and zero content deltas.
+Nothing in the receipt could have told anyone any of that: not that the
+holdouts existed, not which of the two authors failed, not that it failed by
+exhausting its token budget. Twice, on consecutive runs.
+
+The fix is :data:`FAILURE_REASONS`: a **closed vocabulary** of fixed tokens,
+carried in the receipt's ``failure_reason`` field. It is an enumeration and not
+a message. :func:`emit_failure_reason` checks membership against the frozen
+tuple before the value is written, so the only strings that can leave this
+program through that field are ones spelled out in this source file. A
+traceback, a model completion or a holdout body cannot reach it even if a
+future edit passes one in by mistake: it is coerced to
+``UNCLASSIFIED_EXCEPTION`` and the text goes to the sealed log where it
+belongs. The seam validates the same list from the other side.
+
 Holdouts are not oracles
 ------------------------
 Contract §17.3 ranks a deterministic execution or state check above a calibrated
@@ -98,6 +121,72 @@ TIMEOUT_SECONDS = 300
 THROTTLE_STATE = Path(os.environ.get("EFAH_THROTTLE_STATE", "/var/lib/efah-throttle/state.json"))
 MIN_INTERVAL_SECONDS = 0.9
 
+#: The closed vocabulary for the receipt's ``failure_reason``. Every member is
+#: a literal in this tuple; nothing is composed, formatted or interpolated into
+#: this field, which is what makes it incapable of carrying holdout content.
+#:
+#: Duplicated in ``src/verifier_identity/seam.py`` as ``GeneratorFailureReason``
+#: for the reason at the top of this file — the generator cannot import the
+#: builder's tree — and the two are compared by ``tools/gate_dec_006.py`` and by
+#: ``tests/unit/test_verifier_identity_seam.py``, so drift is a failing gate
+#: rather than a silent divergence.
+#:
+#: Adding a member is a receipt-shape change: extend both sides together.
+FAILURE_REASONS: tuple[str, ...] = (
+    # refusals — the generator declined before spending anything
+    "NOT_VERIFIER_IDENTITY",
+    "TRANSPORT_DECISION_UNRECORDED",
+    "CREDENTIAL_ABSENT",
+    "TARGET_COUNT_NOT_POSITIVE",
+    "THROTTLE_STATE_ABSENT",
+    # the holdout author
+    "HOLDOUT_AUTHOR_EMPTY_GENERATION",
+    "HOLDOUT_AUTHOR_TRUNCATED",
+    "HOLDOUT_AUTHOR_UNPARSEABLE",
+    # the mutant author
+    "MUTANT_AUTHOR_EMPTY_GENERATION",
+    "MUTANT_AUTHOR_TRUNCATED",
+    "MUTANT_AUTHOR_UNPARSEABLE",
+    # the transport to either author
+    "MODEL_ECHO_MISMATCH",
+    "MODEL_RATE_LIMITED",
+    "MODEL_HTTP_ERROR",
+    "MODEL_TRANSPORT_FAILURE",
+    # the deterministic gate
+    "TEST_RUNNER_UNAVAILABLE",
+    "BASELINE_HOLDOUTS_FAILED",
+    "MUTANT_RUN_NOT_A_VERDICT",
+    "KILL_RATE_BELOW_THRESHOLD",
+    # the honest bucket, never a free string
+    "UNCLASSIFIED_EXCEPTION",
+)
+
+
+def emit_failure_reason(reason: str | None) -> str | None:
+    """The only gate through which ``failure_reason`` reaches the receipt.
+
+    Membership in :data:`FAILURE_REASONS`, checked here rather than trusted at
+    the raise site. A value that is not in the vocabulary is not repaired and
+    not passed through — it is replaced by ``UNCLASSIFIED_EXCEPTION``, because a
+    field that would forward an unrecognised string is exactly the free channel
+    the seam refuses to have.
+    """
+    if reason is None:
+        return None
+    return reason if reason in FAILURE_REASONS else "UNCLASSIFIED_EXCEPTION"
+
+
+class GeneratorFailure(RuntimeError):
+    """A failure that knows its own typed reason.
+
+    The *message* may quote a prompt or a completion and stays in the sealed
+    log. Only :attr:`reason` — a token from the closed vocabulary — crosses.
+    """
+
+    def __init__(self, reason: str, message: str) -> None:
+        super().__init__(message)
+        self.reason = reason
+
 
 def utc_now() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -122,7 +211,17 @@ def emit(receipt: dict[str, Any]) -> None:
     sys.stdout.flush()
 
 
-def failure(request_id: str, exit_status: int, failure_class: str, store_hash: str) -> int:
+def failure(
+    request_id: str, exit_status: int, failure_class: str, store_hash: str, reason: str
+) -> int:
+    """A receipt for a run that minted nothing.
+
+    The counts are all zero because **nothing was minted**, which is not the
+    same claim as "nothing was produced": the 2026-08-03 run that motivated
+    ``failure_reason`` had authored a correct holdout file and then lost the
+    mutant author, and reported ``holdout_count: 0`` all the same. The counts
+    describe the mint; ``failure_reason`` describes how far it got.
+    """
     emit(
         {
             "generation_request_id": request_id,
@@ -136,6 +235,7 @@ def failure(request_id: str, exit_status: int, failure_class: str, store_hash: s
             "oracle_version": ORACLE_VERSION,
             "generated_at": utc_now(),
             "failure_class": failure_class,
+            "failure_reason": emit_failure_reason(reason),
         }
     )
     return exit_status
@@ -189,9 +289,10 @@ def throttle() -> None:
     import fcntl
 
     if not THROTTLE_STATE.is_file():
-        raise RuntimeError(
+        raise GeneratorFailure(
+            "THROTTLE_STATE_ABSENT",
             f"shared throttle state {THROTTLE_STATE} is absent; refusing to generate "
-            "unthrottled against an account-wide rate limit"
+            "unthrottled against an account-wide rate limit",
         )
     with open(THROTTLE_STATE, "a+", encoding="utf-8") as fh:
         fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
@@ -215,8 +316,24 @@ def throttle() -> None:
         time.sleep(wait)
 
 
-def call_model(api_key: str, model: str, prompt: str, log: Log, *, max_tokens: int = 8000) -> str:
+def call_model(
+    api_key: str,
+    model: str,
+    prompt: str,
+    log: Log,
+    *,
+    max_tokens: int = 8000,
+    empty_reason: str,
+    truncated_reason: str,
+) -> str:
     """One completion, zero retries, **streamed**.
+
+    ``empty_reason`` and ``truncated_reason`` are passed in rather than derived
+    because this function does not know which role it is serving, and "the
+    mutant author came back empty" is a materially different diagnosis from
+    "the holdout author came back empty" — the first leaves a usable holdout in
+    the store, the second leaves nothing. Both were previously one
+    ``ORACLE_INVALID``.
 
     Streaming is not a latency optimisation here, it is a reliability fix. The
     owner's cortex research (2026-07-19, re-scoping an earlier conclusion)
@@ -283,12 +400,22 @@ def call_model(api_key: str, model: str, prompt: str, log: Log, *, max_tokens: i
     text = "".join(chunks)
     log.write(f"model={model} finish_reason={finish} chars={len(text)} streamed=True")
 
-    if not text.strip():
-        raise RuntimeError(f"{model} returned an empty generation")
+    # Order matters for the *reason*, not for the outcome. The observed failure
+    # was ``finish_reason=length`` with ``chars=0``: the model spent its whole
+    # budget without emitting a content delta. Reporting that as merely "empty"
+    # hides the one fact that suggests the fix, so the truncation check is asked
+    # first when the completion is also empty.
     if finish == "length":
-        raise RuntimeError(f"{model} generation was truncated (finish_reason=length)")
+        raise GeneratorFailure(
+            truncated_reason,
+            f"{model} generation was truncated (finish_reason=length, chars={len(text)})",
+        )
+    if not text.strip():
+        raise GeneratorFailure(empty_reason, f"{model} returned an empty generation")
     if echoed and model.split("/")[-1] not in str(echoed):
-        raise RuntimeError(f"requested {model} but the gateway echoed {echoed}")
+        raise GeneratorFailure(
+            "MODEL_ECHO_MISMATCH", f"requested {model} but the gateway echoed {echoed}"
+        )
     return text
 
 
@@ -310,7 +437,7 @@ def main() -> int:
 
     who = pwd.getpwuid(os.geteuid()).pw_name
     if who != "efah-verifier":
-        return failure(request_id, 3, "PROTECTED_ACCESS", store_hash)
+        return failure(request_id, 3, "PROTECTED_ACCESS", store_hash, "NOT_VERIFIER_IDENTITY")
 
     log = Log(request_id)
     log.write(f"start request={request_id} commit={args.candidate_commit} as={who}")
@@ -321,17 +448,23 @@ def main() -> int:
         # transport are worth less than the effort of generating them, and a set
         # minted now would have to be discarded and regenerated after the answer.
         log.write("refused: FINDING-005 transport decision not recorded")
-        return failure(request_id, 4, "ORACLE_INVALID", store_hash)
+        return failure(
+            request_id, 4, "ORACLE_INVALID", store_hash, "TRANSPORT_DECISION_UNRECORDED"
+        )
     log.write(f"transport decision recorded: {decision}")
 
     api_key = read_credential()
     if not api_key:
         log.write("refused: no eval-gateway credential installed")
-        return failure(request_id, 5, "INFRASTRUCTURE_FAILURE", store_hash)
+        return failure(
+            request_id, 5, "INFRASTRUCTURE_FAILURE", store_hash, "CREDENTIAL_ABSENT"
+        )
 
     if args.target_count <= 0:
         log.write("refused: target_count must be positive")
-        return failure(request_id, 6, "ORACLE_INVALID", store_hash)
+        return failure(
+            request_id, 6, "ORACLE_INVALID", store_hash, "TARGET_COUNT_NOT_POSITIVE"
+        )
 
     try:
         SEALED_STORE.mkdir(parents=True, exist_ok=True)
@@ -340,9 +473,10 @@ def main() -> int:
         killed, gate_problems = run_mutation_gate(subject, holdouts, mutants, log)
     except Exception as exc:  # noqa: BLE001 - the class is the channel, not the text
         # The message may quote generated content, so it goes to the sealed log
-        # and the builder receives a typed class only.
+        # and the builder receives a typed class and a typed reason only.
         log.write(f"failed: {type(exc).__name__}: {exc}\n{traceback.format_exc()}")
-        return failure(request_id, 1, _classify(exc), store_content_hash())
+        failure_class, reason = _classify(exc)
+        return failure(request_id, 1, failure_class, store_content_hash(), reason)
 
     kill_rate = (len(killed) / len(mutants)) if mutants else 0.0
     # A gate problem voids the score outright. DEC-006's mint rule is that a
@@ -354,13 +488,23 @@ def main() -> int:
     )
 
     if gate_problems:
-        for problem in gate_problems:
-            log.write(f"gate problem: {problem}")
+        for problem_reason, detail in gate_problems:
+            log.write(f"gate problem [{problem_reason}]: {detail}")
 
+    # Why the mint refused, in the order that matters to whoever reads it. A
+    # gate that could not decide outranks a kill rate below 1.0, because the
+    # kill rate is meaningless when the gate is broken — and the two are the
+    # difference between "the holdouts are weak" and "the holdouts measured
+    # nothing", which the receipt previously reported identically as
+    # ``exit 7, HOLDOUT_FAILURE``.
+    reason: str | None = None
     if not accepted:
+        reason = gate_problems[0][0] if gate_problems else "KILL_RATE_BELOW_THRESHOLD"
         # DEC-006: the mint refuses a set below 1.0. The generated files stay in
         # the store for the owner to inspect; they are simply not minted.
-        log.write(f"mint refused: kill_rate={kill_rate:.4f} over {len(mutants)} mutants")
+        log.write(
+            f"mint refused [{reason}]: kill_rate={kill_rate:.4f} over {len(mutants)} mutants"
+        )
 
     emit(
         {
@@ -375,21 +519,40 @@ def main() -> int:
             "oracle_version": ORACLE_VERSION,
             "generated_at": utc_now(),
             "failure_class": None if accepted else "HOLDOUT_FAILURE",
+            "failure_reason": emit_failure_reason(reason),
         }
     )
     return 0 if accepted else 7
 
 
-def _classify(exc: Exception) -> str:
+def _classify(exc: Exception) -> tuple[str, str]:
+    """``(failure_class, failure_reason)`` — the contract's class, then the detail.
+
+    ``failure_class`` is the §10.6 vocabulary and is deliberately coarse: it
+    answers "is this worth retrying". ``failure_reason`` answers "what broke",
+    and exists because three quite different things — an unanswered transport
+    decision, a truncated mutant author, an absent pytest — all land on
+    ``ORACLE_INVALID`` and were indistinguishable from the build side.
+    """
+    if isinstance(exc, GeneratorFailure):
+        reason = emit_failure_reason(exc.reason)
+        assert reason is not None
+    elif isinstance(exc, urllib.error.HTTPError):
+        reason = "MODEL_RATE_LIMITED" if exc.code == 429 else "MODEL_HTTP_ERROR"
+    elif isinstance(exc, (urllib.error.URLError, TimeoutError, OSError)):
+        reason = "MODEL_TRANSPORT_FAILURE"
+    else:
+        reason = "UNCLASSIFIED_EXCEPTION"
+
     if isinstance(exc, urllib.error.HTTPError):
         if exc.code == 429:
-            return "RATE_LIMIT"
+            return "RATE_LIMIT", reason
         if exc.code in (401, 403):
-            return "PROTECTED_ACCESS"
-        return "MODEL_UNAVAILABLE"
+            return "PROTECTED_ACCESS", reason
+        return "MODEL_UNAVAILABLE", reason
     if isinstance(exc, (urllib.error.URLError, TimeoutError, OSError)):
-        return "TRANSIENT_PROVIDER_FAILURE"
-    return "ORACLE_INVALID"
+        return "TRANSIENT_PROVIDER_FAILURE", reason
+    return "ORACLE_INVALID", reason
 
 
 # -- generation ------------------------------------------------------------
@@ -429,11 +592,22 @@ def generate_subject_and_holdouts(api_key: str, args: argparse.Namespace, log: L
         "No prose outside the two fenced blocks.\n"
         f"Candidate commit: {args.candidate_commit}\nContract version: {args.contract_version}"
     )
-    text = call_model(api_key, HOLDOUT_AUTHOR_MODEL, prompt, log, max_tokens=8000)
+    text = call_model(
+        api_key,
+        HOLDOUT_AUTHOR_MODEL,
+        prompt,
+        log,
+        max_tokens=8000,
+        empty_reason="HOLDOUT_AUTHOR_EMPTY_GENERATION",
+        truncated_reason="HOLDOUT_AUTHOR_TRUNCATED",
+    )
     files = _split_files(text)
     log.write(f"holdout author produced files: {sorted(files)}")
     if "subject.py" not in files or "test_holdout.py" not in files:
-        raise RuntimeError(f"holdout author returned {sorted(files)}, expected subject.py and test_holdout.py")
+        raise GeneratorFailure(
+            "HOLDOUT_AUTHOR_UNPARSEABLE",
+            f"holdout author returned {sorted(files)}, expected subject.py and test_holdout.py",
+        )
 
     subject = _write("reference", "subject.py", files["subject.py"])
     holdout = _write("holdouts", "test_holdout.py", files["test_holdout.py"])
@@ -459,7 +633,15 @@ def generate_mutants(api_key: str, args: argparse.Namespace, subject: Path, log:
         "should be refused but is allowed.\n\n"
         "Output each as a fenced block preceded by `# FILE: mutant_<n>.py`. No prose."
     )
-    text = call_model(api_key, MUTANT_AUTHOR_MODEL, prompt, log, max_tokens=8000)
+    text = call_model(
+        api_key,
+        MUTANT_AUTHOR_MODEL,
+        prompt,
+        log,
+        max_tokens=8000,
+        empty_reason="MUTANT_AUTHOR_EMPTY_GENERATION",
+        truncated_reason="MUTANT_AUTHOR_TRUNCATED",
+    )
     files = _split_files(text, fallback_stem="mutant_")
     # Filenames only -- metadata, not content. Enough to diagnose a format
     # mismatch without the builder ever seeing a mutant.
@@ -470,9 +652,10 @@ def generate_mutants(api_key: str, args: argparse.Namespace, subject: Path, log:
         if name.startswith("mutant")
     ]
     if not mutants:
-        raise RuntimeError(
+        raise GeneratorFailure(
+            "MUTANT_AUTHOR_UNPARSEABLE",
             f"mutant author returned no usable modules; parsed {sorted(files)} "
-            f"from {len(text)} chars"
+            f"from {len(text)} chars",
         )
     log.write(f"wrote {len(mutants)} mutants")
     return mutants
@@ -534,15 +717,19 @@ def assert_runner_available() -> None:
     import subprocess
 
     if not TEST_RUNNER.is_file():
-        raise RuntimeError(f"test runner {TEST_RUNNER} is absent; no verdict is possible")
+        raise GeneratorFailure(
+            "TEST_RUNNER_UNAVAILABLE",
+            f"test runner {TEST_RUNNER} is absent; no verdict is possible",
+        )
     probe = subprocess.run(  # noqa: S603 - fixed argv
         [str(TEST_RUNNER), "-m", "pytest", "--version"],
         capture_output=True, text=True, timeout=60,
     )
     if probe.returncode != 0:
-        raise RuntimeError(
+        raise GeneratorFailure(
+            "TEST_RUNNER_UNAVAILABLE",
             f"{TEST_RUNNER} cannot run pytest (exit {probe.returncode}); a missing runner "
-            "exits 1 exactly like a failing test, so every mutant would score as killed"
+            "exits 1 exactly like a failing test, so every mutant would score as killed",
         )
 
 
@@ -563,7 +750,7 @@ def _run_pytest(directory: Path, holdouts: list[Path]) -> int:
 
 def run_mutation_gate(
     subject: Path, holdouts: list[Path], mutants: list[Path], log: Log
-) -> tuple[list[Path], list[str]]:
+) -> tuple[list[Path], list[tuple[str, str]]]:
     """Deterministic. No model participates in this verdict path (§17.4).
 
     Sound version. Three things the first one got wrong:
@@ -582,7 +769,11 @@ def run_mutation_gate(
     import shutil
     import tempfile
 
-    problems: list[str] = []
+    #: ``(failure_reason, detail)``. The reason crosses the seam, the detail
+    #: goes to the sealed log. A broken baseline and a surviving mutant are both
+    #: "not 1.0" and are not the same news: one means the suite measured nothing,
+    #: the other means it measured something and found a hole.
+    problems: list[tuple[str, str]] = []
     assert_runner_available()
 
     with tempfile.TemporaryDirectory(dir=str(SEALED_STORE)) as tmp:
@@ -594,11 +785,12 @@ def run_mutation_gate(
         baseline_code = _run_pytest(base, holdouts)
         log.write(f"baseline (correct subject): pytest exit {baseline_code}")
         if baseline_code != 0:
-            problems.append(
+            problems.append((
+                "BASELINE_HOLDOUTS_FAILED",
                 f"holdouts do not pass against the correct implementation (pytest exit "
                 f"{baseline_code}); a suite that fails on correct code kills every mutant "
-                "and tests nothing"
-            )
+                "and tests nothing",
+            ))
             return [], problems
 
         killed: list[Path] = []
@@ -616,7 +808,10 @@ def run_mutation_gate(
                 verdict = "SURVIVED"
             else:
                 verdict = f"BROKEN_RUN(exit {code})"
-                problems.append(f"{mutant.name}: pytest exit {code} is not a verdict")
+                problems.append((
+                    "MUTANT_RUN_NOT_A_VERDICT",
+                    f"{mutant.name}: pytest exit {code} is not a verdict",
+                ))
             log.write(f"mutant {mutant.name}: {verdict}")
 
     return killed, problems
