@@ -1512,6 +1512,7 @@ from evaluation.checks_d1_05 import CHECKS_D1_05  # noqa: E402
 from evaluation.checks_d1_06 import CHECKS_D1_06  # noqa: E402
 from evaluation.checks_d2_11 import CHECKS_D2_11  # noqa: E402
 from evaluation.checks_d2_12 import CHECKS_D2_12  # noqa: E402
+from evaluation.checks_d2_14 import CHECKS_D2_14  # noqa: E402
 from evaluation.checks_d2_21 import CHECKS_D2_21  # noqa: E402
 from evaluation.checks_d2_22 import CHECKS_D2_22  # noqa: E402
 
@@ -1522,6 +1523,7 @@ CHECKS.update(CHECKS_D1_05)
 CHECKS.update(CHECKS_D1_06)
 CHECKS.update(CHECKS_D2_11)
 CHECKS.update(CHECKS_D2_12)
+CHECKS.update(CHECKS_D2_14)
 CHECKS.update(CHECKS_D2_21)
 CHECKS.update(CHECKS_D2_22)
 
