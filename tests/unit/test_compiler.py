@@ -387,20 +387,34 @@ def test_judge_is_advisory_until_calibrated():
 
 
 def test_cli_run_validates_compiles_and_reports():
-    """AMENDED when the composition root landed.
+    """AMENDED TWICE. The second amendment is the interesting one.
 
-    This previously asserted RUNNING, because the TerminusDB and LangGraph lanes
-    were unmerged and the CLI could only compile. Both are wired now, and the
-    run reaches BLOCKED_EXTERNAL_ACCESS: the sealed verifier (station 11) is
-    genuinely unreachable pending owner question Q1. Reporting RUNNING while a
-    required service is absent would be the "mostly done" state contract §6.2
-    exists to forbid.
+    First it asserted RUNNING, when the TerminusDB and LangGraph lanes were
+    unmerged and the CLI could only compile. Then BLOCKED_EXTERNAL_ACCESS, when
+    those landed and station 11 -- the sealed verifier -- was recorded as
+    unreachable "pending owner question Q1".
+
+    It is RUNNING again, and not because the bar moved. BLK-Q1 was answered
+    **B** (a locally isolated verifier under a separate service identity) on
+    2026-08-02T05:35:32Z, and B was built: uid ``efah-verifier``, a 0700 store,
+    a root-owned generator, a sudoers rule scoped to one program. Station 11
+    nonetheless kept returning a hardcoded UNAVAILABLE that called nothing and
+    cited Q1 as open. The station now invokes the seam, and the run reaches a
+    terminal state because every one of the fifteen services is genuinely
+    exercised.
+
+    **RUNNING means the skeleton is complete, not that the project is.** The
+    gate verdicts are a separate question and several are still UNVERIFIABLE;
+    §14.4 asks whether each service was exercised with evidence, and that is
+    all this asserts.
     """
     report = run_project(PACK_ROOT, mode="autonomous")
     assert report.validated is True
     assert report.compiled is True
-    assert report.state is ProjectState.BLOCKED_EXTERNAL_ACCESS
-    assert any("protected_verifier" in p for p in report.problems)
+    assert report.state is ProjectState.RUNNING
+    # No station may be left off the path. The previous assertion looked for
+    # 'protected_verifier' among the problems; its absence is the change.
+    assert not report.problems, report.problems
     assert report.compiler_summary["compiles"] is True
     assert report.compiler_summary["contract_version"] == CONTRACT_VERSION
 

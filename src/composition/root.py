@@ -385,9 +385,76 @@ async def run_walking_skeleton(config: HarnessConfig) -> SkeletonRun:
     failed = sum(1 for g in results if str(getattr(g, "verdict", "")) == "FAIL")
     record(10, "visible test", StationStatus.EXERCISED,
            f"{passed} gates PASS, {failed} FAIL", gates_passed=passed, gates_failed=failed)
-    record(11, "protected verifier call", StationStatus.UNAVAILABLE,
-           "the sealed verifier endpoint is deliberately absent from build-side config (§17.2); "
-           "open owner blocker Q1")
+    # 11 -- the protected verifier, actually called.
+    #
+    # This station reported UNAVAILABLE from a hardcoded string that attempted
+    # nothing and cited "open owner blocker Q1". BLK-Q1 was answered **B** --
+    # a locally isolated verifier under a separate service identity -- on
+    # 2026-08-02T05:35:32Z, and B was then built: uid ``efah-verifier``, store
+    # at 0700, root-owned generator, a sudoers rule scoped to exactly one
+    # program. The excuse outlived the thing it excused, which is the failure
+    # Section 26 names and the one this phase exists to catch.
+    #
+    # ``target_count=1`` because this is a wiring proof, not an assurance
+    # campaign: the station's obligation under Section 14.4 is that the service
+    # is *exercised with evidence*, and the figure is recorded so nobody reads
+    # a one-holdout run as a release gate. The generator takes minutes; that is
+    # the honest cost of calling it instead of describing it.
+    try:
+        from verifier_identity.seam import (
+            GenerationRequest,
+            GenerationSeam,
+            default_identity,
+        )
+
+        # The seam's id pattern is ``[A-Za-z0-9._:-]`` and ``utc_now`` emits a
+        # ``+00:00`` offset, so the timestamp is reduced to its alphanumerics
+        # rather than passed through. The seam refused the raw form with "a
+        # field that is merely a string is a free channel across the seam",
+        # which is the boundary working: a request id is an identifier, not a
+        # place to smuggle bytes inward.
+        stamp = "".join(c for c in run.started_at if c.isalnum())
+        outcome = GenerationSeam(default_identity()).generate(
+            GenerationRequest(
+                generation_request_id=f"skeleton-{repo_head[:12]}-{stamp}",
+                candidate_commit=repo_head,
+                contract_version=CONTRACT_VERSION,
+                target_count=1,
+            )
+        )
+        receipt = outcome.receipt
+        if receipt is None:
+            # No receipt means the seam could not enter the identity at all --
+            # sudo absent, generator missing, the store unprovisioned. That is
+            # genuinely unavailable, and the seam already says why.
+            record(11, "protected verifier call", StationStatus.UNAVAILABLE,
+                   "; ".join(outcome.rejected_because)
+                   or "the verifier identity returned no receipt",
+                   rejected_because=list(outcome.rejected_because))
+        else:
+            # A receipt is evidence the service ran. Its exit status is the
+            # verifier's verdict on the candidate and is NOT this station's
+            # verdict -- HOLDOUT_FAILURE means the seam worked and the holdout
+            # found something, which is the station succeeding at its job.
+            record(11, "protected verifier call", StationStatus.EXERCISED,
+                   f"generated under {outcome.invoked_as}: "
+                   f"{receipt.holdout_count} holdout(s), {receipt.mutant_count} mutant(s), "
+                   f"{receipt.killed_count} killed (kill_rate {receipt.kill_rate}); "
+                   f"exit {receipt.exit_status}"
+                   + (f", {receipt.failure_class}" if receipt.failure_class else ""),
+                   invoked_as=outcome.invoked_as,
+                   holdout_count=receipt.holdout_count,
+                   mutant_count=receipt.mutant_count,
+                   killed_count=receipt.killed_count,
+                   kill_rate=receipt.kill_rate,
+                   verifier_exit_status=receipt.exit_status,
+                   verifier_failure_class=receipt.failure_class,
+                   store_content_hash=receipt.store_content_hash,
+                   generator_version=receipt.generator_version,
+                   oracle_version=receipt.oracle_version)
+    except Exception as exc:
+        record(11, "protected verifier call", StationStatus.UNAVAILABLE,
+               f"the verifier seam raised {type(exc).__name__}: {exc}")
     record(12, "oracle result", StationStatus.EXERCISED,
            "ORACLE-001/002/003 minted and emitting health with every verdict")
     record(13, "CI gate", StationStatus.EXERCISED,
