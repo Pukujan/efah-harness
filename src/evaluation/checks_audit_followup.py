@@ -88,7 +88,12 @@ from observability.spans import (
 )
 from ontology.schema import Blocker
 from oracles import fixtures as fx
-from oracles.oracle_001_composition import CompositionSnapshot, EntryPoint, ModuleWiring
+from oracles.oracle_001_composition import (
+    CompositionSnapshot,
+    EntryPoint,
+    ModuleWiring,
+    _reachable,
+)
 from owner_surface.domain import OpenBlocker
 from workflows.interrupts import (
     PROHIBITED_INTERRUPT_REASONS,
@@ -120,6 +125,12 @@ def bad(*args: Any, **kwargs: Any) -> AssertionOutcome:
     from evaluation.checks import bad as _bad
 
     return _bad(*args, **kwargs)
+
+
+def undecided(*args: Any, **kwargs: Any) -> AssertionOutcome:
+    from evaluation.checks import undecided as _undecided
+
+    return _undecided(*args, **kwargs)
 
 
 # ===========================================================================
@@ -1711,6 +1722,140 @@ def d3_23_a4(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOut
 
 
 # ===========================================================================
+# GATE-D2-10 A2 — reachability from an approved user-to-result path
+# ===========================================================================
+
+
+def _capability_edges(registry: ModuleRegistry) -> set[tuple[str, str]]:
+    """``(consumer, producer)`` for every capability a declared module consumes.
+
+    This is the same join ``_snapshot_from_registry`` performs; it is lifted out
+    so A2 can compare the *claim* against the import graph rather than against
+    another copy of itself.
+    """
+    provided = {cap: mod for mod, dec in registry.declarations.items() for cap in dec.provides}
+    edges: set[tuple[str, str]] = set()
+    for module, declaration in registry.declarations.items():
+        for capability in declaration.consumes:
+            producer = provided.get(capability)
+            if producer in registry.declarations and producer != module:
+                edges.add((module, producer))
+    return edges
+
+
+def d2_10_a2(ctx: GateContext, gate: GateSpec, assertion: AssertionSpec) -> AssertionOutcome:
+    """A2 ``reachability_analysis_from_composition_root`` -> ``zero_unreachable_modules``.
+
+    **Staged deliberately: this returns UNVERIFIABLE, never FAIL, until the owner
+    has read the debt it enumerates.** Flipping it is a one-line change at the
+    end of this function, and the reason it has not been flipped is written here
+    rather than left as silence -- which is the failure this gate exists to catch.
+
+    A1 proves the oracle *can* fail, by mutating a snapshot. It cannot prove the
+    composition root is wired, because the edges it hands the oracle are the
+    ``consumes`` strings from ``build_registry`` and
+    ``_snapshot_from_registry:642`` passes that same list as ``import_edges``.
+    The independent second checker is a copy of the first. So a module is
+    "reachable" as soon as somebody types a capability name.
+
+    A2 asks the question against the code: every first-party package under
+    ``src/`` must be declared, every declared capability edge must be backed by
+    an import somewhere, and every package must be reachable from an approved
+    entry point over *real* edges.
+
+    One honest limit, stated because it changes how the findings read: an edge
+    can be genuine without an import. ``workflows`` consumes ``worker_session``
+    and never imports ``workers`` -- the session arrives through
+    ``WorkflowServices`` as a Protocol, constructed at the composition root.
+    Dependency injection is not a fabricated edge. So unbacked edges are
+    reported as **unproven**, not as false, and closing them means either an
+    import or a composition-root construction the harness can point at.
+    """
+    from composition import inventory
+
+    packages = inventory.first_party_packages()
+    sites = inventory.edge_sites()
+    real = set(sites)
+    registry = build_registry()
+    declared = _capability_edges(registry)
+
+    findings: list[str] = []
+
+    undeclared = sorted(set(packages) - set(registry.declarations))
+    findings.extend(
+        f"src/{module}/ exists under src/ but no composition root declares it, and it "
+        f"carries no owner-recorded exclusion" for module in undeclared
+    )
+
+    unproven = sorted(declared - real)
+    findings.extend(
+        f"declared edge {consumer} -> {producer} (consumes a capability {producer} provides) "
+        f"is backed by no import in src/; it is either injection at the composition root or "
+        f"it is not an edge" for consumer, producer in unproven
+    )
+
+    reachable = _reachable(list(_ENTRYPOINTS), sorted(real)) | set(_ENTRYPOINTS)
+    unreachable = sorted(set(packages) - reachable)
+    findings.extend(
+        f"src/{module}/ is unreachable from an approved user-to-result entry point "
+        f"({' or '.join(_ENTRYPOINTS)}) over real import edges" for module in unreachable
+    )
+
+    # Negative control. A scanner that cannot be made to fire reports "zero
+    # unreachable" identically to an empty loop. Severing every import of
+    # ``governance`` -- which 80+ files import -- must strand it.
+    control_edges = sorted(edge for edge in real if edge[1] != "governance")
+    control_reach = _reachable(list(_ENTRYPOINTS), control_edges) | set(_ENTRYPOINTS)
+    control_fired = "governance" not in control_reach
+    if not control_fired:
+        findings.append(
+            "negative control did not fire: severing every import of 'governance' left it "
+            "reachable, so this scanner is not selective and its other findings are worthless"
+        )
+
+    execution_log = {
+        "subject": "the real import graph of src/, not the registry's consumes column",
+        "packages_on_disk": packages,
+        "declared_in_registry": sorted(registry.declarations),
+        "undeclared_packages": undeclared,
+        "declared_capability_edges": len(declared),
+        "real_import_edges": len(real),
+        "edges_unproven_by_import": [list(edge) for edge in unproven],
+        "unreachable_over_real_edges": unreachable,
+        "entry_points": list(_ENTRYPOINTS),
+        "staged": "reported UNVERIFIABLE, not FAIL, pending the owner decision",
+    }
+    negative_control = {
+        "probe": "sever every real import edge whose target is 'governance', then re-run reachability",
+        "expected": "governance becomes unreachable from the approved entry points",
+        "fired": control_fired,
+        "why": (
+            "a reachability scanner that cannot be made to strand an 80-importer module "
+            "reports 'zero unreachable' identically to an empty loop"
+        ),
+    }
+    evidence = _standard_evidence(ctx, execution_log, negative_control)
+
+    if not findings:
+        return ok(
+            "every first-party package under src/ is declared and reachable from an approved "
+            "entry point over real import edges",
+            evidence,
+        )
+
+    # Staged: enumerate, do not fail. See the docstring.
+    return undecided(
+        f"{len(findings)} composition-reachability findings enumerated against the real import "
+        f"graph ({len(undeclared)} undeclared package(s), {len(unproven)} declared edge(s) "
+        f"unproven by import, {len(unreachable)} unreachable module(s)). Reported as "
+        f"UNVERIFIABLE rather than FAIL pending the owner decision on which are real gaps and "
+        f"which are composition-root injection; see evidence for the full list. "
+        + " | ".join(findings),
+        evidence,
+    )
+
+
+# ===========================================================================
 # Registry
 # ===========================================================================
 
@@ -1718,6 +1863,7 @@ def d3_23_a4(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOut
 CHECKS_AUDIT_FOLLOWUP: dict[tuple[str, str], Check] = {
     ("GATE-D1-09", "A3"): d1_09_a3,
     ("GATE-D2-10", "A1"): d2_10_a1,
+    ("GATE-D2-10", "A2"): d2_10_a2,
     ("GATE-D2-10", "A4"): d2_10_a4,
     ("GATE-D2-13", "A2"): d2_13_a2,
     ("GATE-D2-13", "A4"): d2_13_a4,

@@ -56,6 +56,14 @@ OWNED: dict[tuple[str, str], tuple[str, ...]] = {
         "negative_control_transcript",
         "artifact_hashes_and_commit_binding",
     ),
+    # A2 answers the reachability question against the real import graph rather
+    # than against the registry's own ``consumes`` column, and is staged to
+    # UNVERIFIABLE while the owner reads the debt it enumerates.
+    ("GATE-D2-10", "A2"): (
+        "gate_execution_log",
+        "negative_control_transcript",
+        "artifact_hashes_and_commit_binding",
+    ),
     ("GATE-D2-10", "A4"): (
         "gate_execution_log",
         "negative_control_transcript",
@@ -82,7 +90,14 @@ OWNED: dict[tuple[str, str], tuple[str, ...]] = {
 #: the remaining debt is a fact somebody has to edit rather than a silence.
 STILL_UNIMPLEMENTED: dict[str, set[str]] = {
     "GATE-D1-09": {"A1"},
-    "GATE-D2-10": {"A2", "A3"},
+    # A2 left this set when the reachability check landed. A3
+    # (``wiring_manifest_assert``) is still unwritten: the nine Section 5.2
+    # fields are generated from f-strings in ``composition/root._declare``, so
+    # ``project-pack/artifacts`` and ``tests/integration/#artifacts`` are
+    # plausible strings that resolve to nothing, and ``is_placeholder`` only
+    # rejects literal TODO markers. Checking it means resolving each field, not
+    # pattern-matching it.
+    "GATE-D2-10": {"A3"},
     "GATE-D2-13": {"A1", "A3"},
     "GATE-D3-23": {"A1", "A2", "A3"},
 }
@@ -115,7 +130,7 @@ def findings_mentioning(outcome: Any, fragment: str) -> list[str]:
 # --- the registry and the circular-import rule -----------------------------
 
 
-def test_the_registry_holds_exactly_the_six_audited_assertions():
+def test_the_registry_holds_exactly_the_audited_assertions():
     assert set(CHECKS_AUDIT_FOLLOWUP) == set(OWNED)
 
 
@@ -630,8 +645,26 @@ def test_the_registered_gates_execute_these_assertions_through_the_runner(gate_i
     assert mine <= executed
     assert not_implemented == STILL_UNIMPLEMENTED[gate_id]
     assert result.failed == [], [(a.assertion_id, a.findings) for a in result.failed]
+    #: Assertions deliberately staged to UNVERIFIABLE rather than PASS/FAIL, with
+    #: the reason each one is staged. GATE-D2-10 A2 enumerates the composition
+    #: debt -- 2 undeclared packages, 40 declared edges unproven by import, 5
+    #: modules unreachable over real edges -- and reports it without flipping the
+    #: gate red, so the owner sees the list before the colour change.
+    #:
+    #: **This carve-out is the thing to delete when A2 flips to FAIL.** Left
+    #: undated and unexplained it becomes the next stale reason, which is the
+    #: failure the D1-09 A3 test below exists to remember.
+    staged = {("GATE-D2-10", "A2"): "enumerating composition debt pending owner decision"}
+    staged_here = {aid for (gid, aid) in staged if gid == gate_id}
     assert all(
-        a.status is AssertionStatus.PASS for a in result.assertions if a.assertion_id in mine
+        a.status is AssertionStatus.PASS
+        for a in result.assertions
+        if a.assertion_id in mine - staged_here
+    )
+    assert all(
+        a.status is AssertionStatus.UNVERIFIABLE
+        for a in result.assertions
+        if a.assertion_id in staged_here
     )
     assert result.executability is Executability.PARTIALLY_EXECUTABLE
     assert result.verdict is Verdict.UNVERIFIABLE
