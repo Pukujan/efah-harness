@@ -104,6 +104,10 @@ class GateResult:
     evidence_required: tuple[str, ...] = ()
     evidence_produced: list[dict[str, Any]] = field(default_factory=list)
     evidence_missing: list[str] = field(default_factory=list)
+    #: Files on disk that name a required artifact but were not admitted, each
+    #: with the reason. "Missing" and "present but bound to another commit" are
+    #: different findings; collapsing them hides a stale-evidence problem.
+    evidence_refused: list[dict[str, Any]] = field(default_factory=list)
     on_fail_action: str = ""
     on_fail_state: str = ""
     remediation_must_not_include: str | None = None
@@ -139,6 +143,7 @@ class GateResult:
             "evidence_required": list(self.evidence_required),
             "evidence_produced": self.evidence_produced,
             "evidence_missing": self.evidence_missing,
+            "evidence_refused": self.evidence_refused,
             "on_fail": {
                 "action": self.on_fail_action,
                 "state": self.on_fail_state,
@@ -302,7 +307,17 @@ class GateRunner:
         else:
             executability = Executability.EXECUTED
 
+        # Evidence does not only come from this run. Artifacts that can only be
+        # produced by driving a live service are written out of band by a
+        # collector; without this the runner reported them missing while the
+        # files sat in evidence/gates/. Adoption is not charity: an artifact is
+        # admitted only if it is bound to *this* candidate commit, and anything
+        # refused is reported with the reason rather than silently ignored.
+        self.evidence.adopt_from_disk(gate.gate_id)
         missing_evidence = self.evidence.missing_for(gate.gate_id, gate.evidence_required)
+        refused_evidence = [
+            r for r in self.evidence.refused_for(gate.gate_id) if r["name"] in gate.evidence_required
+        ]
 
         if any(r.status is AssertionStatus.FAIL for r in results):
             verdict = Verdict.FAIL
@@ -329,6 +344,7 @@ class GateRunner:
             evidence_required=gate.evidence_required,
             evidence_produced=self.evidence.references_for(gate.gate_id),
             evidence_missing=missing_evidence,
+            evidence_refused=refused_evidence,
             on_fail_action=gate.on_fail_action,
             on_fail_state=gate.on_fail_state,
             remediation_must_not_include=gate.remediation_must_not_include,
@@ -374,6 +390,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"        FAIL {failure.assertion_id}: {failure.claim}")
             for finding in failure.findings[:5]:
                 print(f"             {finding}")
+        if result.evidence_missing:
+            print(f"        evidence missing: {', '.join(result.evidence_missing)}")
+        for refused in result.evidence_refused:
+            print(f"        evidence REFUSED {refused['name']}: {refused['reason']}")
     counts = summary.as_dict()["counts"]
     print()
     print(
