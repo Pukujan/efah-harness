@@ -1,0 +1,2 @@
+[console_scripts]
+harness = cli.main:main

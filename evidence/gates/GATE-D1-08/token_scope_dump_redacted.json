@@ -1,0 +1,24 @@
+{
+  "artifact": "token_scope_dump_redacted",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "builder_identity": "builder_default",
+    "note": "no builder token is introspected here; identities are compared from the pack",
+    "sealed_repositories": [
+      {
+        "builder_access": "forbidden",
+        "role": "protected_verifier",
+        "service_identity": "separate",
+        "url_supplied_to_builder": true
+      },
+      {
+        "builder_access": "forbidden",
+        "role": "unrelated_private_repo_of_another_project",
+        "service_identity": "separate",
+        "url_supplied_to_builder": true
+      }
+    ],
+    "verifier_service_identity": "verifier_service_identity"
+  },
+  "gate_id": "GATE-D1-08"
+}

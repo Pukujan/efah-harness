@@ -1,0 +1,182 @@
+{
+  "finding": "FINDING-005",
+  "probe": "transport_channel_pinning",
+  "probed_at": "2026-08-02T13:35:23Z",
+  "upstream": "https://ckff.dev",
+  "eval_gateway": "https://litellm-eval-production.up.railway.app",
+  "inventory": {
+    "catalogue_size": 203,
+    "distinct_channel_prefixes": 23,
+    "unprefixed_models": 80,
+    "official_channel_prefixes": [
+      "官3",
+      "官4",
+      "官转1"
+    ],
+    "official_models": [
+      "[官3] kimi-k3 [不补]",
+      "[官4][次] glm-5.2",
+      "[官4][量] glm-5.2",
+      "[官转1] claude-sonnet-4",
+      "[官转1] claude-sonnet-4-5",
+      "[官转1] deepseek-3.2",
+      "[官转1] glm-5",
+      "[官转1] minimax-m2.5",
+      "[官转1] qwen3-coder-next"
+    ],
+    "official_model_count": 9,
+    "pinning_mechanism": "channel_tag_is_part_of_the_model_name",
+    "pinning_mechanically_possible": true
+  },
+  "gate_bearing_role_coverage": {
+    "roles": [
+      {
+        "role": "visible_test_author",
+        "configured_model": "claude-opus-4-7",
+        "configured_family": "anthropic",
+        "currently_pinned": false,
+        "official_route_to_same_model": null,
+        "coverable_by_option_b_without_changing_model": false
+      },
+      {
+        "role": "sealed_holdout_author",
+        "configured_model": "claude-opus-4-8",
+        "configured_family": "anthropic",
+        "currently_pinned": false,
+        "official_route_to_same_model": null,
+        "coverable_by_option_b_without_changing_model": false
+      },
+      {
+        "role": "mutant_author",
+        "configured_model": "gemini-3.5-flash",
+        "configured_family": "google",
+        "currently_pinned": false,
+        "official_route_to_same_model": null,
+        "coverable_by_option_b_without_changing_model": false
+      },
+      {
+        "role": "oracle_author",
+        "configured_model": "qwen-3.6-max",
+        "configured_family": "qwen",
+        "currently_pinned": false,
+        "official_route_to_same_model": null,
+        "coverable_by_option_b_without_changing_model": false
+      },
+      {
+        "role": "release_verifier",
+        "configured_model": "glm-5-turbo",
+        "configured_family": "zhipu",
+        "currently_pinned": false,
+        "official_route_to_same_model": null,
+        "coverable_by_option_b_without_changing_model": false
+      },
+      {
+        "role": "adversarial_critic",
+        "configured_model": "[grok] grok-4.5",
+        "configured_family": "xai",
+        "currently_pinned": true,
+        "official_route_to_same_model": null,
+        "coverable_by_option_b_without_changing_model": false
+      },
+      {
+        "role": "judge",
+        "configured_model": "[ds2] deepseek-v4-pro",
+        "configured_family": "deepseek",
+        "currently_pinned": true,
+        "official_route_to_same_model": null,
+        "coverable_by_option_b_without_changing_model": false
+      },
+      {
+        "role": "contract_compliance_auditor",
+        "configured_model": "claude-sonnet-5",
+        "configured_family": "anthropic",
+        "currently_pinned": false,
+        "official_route_to_same_model": null,
+        "coverable_by_option_b_without_changing_model": false
+      },
+      {
+        "role": "integration_verifier",
+        "configured_model": "qwen3.7-flash",
+        "configured_family": "qwen",
+        "currently_pinned": false,
+        "official_route_to_same_model": null,
+        "coverable_by_option_b_without_changing_model": false
+      }
+    ],
+    "covered": 0,
+    "total": 9,
+    "option_b_fully_covers_gate_bearing_roles": false
+  },
+  "evidence_tier": "DETERMINISTIC_ORACLE",
+  "eval_gateway_models": [
+    "[aws]deepseek-v3.2",
+    "[aws]glm-4.7",
+    "[aws]glm-5",
+    "[aws]kimi-k2-thinking",
+    "[aws]minimax-m2.5",
+    "[ds2] deepseek-v4-flash",
+    "[ds2] deepseek-v4-pro",
+    "[grok] grok-4.5",
+    "__canary_invalid",
+    "claude-opus-4-7",
+    "claude-opus-4-8",
+    "claude-opus-5",
+    "claude-opus-5-thinking",
+    "claude-sonnet-4-6",
+    "claude-sonnet-5",
+    "deepseek-v4-flash",
+    "deepseek-v4-pro",
+    "gemini-3.1-flash-lite-image",
+    "gemini-3.1-flash-lite-preview",
+    "gemini-3.1-pro-preview",
+    "gemini-3.1-pro-preview-search",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-high",
+    "gemini-3.5-flash-search",
+    "gemini-3.6-flash",
+    "glm-5-turbo",
+    "glm-5.2",
+    "gpt-5.5",
+    "gpt-5.6-luna",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "grok-4.5",
+    "grok-imagine-image",
+    "kimi-k2.7-code",
+    "mimo-v2.5-pro",
+    "minimax-m3",
+    "qwen-3.6-max",
+    "qwen3-coder-next",
+    "qwen3.6-plus",
+    "qwen3.7-flash"
+  ],
+  "official_models_configured_on_eval_gateway": [],
+  "reachability": [
+    {
+      "model_requested": "[官转1] claude-sonnet-4",
+      "throttle_wait_seconds": 0.0,
+      "http_status": 400,
+      "latency_seconds": 0.145,
+      "forwarded_by_eval_gateway": false,
+      "error": "{\"error\": {\"message\": \"/chat/completions: Invalid model name passed in model=[官转1] claude-sonnet-4. Call `/v1/models` to view available models for your key.\", \"type\": \"None\", \"param\": \"None\", \"code\": \"400\", \"provider_specific_fields\": {\"error\": \"/chat/completions: Invalid model name passed in model=[官转1] claude-sonnet-4. Call `/v1/models` to view available models for your key.\"}}}",
+      "upstream_attribution": null
+    },
+    {
+      "model_requested": "claude-opus-4-8",
+      "throttle_wait_seconds": 0.747,
+      "http_status": 200,
+      "latency_seconds": 4.134,
+      "model_echoed": "claude-opus-4-8",
+      "forwarded_by_eval_gateway": true,
+      "text": "ok",
+      "upstream_attribution": {
+        "channel": 234,
+        "channel_name": "",
+        "group": "kiro-pro (没有缓存)",
+        "model_name_logged": "claude-opus-4-8",
+        "request_id": "202608021335245944979348268d9d6UXTV3A8s"
+      }
+    }
+  ],
+  "requests_dispatched": 2
+}

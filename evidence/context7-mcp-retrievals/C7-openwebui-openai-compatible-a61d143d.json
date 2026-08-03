@@ -1,0 +1,28 @@
+{
+  "schema_id": "efah.context7_snapshot",
+  "schema_version": "1.0",
+  "contract_id": "EFAH-CONTRACT-001",
+  "contract_version": "1.1",
+  "snapshot_id": "C7-openwebui-openai-compatible-a61d143d",
+  "library_id": "/websites/openwebui",
+  "library_version_or_branch": "unpinned_upstream_docs",
+  "query": "configure a custom OpenAI-compatible API base URL, how the model list is fetched from /models, and per-conversation chat history",
+  "retrieved_at": "2026-08-02T15:00:00Z",
+  "credential_alias": "claude_ai_context7_mcp",
+  "raw_response": "### API base URL configuration\n\nSource: https://docs.openwebui.com/tutorials/integrations/dev-tools/continue-dev\n\nPoints the extension to the Open WebUI API endpoint.\n\n```yaml\napiBase: http://localhost:3000/api\n```\n\n--------------------------------\n\n### Fetch Final Chat History\n\nSource: https://docs.openwebui.com/reference/api-flow\n\nRetrieve the complete conversation history for a given `chatId` using a GET request to the chats endpoint.\n\n```bash\ncurl -X GET https://<host>/api/v1/chats/<chatId> \\\n  -H \"Authorization: Bearer <token>\"\n```\n\n### vLLM\n\nSource: https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-vllm\n\nvLLM provides an OpenAI-compatible API (Chat Completions), which simplifies integration with Open WebUI. The default API base URL for a vLLM server is typically http://localhost:8000/v1.\n\n--------------------------------\n\n### Connect a model > Connection fields\n\nSource: https://docs.openwebui.com/ecosystem/computer/ai/connect-a-model\n\nWhen configuring a connection, you must provide a Base URL and an API Key. For services like Ollama that do not require authentication, the API Key field must still contain non-empty text. Optional fields include a display name, a Prefix ID for namespacing model IDs, and a specific list of models to use.\n\n--------------------------------\n\n### Getting Started > Quick Start > Connect a Provider > Starting with OpenAI-Compatible > Required API Endpoints\n\nSource: https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-openai-compatible\n\nTo ensure full compatibility with Open WebUI, servers should implement specific OpenAI-standard endpoints. The core chat functionality requires the /v1/chat/completions endpoint. Model discovery is facilitated by /v1/models, though models can be manually allowlisted if this endpoint is unavailable. Additional features like RAG, Text-to-Speech, Speech-to-Text, and Image Generation require their respective /v1/embeddings, /v1/audio/speech, /v1/audio/transcriptions, and /v1/images/generations endpoints.",
+  "raw_response_hash": "sha256:a61d143d02369c15da654c1493d47fb73a120572a9630c6e96c6dee87a40abd5",
+  "normalized_response_hash": "sha256:f175557b3f977db7d9e4e2bca2588bac8c26821597b63f9c201faca82ae729d5",
+  "normalization_rule": "strip-trailing-whitespace; drop-blank-lines; join-with-lf",
+  "source_locations": [
+    "https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-openai-compatible",
+    "https://docs.openwebui.com/ecosystem/computer/ai/connect-a-model"
+  ],
+  "affected_decisions": [
+    "DEC-007"
+  ],
+  "affected_dependencies": [
+    "owner_chat_front_end"
+  ],
+  "independent_corroboration": "none",
+  "installed_versions_probed": {}
+}

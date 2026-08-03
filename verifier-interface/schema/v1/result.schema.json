@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://efah.invalid/verifier-interface/v1/result.schema.json",
+  "title": "Protected verifier result",
+  "description": "Contract EFAH-CONTRACT-001 v1.1 section 17.2 and repositories.yaml permitted_response_shape. The verifier returns ONLY these five fields. It MUST NOT reveal hidden assertions, private fixtures, mutant implementation details, or holdout case bodies; the build-side client rejects a response that does as FAILED_PROVENANCE (GATE-D1-08 A5).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["evaluation_request_id", "verdict", "oracle_version", "oracle_health"],
+  "properties": {
+    "evaluation_request_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "UNVERIFIABLE"],
+      "description": "UNVERIFIABLE is not a soft pass. It routes to the next oracle in the section 17.3 hierarchy and, failing that, to owner adjudication as a typed blocker."
+    },
+    "oracle_version": {"type": "string", "minLength": 1, "maxLength": 64},
+    "oracle_health": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Section 17.4 requires health with EVERY result, including failures and UNVERIFIABLE. The key set is closed: oracle_health is the only open-shaped field in the response and is therefore the only place protected content could ride across the seam.",
+      "properties": {
+        "oracle_id": {"type": "string", "maxLength": 64},
+        "oracle_version": {"type": "string", "maxLength": 64},
+        "content_hash": {"type": "string", "maxLength": 128},
+        "last_audit_date": {"type": "string", "maxLength": 64},
+        "fixture_suite_result": {"type": "string", "maxLength": 64},
+        "checker_test_suite_result": {"type": "string", "maxLength": 64},
+        "clock_skew_observed": {"type": ["number", "string", "null"]},
+        "unresolvable_reference_count": {"type": ["integer", "null"]},
+        "health_status": {"type": "string", "maxLength": 64},
+        "degraded": {"type": "boolean"},
+        "last_run_at": {"type": "string", "maxLength": 64}
+      }
+    },
+    "failure_class": {
+      "type": ["string", "null"],
+      "enum": [
+        "TRANSIENT_PROVIDER_FAILURE",
+        "RATE_LIMIT",
+        "MODEL_UNAVAILABLE",
+        "WORKER_CONTEXT_LIMIT",
+        "TOOL_FAILURE",
+        "TEST_FAILURE",
+        "WIRING_FAILURE",
+        "CONTRACT_DRIFT",
+        "HOLDOUT_FAILURE",
+        "ORACLE_INVALID",
+        "PROTECTED_ACCESS",
+        "INFRASTRUCTURE_FAILURE",
+        null
+      ],
+      "description": "Contract section 10.6 typed class only. A prose reason would leak why a hidden assertion failed, which is the assertion."
+    }
+  }
+}

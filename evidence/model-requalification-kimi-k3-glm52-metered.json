@@ -1,0 +1,94 @@
+{
+  "check": "model_requalification",
+  "contract_ref": "contract_7.2_live_empirical_fact_and_7.4_hypothesis_discipline",
+  "oracle_type": "reproducible_empirical_benchmark",
+  "model_judge_in_verdict_path": false,
+  "evidence_tier": "INDEPENDENTLY_REPRODUCED",
+  "probed_at": "2026-08-02T20:19:00Z",
+  "gateway": "https://litellm-eval-production.up.railway.app",
+  "max_tokens": 1024,
+  "spacing_seconds": 1.6,
+  "repetitions_per_condition": 4,
+  "routes": [
+    {
+      "model": "kimi-k3",
+      "condition": "non_streaming",
+      "attempts": 4,
+      "successes": 0,
+      "success_rate": 0.0,
+      "tool_call_rate": 0.0,
+      "latency_p50": null,
+      "latency_max": null,
+      "latency_all": [],
+      "failures": [
+        {
+          "http_status": 500,
+          "error": "{\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - litellm.APIError: LiteLLM: provider returned a response with no 'choice"
+        },
+        {
+          "http_status": 500,
+          "error": "{\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - litellm.APIError: LiteLLM: provider returned a response with no 'choice"
+        },
+        {
+          "http_status": 500,
+          "error": "{\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - litellm.APIError: LiteLLM: provider returned a response with no 'choice"
+        },
+        {
+          "http_status": 500,
+          "error": "{\"error\":{\"message\":\"litellm.InternalServerError: InternalServerError: OpenAIException - litellm.APIError: LiteLLM: provider returned a response with no 'choice"
+        }
+      ]
+    },
+    {
+      "model": "kimi-k3",
+      "condition": "streaming",
+      "attempts": 4,
+      "successes": 4,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 4.96,
+      "latency_max": 6.3,
+      "latency_all": [
+        4.33,
+        4.34,
+        5.58,
+        6.3
+      ],
+      "failures": []
+    },
+    {
+      "model": "glm-5.2-metered",
+      "condition": "non_streaming",
+      "attempts": 4,
+      "successes": 4,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 1.48,
+      "latency_max": 4.16,
+      "latency_all": [
+        1.39,
+        1.43,
+        1.52,
+        4.16
+      ],
+      "failures": []
+    },
+    {
+      "model": "glm-5.2-metered",
+      "condition": "streaming",
+      "attempts": 4,
+      "successes": 4,
+      "success_rate": 1.0,
+      "tool_call_rate": 1.0,
+      "latency_p50": 2.02,
+      "latency_max": 4.67,
+      "latency_all": [
+        1.22,
+        2.0,
+        2.04,
+        4.67
+      ],
+      "failures": []
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "gate": "DEC-006",
+  "name": "verifier service identity and sealed store",
+  "contract_ref": "contract_17.2_protected_verifier_architecture",
+  "gate_ref": "GATE-D1-08 A4",
+  "oracle_type": "deterministic_execution_or_state",
+  "model_judge_in_verdict_path": false,
+  "evidence_tier": "DETERMINISTIC_ORACLE",
+  "measured_at": "2026-08-03T17:03:06Z",
+  "verdict": "FAIL",
+  "passed": 4,
+  "total": 6,
+  "checks": [
+    {
+      "check": "A",
+      "claim": "the verifier service identity exists and differs from the builder's",
+      "passed": true,
+      "detail": "builder uid=1000 (yoav), verifier uid=995 (efah-verifier)",
+      "builder_uid": 1000,
+      "verifier_uid": 995
+    },
+    {
+      "check": "B",
+      "claim": "the builder's read of the sealed store is refused by the kernel",
+      "passed": true,
+      "detail": "PermissionError: Permission denied",
+      "method": "os.listdir under the builder's effective identity",
+      "measured_as_root": false
+    },
+    {
+      "check": "C",
+      "claim": "the generator is root-owned, so the verifier identity cannot rewrite it",
+      "passed": true,
+      "detail": "owner=root mode=0o755"
+    },
+    {
+      "check": "D",
+      "claim": "the sudoers grant names the generator and no unrestricted command",
+      "passed": true,
+      "detail": "Defaults:yoav !requiretty; yoav ALL=(efah-verifier) NOPASSWD: /opt/efah-verifier/bin/generate-holdouts",
+      "honest_note": "the builder holds blanket passwordless sudo independently of this rule, so a narrow grant restricts the sanctioned path and makes out-of-band access visible in the audit log; it does not prevent it (DEC-006)"
+    },
+    {
+      "check": "E",
+      "claim": "the seam returns a valid receipt shape and no content, and an unpinned grade is refused rather than answered with a fresh exam",
+      "passed": false,
+      "detail": "state=FAILED_PROVENANCE run_mode=None exit_status=None failure_class=None failure_reason=None",
+      "receipt": {},
+      "refused_unpinned_grade": false,
+      "stderr_read_by_builder": false,
+      "stdout_bytes_discarded": 0
+    },
+    {
+      "check": "F",
+      "claim": "the generator's duplicated constants match the harness, and the installed generator matches its source",
+      "passed": false,
+      "detail": "/opt/efah-verifier/bin/generate-holdouts differs from generator.py; the sealed side is running a different program from the one in the repository \u2014 re-run deploy/verifier/provision.sh under the owner's authority. Until that is done the installed generator predates SEAM_VERSION 1.2.0, mints a new exercise on every call and emits receipts without run_mode, so no grade verdict from it is gate-eligible",
+      "expected": {
+        "HOLDOUT_AUTHOR_MODEL": "claude-opus-4-8",
+        "MUTANT_AUTHOR_MODEL": "kimi-k2.7-code"
+      },
+      "found": {
+        "HOLDOUT_AUTHOR_MODEL": "claude-opus-4-8",
+        "MUTANT_AUTHOR_MODEL": "kimi-k2.7-code"
+      },
+      "failure_reasons": [
+        "BASELINE_HOLDOUTS_FAILED",
+        "CANDIDATE_FAILED_HOLDOUTS",
+        "CREDENTIAL_ABSENT",
+        "EXAM_CONTENT_HASH_MISMATCH",
+        "EXAM_NOT_FOUND",
+        "EXAM_NOT_PINNED",
+        "HOLDOUT_AUTHOR_EMPTY_GENERATION",
+        "HOLDOUT_AUTHOR_TRUNCATED",
+        "HOLDOUT_AUTHOR_UNPARSEABLE",
+        "KILL_RATE_BELOW_THRESHOLD",
+        "MODEL_ECHO_MISMATCH",
+        "MODEL_HTTP_ERROR",
+        "MODEL_RATE_LIMITED",
+        "MODEL_TRANSPORT_FAILURE",
+        "MUTANT_AUTHOR_EMPTY_GENERATION",
+        "MUTANT_AUTHOR_TRUNCATED",
+        "MUTANT_AUTHOR_UNPARSEABLE",
+        "MUTANT_RUN_NOT_A_VERDICT",
+        "NOT_VERIFIER_IDENTITY",
+        "TARGET_COUNT_NOT_POSITIVE",
+        "TEST_RUNNER_UNAVAILABLE",
+        "THROTTLE_STATE_ABSENT",
+        "TRANSPORT_DECISION_UNRECORDED",
+        "UNCLASSIFIED_EXCEPTION"
+      ],
+      "run_modes": [
+        "GRADE",
+        "MINT"
+      ],
+      "deployed_matches_source": false
+    }
+  ],
+  "identity_measurement": {
+    "check": "verifier_service_identity_isolation",
+    "decision_ref": "DEC-006",
+    "contract_ref": "contract_17.2_protected_verifier_architecture",
+    "gate_ref": "GATE-D1-08 A4",
+    "oracle_type": "deterministic_execution_or_state",
+    "identity": {
+      "user": "efah-verifier",
+      "home": "/var/lib/efah-verifier",
+      "store": "/var/lib/efah-verifier/store",
+      "generator": "/opt/efah-verifier/bin/generate-holdouts",
+      "credential_path": "/var/lib/efah-verifier/etc/eval.env"
+    },
+    "builder_identity": {
+      "user": "yoav",
+      "uid": 1000
+    },
+    "verifier_identity": {
+      "user": "efah-verifier",
+      "uid": 995
+    },
+    "identities_distinct": true,
+    "paths": {
+      "home": {
+        "exists": true,
+        "mode": "0o700",
+        "owner_uid": 995,
+        "owner_name": "efah-verifier",
+        "stat_denied": false,
+        "denial": null
+      },
+      "store": {
+        "exists": null,
+        "mode": null,
+        "owner_uid": null,
+        "owner_name": null,
+        "stat_denied": true,
+        "denial": "PermissionError: Permission denied"
+      },
+      "generator": {
+        "exists": true,
+        "mode": "0o755",
+        "owner_uid": 0,
+        "owner_name": "root",
+        "stat_denied": false,
+        "denial": null
+      },
+      "credential": {
+        "exists": null,
+        "mode": null,
+        "owner_uid": null,
+        "owner_name": null,
+        "stat_denied": true,
+        "denial": "PermissionError: Permission denied"
+      }
+    },
+    "builder_read_attempt": {
+      "method": "os.listdir under the current effective identity",
+      "succeeded": false,
+      "detail": "PermissionError: Permission denied"
+    },
+    "sudoers": {
+      "readable": true,
+      "rules": [
+        "Defaults:yoav !requiretty",
+        "yoav ALL=(efah-verifier) NOPASSWD: /opt/efah-verifier/bin/generate-holdouts"
+      ],
+      "grants_unrestricted_command": false
+    },
+    "provisioned": true,
+    "isolation_holds": true,
+    "measured_as_root": false,
+    "honest_debt": {
+      "builder_cannot_escalate": false,
+      "why": "the builder identity holds passwordless sudo and docker group membership; OS separation prevents accidental exposure and makes deliberate access auditable, and does not prevent it",
+      "durable_path": "DEC-006 option A - sealed side on a separate host under an owner-held identity",
+      "reversible": "the submission interface does not change, so regenerating under an owner-held identity later costs nothing already built"
+    }
+  },
+  "honest_debt": {
+    "builder_cannot_escalate": false,
+    "why": "the builder identity holds passwordless sudo and docker group membership; OS separation prevents accidental exposure and makes deliberate access auditable, and does not prevent it",
+    "durable_path": "DEC-006 option A - sealed side on a separate host under an owner-held identity",
+    "reversible": "the submission interface does not change, so regenerating under an owner-held identity later costs nothing already built"
+  },
+  "blocked_by_provisioning": "SEAM_VERSION 1.2.0 splits minting from grading. The installed /opt/efah-verifier/bin/generate-holdouts predates it: it does not accept --mode, so the seam gets no receipt (check E) and the installed bytes differ from the source (check F). Remedy, once: run deploy/verifier/provision.sh under the owner's authority. Measured against a staged copy of the identical source under the same identity, check E returns exit 8 / GRADE / EXAM_NOT_PINNED and passes.",
+  "generation_status": "DEC-007 answered FINDING-005 as option D, so minting is unblocked. Minting and grading are now separate verbs: a mint authors an exam, validates it to kill_rate 1.0 and freezes it under its own content hash; a grade loads a frozen exam by that hash and makes no model call at all. A grade with no pinned exam is refused as EXAM_NOT_PINNED, which is what check E probes. Only a GRADE receipt is gate_eligible - a mint receipt is a claim about the exam."
+}

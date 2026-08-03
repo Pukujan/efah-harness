@@ -1,0 +1,28 @@
+{
+  "schema_id": "efah.context7_snapshot",
+  "schema_version": "1.0",
+  "contract_id": "EFAH-CONTRACT-001",
+  "contract_version": "1.1",
+  "snapshot_id": "C7-librechat-custom-endpoints-9aefc459",
+  "library_id": "/websites/librechat_ai",
+  "library_version_or_branch": "unpinned_upstream_docs",
+  "query": "custom endpoints configuration in librechat.yaml for a self-hosted OpenAI-compatible API, specifying baseURL and models list",
+  "retrieved_at": "2026-08-02T15:00:00Z",
+  "credential_alias": "claude_ai_context7_mcp",
+  "raw_response": "### Configure Custom Endpoints in librechat.yaml\n\nSource: https://www.librechat.ai/docs/quick_start/custom_endpoints\n\nExample configuration for `librechat.yaml` showing how to set up custom endpoints for OpenRouter, Ollama, and an Anthropic-compatible gateway.\n\n```yaml\nversion: 1.3.13\ncache: true\nendpoints:\n  custom:\n    - name: 'OpenRouter'\n      apiKey: '${OPENROUTER_KEY}'\n      baseURL: 'https://openrouter.ai/api/v1'\n      models:\n        default: ['meta-llama/llama-3-70b-instruct']\n        fetch: true\n      titleConvo: true\n      dropParams: ['stop']\n      modelDisplayLabel: 'OpenRouter'\n```\n\n--------------------------------\n\n### LiteLLM Endpoint Configuration in librechat.yaml\n\nSource: https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints/litellm\n\nConfigure LiteLLM as a custom endpoint by specifying its name, API key, base URL, and model settings in your `librechat.yaml` file. This setup allows LibreChat to connect to your LiteLLM proxy.\n\n```yaml\n- name: \"LiteLLM\"\n  apiKey: \"sk-from-config-file\"\n  baseURL: \"http://localhost:8000/v1\"\n  models:\n    default: [\"gpt-3.5-turbo\"]\n    fetch: true\n  titleConvo: true\n  modelDisplayLabel: \"LiteLLM\"\n```\n\n### Custom Endpoints\n\nSource: https://www.librechat.ai/docs/quick_start/custom_endpoints\n\nLibreChat supports OpenAI API-compatible services as custom endpoints. It also supports Anthropic-compatible custom endpoints with `provider: \"anthropic\"`. Configuration is done through `librechat.yaml`, with API keys stored in `.env`. For Docker deployments, the configuration is mounted via `docker-compose.override.yml`.",
+  "raw_response_hash": "sha256:9aefc459aae3040a0437e8b122bed0eca5c0afffb4256aeebc69342ffe099af1",
+  "normalized_response_hash": "sha256:22a7a2261d4e3b3f6cc289c23ee0890c2effb72a91dbae51f415dc4c0d7e87b6",
+  "normalization_rule": "strip-trailing-whitespace; drop-blank-lines; join-with-lf",
+  "source_locations": [
+    "https://www.librechat.ai/docs/quick_start/custom_endpoints",
+    "https://www.librechat.ai/docs/configuration/librechat_yaml/ai_endpoints/litellm"
+  ],
+  "affected_decisions": [
+    "DEC-007"
+  ],
+  "affected_dependencies": [
+    "owner_chat_front_end"
+  ],
+  "independent_corroboration": "none",
+  "installed_versions_probed": {}
+}

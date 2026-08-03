@@ -1,0 +1,596 @@
+{
+  "check": "gate_implementation_audit",
+  "purpose": "separate 'the check was never written' from 'the feature does not exist'. Both report NOT_IMPLEMENTED and they are nothing alike.",
+  "oracle_type": "static_source_audit",
+  "model_judge_in_verdict_path": false,
+  "candidate_commit": "68dbd96e8a5e41408822e50840709e088149a1c1",
+  "method": "nine parallel read-only agents, one to three gates each, reading the acceptance spec then searching src/ for the behaviour",
+  "counts": {
+    "present": 44,
+    "partial": 21,
+    "blocked_owner": 1,
+    "absent": 11
+  },
+  "totals": {
+    "gates_audited": 19,
+    "assertions_audited": 77
+  },
+  "gates": [
+    {
+      "gate_id": "GATE-D1-01",
+      "title": "Project pack imports to isolated TerminusDB branch",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "import_project_pack captures branches before/after and main head; needs a live TerminusDB import"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "REQUIRED_FILES is exactly 11; load_pack raises rather than defaulting; file_manifest() is the evidence"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "WriteReceipt.is_attributable + CommitRecord.is_immutable exist; immutability needs a real commit"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "build_pack_entities is pure/offline. SPEC CONFLICT: expects contract_version '1.0', pack is v1.1"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D1-03",
+      "title": "Contract compiles to project/task/dependency graph",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "efah.compiler_output_manifest carries all_seventeen_present; 18 declared keys for 17 obligations is a non-blocking OUTPUT_LIST_ARITY observation"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "DependencyGraph.unlinked_tasks() + blocking UNLINKED_TASK finding"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "CycleReport.acyclic over task_depends_on and role_verified_by; negative controls already exist in contract tests"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "CriticalPath.as_body() is the evidence artefact directly"
+        },
+        {
+          "assertion_id": "A5",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "METHODOLOGY_SOURCE enforced by a blocking METHODOLOGY_PROVENANCE finding"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D1-04",
+      "title": "LangGraph resumes from checkpoint",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "a real SIGKILL-then-restart probe exists; delegate via subprocess pytest as _d1_07 does"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "filesystem execution counters + node_observer give a real rerun count"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "REQUIRED_CHECKPOINT_FIELDS is exactly twelve; the saver refuses an incomplete write"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "partial",
+          "check_complexity": "large",
+          "note": "destroy-and-rebuild proven in-process, but the TerminusDB authority half needs a live server"
+        },
+        {
+          "assertion_id": "A5",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "AST import scan for AsyncSqliteSaver outside the adapter; exists as a unit test"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D1-05",
+      "title": "Fresh worker sessions execute bounded tasks",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "WorkerSession has no resume path, always prior_turn_count=0, raises SessionReuseError"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "single-egress mechanism exists but no egress log; needs a static scan plus mock-transport dispatch"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "WorkerSession.messages() built solely from the WorkUnit"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "partial",
+          "check_complexity": "large",
+          "note": "git half checkable now; TerminusDB persistence needs live server and new wiring"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D1-06",
+      "title": "Blinded model identity",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "assert_task_payload_blinded already scans the real worker-facing payload at the dispatch boundary"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "TaskEvent.actor_alias and Principal.audit_identity are alias-only; needs a synthesised event stream"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "PROTECTED_ENDPOINT/PROTECTED_DATABASE differ from main; import constants, do not hardcode"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "offline negative half executable now; live reveal needs the protected instance, degrade to UNVERIFIABLE"
+        },
+        {
+          "assertion_id": "A5",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "FORBIDDEN_PAYLOAD_KEYS and RANKING_FIELDS reject tier/price/prestige by name"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D1-08",
+      "title": "Protected verifier isolation",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "blocked_owner",
+          "check_complexity": "large",
+          "note": "DEC-502: any build-side probe must name the sealed repo, which A2's static scan forbids. Owner action."
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "STALE REASON: DEC-003 measured App scope live. Needs a GitHub API client that does not exist in src/"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D1-09",
+      "title": "Mechanical commit/trace/artifact binding",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "Artifact entity exists; src/artifacts/ is an empty stub and EvidenceStore artifacts carry no producer"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "STALE REASON: OTel spans ARE built. REQUIRED_CORRELATION_FIELDS has all eleven; reuse InMemorySpanExporter"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D2-10",
+      "title": "Composition and wiring completeness",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "ORACLE-001 is in GateContext.oracles and a fixture for this exact case exists"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "DEFECT: orchestration and verifier_identity are live src packages declared nowhere in build_registry()"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "partial",
+          "check_complexity": "trivial",
+          "note": "nine fields exist on WiringDeclaration but missing_fields() enforces only seven"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "architecture tests pass; run via subprocess pytest plus in-process cycles() assertion"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D2-11",
+      "title": "Plane projection completeness",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "REQUIRED_VIEWS names all thirteen; needs a seeded snapshot to prove populated not merely present"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "ReadOnlySource raises MutationAttemptedFromDashboard; PlaneProjection refuses a writable source"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "assert_no_protected_content runs before the first network call"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "TimingRecord holds only system-event timestamps; no estimate field exists"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D2-12",
+      "title": "Leases, worktrees, stale worker rejection",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "fresh uuid per acquisition; OwnershipConflict on worktree/branch collision"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "ManualClock past expiry yields STALE_ASSIGNMENT; fixture KB-001 encodes it"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "generations strictly increasing; gaming probe GP-001 is the renewal-resurrection case"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "gateway evaluates the fence before the applier is called; a spy applier proves no write path"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D2-13",
+      "title": "Build-vs-integrate enforcement",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "no declared dependency-to-adapter map; langgraph/otel/httpx imported directly in many modules"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "DriftEngine emits UNSUPPORTED_REIMPLEMENTATION already"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "seven-field schema compiled, but no typed record model and no enumeration of custom implementations"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "assert prohibited nodes have no integration edge (compiler adds them as conflicts_with nodes)"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D2-14",
+      "title": "Competing hypotheses and discriminating test",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "partial",
+          "check_complexity": "trivial",
+          "note": "one hand-authored artifact records six hypotheses; no src/ module produces or enforces them"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "absent",
+          "check_complexity": "moderate",
+          "note": "eight-field schema compiled from the pack but no model or validator; recorded hypotheses carry four keys"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "discriminating tests are prose strings; no executable identifier or run record"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "no selection-provenance record links a decision to a test outcome"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D2-15",
+      "title": "Context7 snapshot hash and dependency link",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "REQUIRED_SNAPSHOT_FIELDS + verify_snapshot() recompute both hashes; six real snapshots exist"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "partial",
+          "check_complexity": "trivial",
+          "note": "WOULD FAIL: verify_snapshot tests presence not non-emptiness; 3 of 6 record 'unpinned_upstream_docs'"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "dependency->snapshot direction implemented; nothing enumerates the load-bearing decision set"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "absent",
+          "check_complexity": "moderate",
+          "note": "no code computes source diversity; only a compiled policy flag and prose"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D2-16",
+      "title": "Dependency change impact and revalidation",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "ImpactMap exists but is version-independent and there is no write port to inject a bump"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "partial",
+          "check_complexity": "large",
+          "note": "nothing propagates a bump into stale marks on decisions, gold cases or release candidates"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "absent",
+          "check_complexity": "moderate",
+          "note": "DEFECT: the graph lists create_dependency_update_task in steps_executed but never calls TaskService"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "absent",
+          "check_complexity": "moderate",
+          "note": "evaluate_gold_promotion has no staleness input; affected_gold_tests is never populated"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D2-17",
+      "title": "RAG lineage resolves to a TerminusDB commit",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "absent",
+          "check_complexity": "large",
+          "note": "no lancedb/docling/llama_index import anywhere in src/"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "absent",
+          "check_complexity": "large",
+          "note": "commit binding exists but no retriever produces results to resolve"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "absent",
+          "check_complexity": "large",
+          "note": "no ingestion pipeline, no index artefact, no rebuild entrypoint"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "partial",
+          "check_complexity": "large",
+          "note": "honest-refusal verdict exists in the claim validator but there is no retrieval query path"
+        },
+        {
+          "assertion_id": "A5",
+          "feature_status": "absent",
+          "check_complexity": "large",
+          "note": "none of the six planes exists; a check written now would PASS VACUOUSLY"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D2-21",
+      "title": "Scope drift and security expansion blocked",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "DriftEngine emits UNLINKED_TASK"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "REQUIREMENT_WEAKENING with blocks=True drives FAILED_CONTRACT"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "prohibited/allowed fnmatch produces blocking OUTSIDE_ALLOWED_PATHS"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "unmapped security finding downgraded to OUT_OF_SCOPE_OBSERVATION"
+        },
+        {
+          "assertion_id": "A5",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "blocking_schema_violations returns the missing members of the three-condition schema"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D2-22",
+      "title": "Periodic and event-triggered contract review",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "ContractReviewScheduler.from_pack reads interval 3; observe_phase returns a periodic trigger"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "due_for_event covers the 13 declared triggers including after_walking_skeleton"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "halt is expressed as state flags; the project graph edge is unconditional"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "present",
+          "check_complexity": "trivial",
+          "note": "added_requirements/scope_expanded forces DRIFT_DETECTED with UNAPPROVED_SCOPE_EXPANSION"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D3-23",
+      "title": "Question budget is bounded and batched",
+      "assertions": [
+        {
+          "assertion_id": "A1",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "policy compiles into escalation objects but no runtime round counter exists"
+        },
+        {
+          "assertion_id": "A2",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "must_not_ask_about is never applied to actual question text; no classifier"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "OwnerInterruptRequest enforces 3 of 5 fields; OpenBlocker enforces none"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "present",
+          "check_complexity": "moderate",
+          "note": "closed interrupt enum + PROHIBITED_INTERRUPT_REASONS + AST scan of the single call site"
+        }
+      ]
+    },
+    {
+      "gate_id": "GATE-D3-25",
+      "title": "Green PR is auto-merged without a human message",
+      "assertions": [
+        {
+          "assertion_id": "A2",
+          "feature_status": "absent",
+          "check_complexity": "large",
+          "note": "gates.yml has no merge job and no GitHub PR client exists in src/"
+        },
+        {
+          "assertion_id": "A3",
+          "feature_status": "absent",
+          "check_complexity": "large",
+          "note": "needs a second live PR withholding one requirement; depends on A2"
+        },
+        {
+          "assertion_id": "A4",
+          "feature_status": "absent",
+          "check_complexity": "moderate",
+          "note": "reading merged_by needs a GitHub API call no module makes"
+        },
+        {
+          "assertion_id": "A5",
+          "feature_status": "partial",
+          "check_complexity": "moderate",
+          "note": "workflow is wired to pull_request; proving checks present needs the check-runs API"
+        }
+      ]
+    }
+  ]
+}

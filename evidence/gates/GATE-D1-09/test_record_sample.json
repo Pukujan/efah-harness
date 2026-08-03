@@ -1,0 +1,12 @@
+{
+  "artifact": "test_record_sample",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "complete_record_verdict": "PASS",
+    "incomplete_reasons": [
+      "R-001: test record missing ['environment', 'timestamp', 'exit_status', 'raw_result_artifact', 'commit_binding']"
+    ],
+    "incomplete_record_verdict": "FAIL"
+  },
+  "gate_id": "GATE-D1-09"
+}

@@ -101,8 +101,24 @@ gateway_routing:
 #   implementer != visible_test_author    (alias)
 #   implementer != mutant_author          (alias)
 #
-# Tiering per owner decision 2026-08-01: frontier for assurance, mid for bulk.
-# Assurance is where a wrong answer costs the most, so capability goes there.
+# Tiering, ORIGINAL owner decision 2026-08-01: frontier for assurance, mid for
+# bulk. Assurance is where a wrong answer costs the most, so capability goes
+# there. Under that rule `tier` described the SEAT's purpose, not the model —
+# which is why `[grok] grok-4.5` read `mid` at research_challenger and
+# `frontier` at adversarial_critic, and `[ds2] deepseek-v4-pro` read `mid` at
+# plan_challenger and `frontier` at judge. Same model id, two tiers.
+#
+# SUPERSEDED by owner directive 2026-08-02: `tier` names the MODEL's capability
+# class and is a property of the model, not of the seat. The owner classified
+# gpt-5.6-sol, [grok] grok-4.5 and [ds2] deepseek-v4-pro as frontier; those
+# three seats were raised from mid accordingly.
+#
+# This is not cosmetic. `ModelRouter._substitute` ranks fallback candidates by
+# `abs(tier_rank(candidate) - tier_rank(seat))`, so redefining tier redefines
+# which model a seat falls back to. Any seat still carrying `mid` is now
+# asserting the model is mid-capability — not that the work is bulk. The
+# remaining `mid` seats are implementer/gpt-5.6-luna, which the owner has not
+# yet classified.
 #
 # Six vendor families are usable. Three more (Zhipu/Moonshot/MiniMax via the
 # [aws]* flat-rate lane) are excluded below because that entire channel was
@@ -112,10 +128,10 @@ aliases:
   # --- production side: candidate work, mid-tier, retries desirable ---
   researcher:
     alias: researcher-r17
-    litellm_model: gpt-5.6-terra
+    litellm_model: gpt-5.6-sol
     family: openai
     gateway: production
-    tier: mid
+    tier: frontier
     measured: {median_latency_s: 1.4, price: "$2.50/$15.00 per M", tools: "3/3"}
 
   research_challenger:
@@ -123,17 +139,17 @@ aliases:
     litellm_model: "[grok] grok-4.5"
     family: xai
     gateway: production
-    tier: mid
+    tier: frontier
     # Cross-family from researcher. Flat $0.004/call — the same model as the
     # per-token `grok-4.5` alias, ~25000x cheaper on a 50k-token prompt.
     measured: {median_latency_s: 3.3, price: "FLAT $0.004/call", tools: "3/3"}
 
   planner:
     alias: planner-p04
-    litellm_model: gemini-3.1-flash-lite-preview
-    family: google
+    litellm_model: claude-opus-5-thinking
+    family: anthropic
     gateway: production
-    tier: mid
+    tier: frontier
     measured: {median_latency_s: 1.2, price: "$0.25/$1.50 per M", tools: "3/3"}
 
   plan_challenger:
@@ -141,7 +157,7 @@ aliases:
     litellm_model: "[ds2] deepseek-v4-pro"
     family: deepseek
     gateway: production
-    tier: mid
+    tier: frontier
     # Cross-family from planner. Use the [ds2] route, not the [三方4] one,
     # which hits a 429 daily quota.
     measured: {median_latency_s: 1.9, price: "$0.43/$0.87 per M", tools: "3/3"}
@@ -160,10 +176,10 @@ aliases:
 
   integration_verifier:
     alias: wiring-w05
-    litellm_model: qwen3.7-flash
-    family: qwen
+    litellm_model: kimi-k2.7-code
+    family: moonshot
     gateway: production
-    tier: cheap
+    tier: frontier
     measured: {median_latency_s: 2.8, price: "$0.10/$0.20 per M", tools: "3/3"}
 
   # --- assurance side: gate-bearing, frontier, eval gateway, zero retry ---
@@ -187,12 +203,20 @@ aliases:
     # implementer. Owner authorized role-separated generation 2026-08-01.
     runs_under_identity: verifier_service_identity
     measured: {median_latency_s: 2.7, price: "$5.00/$25.00 per M", tools: "3/3"}
+    
     quirk: rejects_reasoning_effort_400
-
+    # claude-opus-5-thinking was tried here on 2026-08-02 and reverted. It is
+    # not a capability problem: it measured 8/8 with tool calls in both modes at
+    # p50 2.4s on short calls. It cannot complete a *generation-sized* request
+    # on this transport — the upstream returned HTTP 408 at both 8000 and 4000
+    # max_tokens, after our own client timeout was raised to 300s and was not
+    # the binding constraint. A reasoning model spends budget before emitting,
+    # and this gateway will not wait. See FINDING-009.
+    generation_timeout_seconds: 300
   mutant_author:
     alias: mutant-m03
-    litellm_model: gemini-3.5-flash
-    family: google
+    litellm_model: kimi-k2.7-code
+    family: moonshot
     gateway: eval
     tier: frontier
     runs_under_identity: verifier_service_identity
@@ -229,10 +253,10 @@ aliases:
 
   evidence_auditor:
     alias: auditor-a07
-    litellm_model: "[ds2] deepseek-v4-flash"
-    family: deepseek
+    litellm_model: glm-5.2
+    family: zhipu
     gateway: eval
-    tier: mid
+    tier: frontier
     measured: {median_latency_s: 1.9, price: "$0.14/$0.28 per M", tools: "3/3"}
 
   contract_compliance_auditor:
@@ -274,9 +298,6 @@ prohibited_models:
   - model: "[官4][次] glm-5.2"
     reason: cost_trap
     detail: "FLAT $0.080/call — 20x the [aws] rate and the single most expensive thing measured."
-  - model: gpt-5.6-sol
-    reason: latency_variance
-    detail: "4.7s median but 119.4s worst observed. Unusable on any interactive or timeout-bounded path."
   - model: gpt-5.4
     reason: channel_outage
     detail: "503 Service temporarily unavailable, 0/3 across two independent runs."
@@ -285,13 +306,48 @@ prohibited_models:
   - model: minimax-m3
     reason: streaming_tool_call_gap
     detail: "Emits tool calls only non-streaming. A streaming client sees none — a silent capability hole."
-  - model: kimi-k2.7-code
-    reason: intermittent_tool_calling
   - model: mimo-v2.5-pro
     reason: intermittent_tool_calling
   - model: "[不稳定渠道] *"
     reason: unstable_channel
     detail: "Channel is literally named 'unstable'; 19-66s latencies measured."
+
+# ---------------------------------------------------------------------------
+# REQUALIFIED 2026-08-02 — prohibitions lifted on measurement, by owner directive
+# ---------------------------------------------------------------------------
+# Two entries were removed from the list above. They are recorded here rather
+# than deleted, because a prohibition that vanishes without a trace is
+# indistinguishable from one that was never made.
+#
+# The owner reported using both successfully elsewhere. Section 7.2 resolves a
+# recorded decision against a live empirical fact with a fresh probe, not by
+# preferring whichever is written down — and there was specific reason to
+# distrust the originals: MODELS.md already records one tool-calling audit being
+# overturned, with the earlier failures found to be "measurement artifacts from
+# insufficient max_tokens".
+#
+# Re-probed with tools/requalify_model.py: 5 repetitions per condition, both
+# streaming and non-streaming, max_tokens 1024, paced at 1.6s to avoid the
+# self-inflicted 503s of FINDING-008. Evidence:
+# evidence/model-requalification.json
+requalified:
+  - model: gpt-5.6-sol
+    was: latency_variance
+    claim_was: "4.7s median but 119.4s worst observed."
+    measured: "10/10 success, tool calls 10/10, p50 2.4s, MAX 4.8s across both modes."
+    verdict: not_reproduced
+    caveat: >
+      The original claim is about a distribution and 10 samples cannot prove a
+      119.4s tail is gone, only that it did not appear. Watch it on any
+      timeout-bounded path.
+  - model: kimi-k2.7-code
+    was: intermittent_tool_calling
+    measured: "10/10 success, tool calls 10/10, streaming and non-streaming alike."
+    verdict: not_reproduced
+    caveat: >
+      Consistent with the max_tokens artifact MODELS.md already identified once.
+      The original probe's token budget is not recorded, so the artifact is the
+      likeliest explanation rather than a proven one.
 
 # Excluded at pack time by availability, not capability. The router's
 # empirical probe governs — if the channel returns, these become eligible.

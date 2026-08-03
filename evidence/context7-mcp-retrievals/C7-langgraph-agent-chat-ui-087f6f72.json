@@ -1,0 +1,28 @@
+{
+  "schema_id": "efah.context7_snapshot",
+  "schema_version": "1.0",
+  "contract_id": "EFAH-CONTRACT-001",
+  "contract_version": "1.1",
+  "snapshot_id": "C7-langgraph-agent-chat-ui-087f6f72",
+  "library_id": "/websites/langchain_oss_python_langgraph",
+  "library_version_or_branch": "langgraph==1.2.10 installed (probed)",
+  "query": "langgraph server assistants and threads API, agent chat UI, self-hosted deployment for a chat front end",
+  "retrieved_at": "2026-08-02T15:00:00Z",
+  "credential_alias": "claude_ai_context7_mcp",
+  "raw_response": "### Clone Agent Chat UI Repository\n\nSource: https://docs.langchain.com/oss/python/langgraph/ui\n\nClone the Agent Chat UI repository from GitHub, install its dependencies, and start the development server for local customization.\n\n```bash\ngit clone https://github.com/langchain-ai/agent-chat-ui.git\ncd agent-chat-ui\npnpm install\npnpm dev\n```\n\n--------------------------------\n\n### Start LangGraph Development Server\n\nSource: https://docs.langchain.com/oss/python/langgraph/studio\n\nUse this command to start the local development server, making your LangGraph agent accessible via API and the Studio UI.\n\n```shell\nlanggraph dev\n```\n\n--------------------------------\n\n### POST /runs/stream\n\nSource: https://docs.langchain.com/oss/python/langgraph/local-server\n\nSends a message to the assistant for a threadless run and streams the response.\n\n### Parameters\n- **assistant_id** (string) - Required - The name of the assistant, as defined in langgraph.json.\n- **input** (object) - Required - The input payload for the assistant.\n- **stream_mode** (string) - Optional - Specifies the streaming mode for the response.\n\n### Agent Chat UI > Connect to your agent\n\nSource: https://docs.langchain.com/oss/python/langgraph/ui\n\nAgent Chat UI supports connections to both local and deployed agents. Configuration involves providing your graph name (Graph ID), the agent server's endpoint (Deployment URL), and optionally a LangSmith API key. After setup, the UI automatically fetches and displays interrupted threads from your agent.",
+  "raw_response_hash": "sha256:087f6f720328e39d8a519d25f440b8f74131332e34a920815071a21b7b2a6dfd",
+  "normalized_response_hash": "sha256:fcecaa92593c6f7fc470e706dadde1437f326a0e90e970eda0b97e3089330e11",
+  "normalization_rule": "strip-trailing-whitespace; drop-blank-lines; join-with-lf",
+  "source_locations": [
+    "https://docs.langchain.com/oss/python/langgraph/ui",
+    "https://docs.langchain.com/oss/python/langgraph/local-server"
+  ],
+  "affected_decisions": [
+    "DEC-007"
+  ],
+  "affected_dependencies": [
+    "owner_chat_front_end"
+  ],
+  "independent_corroboration": "none",
+  "installed_versions_probed": {}
+}

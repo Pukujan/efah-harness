@@ -1,0 +1,2875 @@
+{
+  "body": {
+    "assertions_executed": 89,
+    "assertions_total": 127,
+    "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+    "counts": {
+      "EXECUTED": 14,
+      "FAIL": 0,
+      "NOT_YET_EXECUTABLE": 5,
+      "PARTIALLY_EXECUTABLE": 8,
+      "PASS": 11,
+      "UNVERIFIABLE": 16
+    },
+    "gates": [
+      {
+        "assertions": [
+          {
+            "claim": "Import creates a new branch, not a write to main.",
+            "expected": "new_branch_present and main_head_unchanged",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A1",
+            "method": "branch_list_diff_before_and_after",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Every required file from contract Section 6 is present and parsed.",
+            "expected": "all_11_required_files_parsed",
+            "failure_state_if_violated": "BLOCKED_OWNER_DECISION",
+            "findings": [],
+            "id": "A2",
+            "method": "required_file_manifest_check",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "The import commit is attributable and immutable.",
+            "expected": "author_present and commit_is_immutable",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A3",
+            "method": "commit_metadata_inspect",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Contract id and version on the imported Contract entity match the pack.",
+            "expected": "contract_id == EFAH-CONTRACT-001 and contract_version == '1.0'",
+            "failure_state_if_violated": "STALE_CONTRACT_VERSION",
+            "findings": [],
+            "id": "A4",
+            "method": "field_compare",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          }
+        ],
+        "assertions_executed": 0,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 1,
+        "evidence_missing": [
+          "terminusdb_branch_name_and_commit_id",
+          "import_log_with_file_manifest_and_hashes",
+          "before_after_branch_listing"
+        ],
+        "evidence_produced": [],
+        "evidence_required": [
+          "terminusdb_branch_name_and_commit_id",
+          "import_log_with_file_manifest_and_hashes",
+          "before_after_branch_listing"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "NOT_YET_EXECUTABLE",
+        "gate_id": "GATE-D1-01",
+        "gate_source_hash": "sha256:fa377fea660aa1897670836f0d689c5da5feb243765e1f2d90b6506a603844eb",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Project pack imports to isolated TerminusDB branch",
+        "on_fail": {
+          "action": "halt_and_raise",
+          "remediation_must_not_include": null,
+          "state": "FAILED_CONTRACT"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Every compiled object carries all ten required header fields.",
+            "expected": "all_of [schema_id, schema_version, contract_id, contract_version, methodology_version, terminus_database, terminus_branch, terminus_commit, content_hash, created_by_alias, created_at] present",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A1",
+            "method": "schema_assert_on_every_compiled_object",
+            "note": "all 11 envelope fields present on a real compiled object",
+            "status": "PASS"
+          },
+          {
+            "claim": "An object bearing a stale contract_version is rejected, not migrated silently.",
+            "expected": "rejected_with STALE_CONTRACT_VERSION",
+            "failure_state_if_violated": "STALE_CONTRACT_VERSION",
+            "findings": [],
+            "id": "A2",
+            "method": "negative_control_inject_stale_version",
+            "note": "stale version rejected, not migrated silently",
+            "status": "PASS"
+          },
+          {
+            "claim": "No material field is populated by a silent default.",
+            "expected": "material_field_absence_raises_typed_blocker",
+            "failure_state_if_violated": "BLOCKED_OWNER_DECISION",
+            "findings": [],
+            "id": "A3",
+            "method": "default_injection_probe",
+            "note": "absent material fields raise rather than defaulting",
+            "status": "PASS"
+          },
+          {
+            "claim": "content_hash matches recomputed hash of the object body.",
+            "expected": "hashes_equal",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A4",
+            "method": "recompute_and_compare",
+            "note": "hash recomputes and detects a tampered body",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 4,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 1,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:d038383772a6ab0307fa85ae74e08ec2ce2a21a99b4a806662727eaf5f440754",
+            "gate_id": "GATE-D1-02",
+            "name": "hash_recomputation_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:b96b7248b8cdec8fac5b7e95e6e2162d9e35455aea3e7e4fd6dca77c81510172",
+            "gate_id": "GATE-D1-02",
+            "name": "negative_control_transcript",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:213ccbec4323bcb36669eb91d891ce5ccf07617a6c9e16b06a0dbdbd6962502a",
+            "gate_id": "GATE-D1-02",
+            "name": "schema_validation_report",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "schema_validation_report",
+          "negative_control_transcript",
+          "hash_recomputation_log"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D1-02",
+        "gate_source_hash": "sha256:f18654ed19c982df5e269014f8368cc5054cdab475dc83d0a6bbab5515d2572e",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Schemas validate and are version-bound",
+        "on_fail": {
+          "action": "halt_and_raise",
+          "remediation_must_not_include": null,
+          "state": "FAILED_CONTRACT"
+        },
+        "oracle_type": "static_ast_type_policy",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "All seventeen contract_compiler_outputs are produced.",
+            "expected": "all_seventeen_present",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A1",
+            "method": "output_manifest_check",
+            "note": "17/17 Section 8 outputs produced, recomputed from 1663 compiled objects. contract.yaml lists 18 keys for those 17 obligations -- the first bullet is split in two -- and every one of them carries objects; the compiler records the arity difference as a non-blocking OUTPUT_LIST_ARITY observation",
+            "status": "PASS"
+          },
+          {
+            "claim": "Every Task links to at least one Requirement.",
+            "expected": "zero_unlinked_tasks",
+            "failure_state_if_violated": "UNLINKED_TASK",
+            "findings": [],
+            "id": "A2",
+            "method": "graph_query_unlinked_tasks",
+            "note": "all 57 Task nodes carry an implemented_by edge from a Requirement, and all 57 emitted efah.task bodies declare exactly the requirement ids the graph wires to them",
+            "status": "PASS"
+          },
+          {
+            "claim": "The dependency graph is acyclic where the contract requires it.",
+            "expected": "zero_cycles_in_task_and_role_graphs",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A3",
+            "method": "cycle_detection",
+            "note": "zero cycles over task_depends_on (117 edges), role_verified_by (13 edges); cycles injected into both subgraphs were caught (['role_verified_by', 'task_depends_on'])",
+            "status": "PASS"
+          },
+          {
+            "claim": "A critical path is computed and non-empty.",
+            "expected": "path_length > 0",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A4",
+            "method": "critical_path_extract",
+            "note": "critical path of 11 tasks, weight 24.0, every hop a real depends_on edge: TSK-001 -> TSK-002 -> TSK-003 -> TSK-004 -> TSK-009 -> TSK-010 -> TSK-015 -> TSK-016 -> TSK-020 -> TSK-030 -> TSK-GATE-027. The same extractor returns length 0 on an empty graph and on a cyclic real graph",
+            "status": "PASS"
+          },
+          {
+            "claim": "Every task carries its compiler-selected methodologies, not agent-chosen ones.",
+            "expected": "methodology_source == applicability_compiler",
+            "failure_state_if_violated": "FAILED_SCOPE",
+            "findings": [],
+            "id": "A5",
+            "method": "methodology_provenance_check",
+            "note": "all 57 emitted tasks carry methodology_source='applicability_compiler', and re-running the Section 13.3 applicability compiler over each task's own class and risk reproduces its exact methodology set from the owner catalog (v1.0.0)",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 5,
+        "assertions_total": 5,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 1,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:5964b57182c54209a4160f49a4ac36bab3ff3bf041a418516350043c5d72bf16",
+            "gate_id": "GATE-D1-03",
+            "name": "compiler_output_manifest",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:2fb2db6957764885eaf511404972f64167ad235954c844abc139fd0addb8a46f",
+            "gate_id": "GATE-D1-03",
+            "name": "critical_path_listing",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:94c810af5ee4010003b7141a74363ac451328bbb8708e90859153e81a9cdf106",
+            "gate_id": "GATE-D1-03",
+            "name": "cycle_detection_report",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:48a952d410e4f9ad0f6b69230ecab15024269d23aa76d49011f4fdf5ecf1cbbc",
+            "gate_id": "GATE-D1-03",
+            "name": "graph_export_with_edge_types",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:1c1eebf1a53a65807e831fb2070af3732a42511f513cafdc1ae8413c669da4ca",
+            "gate_id": "GATE-D1-03",
+            "name": "methodology_provenance_report",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "compiler_output_manifest",
+          "graph_export_with_edge_types",
+          "cycle_detection_report",
+          "critical_path_listing"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D1-03",
+        "gate_source_hash": "sha256:bf1b2d276b4dedd84fde849ee5d7cc394c30098202780f1b3c7f88d2afdb43e0",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Contract compiles to project/task/dependency graph",
+        "on_fail": {
+          "action": "halt_and_raise",
+          "remediation_must_not_include": null,
+          "state": "FAILED_CONTRACT"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Process is killed mid-run and the project resumes without reset.",
+            "expected": "project_state_preserved and run_continues",
+            "failure_state_if_violated": "FAILED_INFRASTRUCTURE",
+            "findings": [],
+            "id": "A1",
+            "method": "kill_and_restart_probe",
+            "note": "2 pinned probes pass: a SIGKILLed run resumes in a new process and the shipped task_graph resumes after a classified failure. The same resume command with no store refuses outright and executes nothing",
+            "status": "PASS"
+          },
+          {
+            "claim": "Nodes that completed before the kill are not re-executed.",
+            "expected": "completed_node_rerun_count == 0",
+            "failure_state_if_violated": "FAILED_INFRASTRUCTURE",
+            "findings": [],
+            "id": "A2",
+            "method": "node_execution_counter_compare",
+            "note": "across a real SIGKILL, durable_branch executed exactly 1 time and its output 'probe.durable' still reached the resumed result; on the shipped task_graph the completed node ran once and the lease stayed at generation 1. A restart in place of a resume is counted as 1 rerun(s)",
+            "status": "PASS"
+          },
+          {
+            "claim": "Every checkpoint references all twelve required fields.",
+            "expected": "all_of checkpoint_references present",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A3",
+            "method": "checkpoint_schema_assert",
+            "note": "5 state-carrying checkpoints from a real task_graph run each reference all 12 Section 10.4 fields, and the adapter refuses a write with any one of them absent or null",
+            "status": "PASS"
+          },
+          {
+            "claim": "Deleting the checkpoint store does not destroy project truth.",
+            "expected": "project_and_task_state_still_authoritative_in_terminusdb",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A4",
+            "method": "delete_checkpoints_then_query_terminusdb",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "The checkpointer is reached only through the adapter.",
+            "expected": "zero_direct_asyncsqlitesaver_imports_outside_adapter",
+            "failure_state_if_violated": "FAILED_WIRING",
+            "findings": [],
+            "id": "A5",
+            "method": "import_boundary_test",
+            "note": "175 files under src/ parsed and none imports the checkpointer; the exempt adapter is flagged by the same scanner (['langgraph.checkpoint.base', 'langgraph.checkpoint.base.BaseCheckpointSaver', 'langgraph.checkpoint.base.ChannelVersions', 'langgraph.checkpoint.base.Checkpoint', 'langgraph.checkpoint.base.CheckpointMetadata', 'langgraph.checkpoint.serde.jsonplus', 'langgraph.checkpoint.serde.jsonplus.JsonPlusSerializer', 'langgraph.checkpoint.sqlite.aio', 'langgraph.checkpoint.sqlite.aio.AsyncSqliteSaver']) when the exemption is lifted",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 4,
+        "assertions_total": 5,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 1,
+        "evidence_missing": [
+          "post_delete_terminusdb_query_result"
+        ],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:14ef0e302d6c7970064f4f676dc422e5cca43a5ded2a5fac11443ee6837f05fd",
+            "gate_id": "GATE-D1-04",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:34f9961a9b9f7ffe4c8840ad6c8d4d7b12fd15248574fb1267117f269e172efa",
+            "gate_id": "GATE-D1-04",
+            "name": "checkpoint_field_dump",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:90363ba1de7a3fda10c648f5ef063ac3becdbead72acebd784b9fbf83e52d9e5",
+            "gate_id": "GATE-D1-04",
+            "name": "import_boundary_report",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:622a1ce4d4b96f5515d5a48d527fc6c78b10dc630b0826d189836a7eda3df265",
+            "gate_id": "GATE-D1-04",
+            "name": "kill_restart_transcript",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:002a2d859af23e3edd1ef73e5ab3bcaad99d1725359111e3b82f9830faccf44b",
+            "gate_id": "GATE-D1-04",
+            "name": "node_execution_counters",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "kill_restart_transcript",
+          "node_execution_counters",
+          "checkpoint_field_dump",
+          "post_delete_terminusdb_query_result"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "PARTIALLY_EXECUTABLE",
+        "gate_id": "GATE-D1-04",
+        "gate_source_hash": "sha256:dde424a334d289a5eaba24de9b83c78c728e58c001c2f707d80a8dfca7efbe47",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "LangGraph resumes from checkpoint without restarting completed work",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_INFRASTRUCTURE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Each worker invocation opens a new session with empty prior history.",
+            "expected": "prior_turn_count == 0 at invocation",
+            "failure_state_if_violated": "CONTRACT_DRIFT",
+            "findings": [],
+            "id": "A1",
+            "method": "session_history_length_probe",
+            "note": "two invocations of one task under one alias open distinct sessions, the second at prior_turn_count 0 with nothing the first said in its payload; the closed session refuses messages(), record_turn() and close(); the class exposes no resume path and no history parameter; and a pack disabling fresh sessions is refused",
+            "status": "PASS"
+          },
+          {
+            "claim": "No model call bypasses the LiteLLM proxy.",
+            "expected": "zero_direct_provider_calls",
+            "failure_state_if_violated": "CONTRACT_DRIFT",
+            "findings": [],
+            "id": "A2",
+            "method": "egress_inspection",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Worker context is bounded by the work unit, not the project.",
+            "expected": "payload_scope == work_unit_inputs_only",
+            "failure_state_if_violated": "CONTRACT_DRIFT",
+            "findings": [],
+            "id": "A3",
+            "method": "context_payload_audit",
+            "note": "the payload reduces to nothing once the work unit's own fields are subtracted, and none of the 4 project-scope strings in play at build time appears in it; the same audit catches a session that prepends the previous transcript",
+            "status": "PASS"
+          },
+          {
+            "claim": "Durable state survives the worker session ending.",
+            "expected": "state_present_in_terminusdb_and_git",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A4",
+            "method": "post_session_state_query",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          }
+        ],
+        "assertions_executed": 2,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 1,
+        "evidence_missing": [
+          "litellm_request_log",
+          "post_session_state_dump"
+        ],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:8302d45925c0187750ad8e352e6c8b2be2e5063df2f1551ed615af0d5dbb4e2a",
+            "gate_id": "GATE-D1-05",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:91c24f2487827b061d789613e06db5a7275b7a3f39900dc7f080301a556aa198",
+            "gate_id": "GATE-D1-05",
+            "name": "context_payload_sample",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:8d5e6f9729151141d1b4a746958d5801b2dd610886ba8be6f60c58011829f804",
+            "gate_id": "GATE-D1-05",
+            "name": "session_initialization_logs",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "session_initialization_logs",
+          "litellm_request_log",
+          "context_payload_sample",
+          "post_session_state_dump"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "PARTIALLY_EXECUTABLE",
+        "gate_id": "GATE-D1-05",
+        "gate_source_hash": "sha256:80aec46ae79e0de1db329c387b3603a324e1ac3fea7e477a12f46867e8fff025",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Fresh worker sessions execute bounded tasks through LiteLLM",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_IMPLEMENTATION"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "No agent-visible payload contains a vendor or model name.",
+            "expected": "zero_matches",
+            "failure_state_if_violated": "ROLE_CONFLICT",
+            "findings": [],
+            "id": "A1",
+            "method": "payload_scan_for_vendor_strings",
+            "note": "zero vendor or model matches across 15 mapped roles' worker-facing payloads, while four injected leaks were each refused by the adapter's own gate",
+            "status": "PASS"
+          },
+          {
+            "claim": "Task and audit records reference aliases, not real identities.",
+            "expected": "alias_only_in_task_records",
+            "failure_state_if_violated": "ROLE_CONFLICT",
+            "findings": [],
+            "id": "A2",
+            "method": "record_field_scan",
+            "note": "7 ledger events and one middleware-produced audit record reference aliases only, while four forged identities were each caught",
+            "status": "PASS"
+          },
+          {
+            "claim": "Real identity mapping resides in the separate protected database.",
+            "expected": "mapping_db != main_project_db",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A3",
+            "method": "database_location_assert",
+            "note": "the mapping lives in 'efah_protected' on an isolated instance while the main graph is 'efah' on a different endpoint, and environments.yaml declares the same separation; the main builder credential is refused there (HTTP 401)",
+            "status": "PASS"
+          },
+          {
+            "claim": "The owner audit path can reveal the mapping with owner credentials.",
+            "expected": "mapping_resolvable_under_owner_identity_only",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A4",
+            "method": "owner_reveal_probe",
+            "note": "the owner audit path revealed the mapping (verified by hash against the pack, never recorded), the reveal left an audit record, and every unprivileged caller, malformed audit context and credential-less construction was refused",
+            "status": "PASS"
+          },
+          {
+            "claim": "No agent receives another agent's prestige ranking or cost tier.",
+            "expected": "zero_matches",
+            "failure_state_if_violated": "ROLE_CONFLICT",
+            "findings": [],
+            "id": "A5",
+            "method": "payload_scan_for_ranking_fields",
+            "note": "zero prestige, cost or ranking fields across 15 mapped roles' payloads -- structurally, since RoutingDecision declares none -- while each of the 27 injected field names was caught",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 5,
+        "assertions_total": 5,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 1,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:1ae341f04528a49abe9609a4fc901102682efa77d130bd43d03d2b4382a8db1c",
+            "gate_id": "GATE-D1-06",
+            "name": "owner_reveal_transcript_redacted",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:d384837dc4856ff8b1191c7b93d129d9a153bb0d5e8e4521e4eb0ecb36bd6d4a",
+            "gate_id": "GATE-D1-06",
+            "name": "payload_scan_report",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:37dc2fc524e24d71a2877a29fb3a94316d10da48956e4ee3e36085346799b4c7",
+            "gate_id": "GATE-D1-06",
+            "name": "protected_db_location_proof",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:8e0c34507722ed66bdf7ab5d4a1ccdce5fbd1e4329ae0935b5f832daf16177d6",
+            "gate_id": "GATE-D1-06",
+            "name": "ranking_field_scan_report",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:c3a6d795ecfd901dc1b7dcc82b489cce71958c1944e1f2702c0cac5a64e172c8",
+            "gate_id": "GATE-D1-06",
+            "name": "record_scan_report",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "payload_scan_report",
+          "protected_db_location_proof",
+          "owner_reveal_transcript_redacted"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D1-06",
+        "gate_source_hash": "sha256:a68c7dc7b99d811b092a67731b1a88f089fb997c3473c4dce7cb78ff0e3b202f",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Blinded model identity",
+        "on_fail": {
+          "action": "halt_and_raise",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "static_ast_type_policy",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "No essential module imports the Anthropic SDK or a Claude-specific client.",
+            "expected": "zero_anthropic_sdk_imports_in_essential_modules",
+            "failure_state_if_violated": "CONTRACT_DRIFT",
+            "findings": [],
+            "id": "A1",
+            "method": "import_graph_scan_of_essential_paths",
+            "note": "no essential module imports the Anthropic SDK",
+            "status": "PASS"
+          },
+          {
+            "claim": "The full walking skeleton runs with every Claude credential removed from the environment.",
+            "expected": "walking_skeleton_completes",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A2",
+            "method": "run_with_claude_credentials_unset",
+            "note": "skeleton runs with Claude credentials removed",
+            "status": "PASS"
+          },
+          {
+            "claim": "Claude Code appears only as an optional worker adapter behind the worker interface.",
+            "expected": "claude_code_adapter_is_optional_and_swappable",
+            "failure_state_if_violated": "CONTRACT_DRIFT",
+            "findings": [],
+            "id": "A3",
+            "method": "adapter_boundary_check",
+            "note": "Claude Code is only an optional worker adapter",
+            "status": "PASS"
+          },
+          {
+            "claim": "CI pipelines contain no step requiring Claude access.",
+            "expected": "zero_claude_dependent_ci_steps",
+            "failure_state_if_violated": "CONTRACT_DRIFT",
+            "findings": [],
+            "id": "A4",
+            "method": "ci_workflow_scan",
+            "note": "CI contains no step requiring Claude access",
+            "status": "PASS"
+          },
+          {
+            "claim": "Disabling the Claude worker adapter leaves at least one working worker adapter.",
+            "expected": "alternate_worker_adapter_completes_a_work_unit",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A5",
+            "method": "adapter_removal_probe",
+            "note": "an alternate worker adapter completes work",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 5,
+        "assertions_total": 5,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 1,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:20f7dfb005c7af1fd2723249f252aa63c3b20f3222011aea56b652426a36d3f7",
+            "gate_id": "GATE-D1-07",
+            "name": "adapter_removal_run_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:477f02b83f9e68208afc47753ca370b3089193f355be3028954281c7f7178ac0",
+            "gate_id": "GATE-D1-07",
+            "name": "ci_workflow_scan_output",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:6c3d66c4da1f4ef9c30f370e9ac840dd45a839e185db236ca75bb77cb09f5f1c",
+            "gate_id": "GATE-D1-07",
+            "name": "credential_stripped_run_transcript",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:0a0f8b67d82d85a2dd4a7fc1d47c10b3f18ffd775124ddac79bff5ead5f63f63",
+            "gate_id": "GATE-D1-07",
+            "name": "import_graph_report",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "import_graph_report",
+          "credential_stripped_run_transcript",
+          "ci_workflow_scan_output",
+          "adapter_removal_run_log"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D1-07",
+        "gate_source_hash": "sha256:d1f9717b9f9f07b8763f680eeec4384d1382e208c8a42d2c70b5d88cdedaa3e1",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Vendor neutrality after 2026-08-03",
+        "on_fail": {
+          "action": "halt_and_raise",
+          "remediation_must_not_include": null,
+          "state": "FAILED_CONTRACT"
+        },
+        "oracle_type": "static_ast_type_policy",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Builder identity receives 401, 403, or 404 for the sealed repository.",
+            "expected": "http_status in [401, 403, 404]",
+            "failure_state_if_violated": "PROTECTED_ASSET_ACCESS",
+            "findings": [],
+            "id": "A1",
+            "method": "authenticated_request_under_builder_identity",
+            "note": "an authenticated probe of the sealed repository would have to name it on the build side, which A2 of this same gate forbids; the probe belongs to the verifier service identity. Implementing it here would break A2 to satisfy A1.",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "No build-side file contains the sealed repository URL, token, or DB credential.",
+            "expected": "zero_matches_outside_declared_sealed_repos_block",
+            "failure_state_if_violated": "PROTECTED_ASSET_ACCESS",
+            "findings": [],
+            "id": "A2",
+            "method": "static_scan",
+            "note": "316 files scanned; zero matches outside the declared sealed-repos block, and no sealed URL anywhere",
+            "status": "PASS"
+          },
+          {
+            "claim": "The builder token scope excludes every sealed repository.",
+            "expected": "sealed_repos_absent_from_scope",
+            "failure_state_if_violated": "PROTECTED_ASSET_ACCESS",
+            "findings": [],
+            "id": "A3",
+            "method": "token_scope_introspection",
+            "note": "token scope introspection needs a builder credential and a GitHub API call; no builder token is configured for this runner.",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "The verifier runs under a service identity distinct from the builder's.",
+            "expected": "builder_identity != verifier_identity",
+            "failure_state_if_violated": "ROLE_CONFLICT",
+            "findings": [],
+            "id": "A4",
+            "method": "compare_actor_identifiers",
+            "note": "builder uid 1000 != verifier uid 995; the builder's read of the sealed store was refused by the kernel (PermissionError: Permission denied). Honest debt: the builder holds passwordless sudo, so this is an accident-and-audit boundary, not a security one (DEC-006).",
+            "status": "PASS"
+          },
+          {
+            "claim": "The verifier response contains only the contract-approved result shape.",
+            "expected": "no_forbidden_field_present",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A5",
+            "method": "schema_assert_on_verdict_payload",
+            "note": "approved shape accepted; all four forbidden-content classes rejected",
+            "status": "PASS"
+          },
+          {
+            "claim": "The implementer alias is neither the sealed-holdout-author nor the adjudicator.",
+            "expected": "implementer differs from sealed_holdout_author and judge by both alias and family",
+            "failure_state_if_violated": "ROLE_CONFLICT",
+            "findings": [],
+            "id": "A6",
+            "method": "compare_model_policy_aliases",
+            "note": "implementer differs from holdout author and judge by alias and family",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 4,
+        "assertions_total": 6,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 1,
+        "evidence_missing": [
+          "request_transcript_with_actor_identity"
+        ],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:0aab33786ea64ffb37e61387445b8a29c4652b0a43a81d8429451f080ee3e939",
+            "gate_id": "GATE-D1-08",
+            "name": "actor_identifiers",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:79960f163f09526166bade2786f8937900d8ee5f6eb51fa7dc73f3b2527834dd",
+            "gate_id": "GATE-D1-08",
+            "name": "static_scan_report_with_content_hash",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:408d8e5f6cffd80d29aa97555dcce05db3c6e51736aeb3dd47e520866634adf4",
+            "gate_id": "GATE-D1-08",
+            "name": "token_scope_dump_redacted",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:a9dcffc54e6def6ab96c45480b83275dba09e150227dafb5c4e64d1505c8428f",
+            "gate_id": "GATE-D1-08",
+            "name": "verdict_payload_sample_and_schema_result",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "request_transcript_with_actor_identity",
+          "static_scan_report_with_content_hash",
+          "token_scope_dump_redacted",
+          "verdict_payload_sample_and_schema_result"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "PARTIALLY_EXECUTABLE",
+        "gate_id": "GATE-D1-08",
+        "gate_source_hash": "sha256:7f3bd89785472a31b26ea7b073c0d4a58d8728bfe92b5322c6b67895994cedc8",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Protected verifier isolation",
+        "on_fail": {
+          "action": "halt_and_raise",
+          "remediation_must_not_include": "granting_builder_access_to_sealed_side",
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Every artifact carries content hash, producer, source inputs, and contract/task links.",
+            "expected": "all_required_artifact_fields_present",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A1",
+            "method": "artifact_registry_schema_assert",
+            "note": "the artifact registry is not yet built (WS-A/WS-B).",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Every test result records command, environment, timestamp, exit status, raw artifact, and commit binding.",
+            "expected": "all_required_test_fields_present",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A2",
+            "method": "test_record_schema_assert",
+            "note": "a test record missing required fields is rejected",
+            "status": "PASS"
+          },
+          {
+            "claim": "Every emitted span carries the eleven minimum correlation fields.",
+            "expected": "all_of correlation_fields present",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A3",
+            "method": "otel_span_field_assert",
+            "note": "all 8 emitters stamp the eleven supplied correlation fields and the derived trace_id; 26 probes emptying one required field each were refused before export; 175 modules were scanned and none opens a span outside the correlation gate; 2 live spans carry their declared minimum on one trace",
+            "status": "PASS"
+          },
+          {
+            "claim": "A result with no named evidence is rejected as invalid.",
+            "expected": "rejected_with FAILED_PROVENANCE",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A4",
+            "method": "negative_control_submit_unbound_result",
+            "note": "an unbound result is rejected as FAILED_PROVENANCE",
+            "status": "PASS"
+          },
+          {
+            "claim": "Every result carries an evidence tier from the contract's five.",
+            "expected": "tier in [OWNER_VERIFIED, DETERMINISTIC_ORACLE, INDEPENDENTLY_REPRODUCED, CALIBRATED_MODEL_VERIFIED, AI_DISCOVERED_UNVERIFIED]",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A5",
+            "method": "evidence_tier_assert",
+            "note": "only the contract's five evidence tiers are accepted",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 4,
+        "assertions_total": 5,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 1,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:97a5032132ea15aaa8ae71969941fe7b935a385463ee596a74c671494a09a79a",
+            "gate_id": "GATE-D1-09",
+            "name": "artifact_registry_dump",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:623bcfcc199eb3102cf529b71ba2d16f33d2d6e76f3acc25ba88a747cf2993bd",
+            "gate_id": "GATE-D1-09",
+            "name": "negative_control_transcript",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:1d84602b50940ee32f973526c88cb6dbb87a64cf692dd9b3ce921bf3b45236a3",
+            "gate_id": "GATE-D1-09",
+            "name": "otel_span_sample",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:02ef063b17c25c732c9cc4cedb23f912bfbdc16e4a71fe5c52b61cb6cd40652b",
+            "gate_id": "GATE-D1-09",
+            "name": "test_record_sample",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "artifact_registry_dump",
+          "test_record_sample",
+          "otel_span_sample",
+          "negative_control_transcript"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "PARTIALLY_EXECUTABLE",
+        "gate_id": "GATE-D1-09",
+        "gate_source_hash": "sha256:332b97d3cb9813e5661e5b3c5cfe9f016c016249a960e0c6d7e48385b0b88cf8",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Mechanical commit/trace/artifact binding",
+        "on_fail": {
+          "action": "halt_and_raise",
+          "remediation_must_not_include": null,
+          "state": "FAILED_PROVENANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "The control surface responds with all Anthropic credentials unset.",
+            "expected": "full_request_response_cycle_completes",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A1",
+            "method": "unset ANTHROPIC_API_KEY and ANTHROPIC_BASE_URL, restart, exercise surface",
+            "note": "responds with Anthropic credentials unset",
+            "status": "PASS"
+          },
+          {
+            "claim": "No code path in the surface imports the Anthropic SDK or a Claude client.",
+            "expected": "zero_anthropic_imports",
+            "failure_state_if_violated": "CONTRACT_DRIFT",
+            "findings": [],
+            "id": "A2",
+            "method": "import_graph_scan",
+            "note": "no Anthropic import in any surface code path",
+            "status": "PASS"
+          },
+          {
+            "claim": "The owner can read current project and task state through it.",
+            "expected": "surface_state == authoritative_state",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A3",
+            "method": "query_state_and_compare_to_terminusdb",
+            "note": "owner reads project and task state",
+            "status": "PASS"
+          },
+          {
+            "claim": "The owner can answer an open typed blocker and the answer is recorded.",
+            "expected": "answer_persisted_as_Decision_bound_to_contract_version and task_unblocked",
+            "failure_state_if_violated": "FAILED_IMPLEMENTATION",
+            "findings": [],
+            "id": "A4",
+            "method": "raise_synthetic_BLOCKED_OWNER_DECISION_then_answer_via_surface",
+            "note": "owner answers an open typed blocker",
+            "status": "PASS"
+          },
+          {
+            "claim": "The owner can resume, retry, or cancel a work unit.",
+            "expected": "all_three_take_effect_in_terminusdb",
+            "failure_state_if_violated": "FAILED_IMPLEMENTATION",
+            "findings": [],
+            "id": "A5",
+            "method": "exercise_each_verb_against_a_live_work_unit",
+            "note": "owner can resume, retry, cancel",
+            "status": "PASS"
+          },
+          {
+            "claim": "An instruction that would expand scope is rejected, not executed.",
+            "expected": "rejected_with UNAPPROVED_SCOPE_EXPANSION",
+            "failure_state_if_violated": "FAILED_SCOPE",
+            "findings": [],
+            "id": "A6",
+            "method": "negative_control_submit_out_of_scope_instruction",
+            "note": "scope expansion rejected, not executed",
+            "status": "PASS"
+          },
+          {
+            "claim": "The surface cannot bypass a gate or self-approve.",
+            "expected": "rejected and gate_still_required",
+            "failure_state_if_violated": "FAILED_ASSURANCE",
+            "findings": [],
+            "id": "A7",
+            "method": "negative_control_attempt_gate_bypass",
+            "note": "cannot bypass a gate or self-approve",
+            "status": "PASS"
+          },
+          {
+            "claim": "The surface cannot reach protected assets.",
+            "expected": "denied",
+            "failure_state_if_violated": "PROTECTED_ASSET_ACCESS",
+            "findings": [],
+            "id": "A8",
+            "method": "attempt_sealed_side_access_through_surface",
+            "note": "cannot reach protected assets",
+            "status": "PASS"
+          },
+          {
+            "claim": "It is usable from a mobile viewport over the private network.",
+            "expected": "readable_and_operable",
+            "failure_state_if_violated": "FAILED_IMPLEMENTATION",
+            "findings": [],
+            "id": "A9",
+            "method": "load_over_tailnet_at_390px_and_complete_one_full_task",
+            "note": "usable from a mobile viewport, self-contained",
+            "status": "PASS"
+          },
+          {
+            "claim": "The surface routes through the production gateway, not eval.",
+            "expected": "gateway == production",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A10",
+            "method": "inspect_gateway_binding",
+            "note": "routes through the production gateway",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 10,
+        "assertions_total": 10,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.1",
+        "day": 1,
+        "evidence_missing": [
+          "import_graph_report",
+          "blocker_answer_round_trip_with_terminus_commit",
+          "negative_control_transcripts_for_A6_A7_A8",
+          "mobile_viewport_session_recording_or_screenshots"
+        ],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:57cf21763a3e3996e971c9b33f93b02b342b08ed13d7273674b895f0fd36d885",
+            "gate_id": "GATE-D1-10",
+            "name": "credential_stripped_run_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "credential_stripped_run_transcript",
+          "import_graph_report",
+          "blocker_answer_round_trip_with_terminus_commit",
+          "negative_control_transcripts_for_A6_A7_A8",
+          "mobile_viewport_session_recording_or_screenshots"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D1-10",
+        "gate_source_hash": "sha256:78cf26b4c55a05aa101d94f875c309277215c204158d33dfcc7395dfce0b725b",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Vendor-neutral owner control surface",
+        "on_fail": {
+          "action": "halt_and_raise",
+          "remediation_must_not_include": null,
+          "state": "FAILED_CONTRACT"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "A deliberately unregistered module fails the composition verifier.",
+            "expected": "composition_verifier_fails",
+            "failure_state_if_violated": "FAILED_WIRING",
+            "findings": [],
+            "id": "A1",
+            "method": "negative_control_unregister_module",
+            "note": "an unregistered module fails the composition verifier on the pack's own fixture (KB-001, FAILED_WIRING) and twice on the live composition root -- ORACLE-001 names 'evaluation' absent from the root, and ModuleRegistry.verify reports 8 MISSING_WIRING findings when its declaration is deleted -- while the unmutated root verifies clean",
+            "status": "PASS"
+          },
+          {
+            "claim": "Every module is reachable through an approved user-to-result execution path.",
+            "expected": "zero_unreachable_modules",
+            "failure_state_if_violated": "FAILED_WIRING",
+            "findings": [],
+            "id": "A2",
+            "method": "reachability_analysis_from_composition_root",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Every module declares all nine Section 5.2 wiring fields.",
+            "expected": "all_nine_fields_present_per_module",
+            "failure_state_if_violated": "FAILED_WIRING",
+            "findings": [],
+            "id": "A3",
+            "method": "wiring_manifest_assert",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Architecture tests reject prohibited imports and circular dependencies.",
+            "expected": "zero_violations",
+            "failure_state_if_violated": "FAILED_SCOPE",
+            "findings": [],
+            "id": "A4",
+            "method": "architecture_test_run",
+            "note": "the pinned architecture suite passed 28 tests; the live composition root carries no cycle across 32 modules; 170 source files import none of ['anthropic', 'claude_agent_sdk', 'temporal', 'temporalio']; and both detectors fire on an injected cycle and a planted prohibited import",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 2,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:e8bac35de57e8c39f81adeb4c8f0361bb4eb6f8f20db4f4dd6c4e981b53bad64",
+            "gate_id": "GATE-D2-10",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:12908a36cf19bd4de9bfe2921dff55106c38aecb7c14da2c4eac3c81acd19952",
+            "gate_id": "GATE-D2-10",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:cd8140490d30ce29c74e31e29aabd8c38daa1d09c6dbc67f051ac5511fe3e01d",
+            "gate_id": "GATE-D2-10",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "PARTIALLY_EXECUTABLE",
+        "gate_id": "GATE-D2-10",
+        "gate_source_hash": "sha256:ea811e1a568030ff860542a1c76f868a5f0b8d318587e4f2604f9ff4509eeed2",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Composition and wiring completeness",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "All thirteen required dashboard views are populated.",
+            "expected": "all_thirteen_present",
+            "failure_state_if_violated": "FAILED_IMPLEMENTATION",
+            "findings": [],
+            "id": "A1",
+            "method": "view_presence_check",
+            "note": "all 13 Section 11.6 views are required fields and carry content from a seeded control plane, while a type-complete empty projection is reported unpopulated in every one of them",
+            "status": "PASS"
+          },
+          {
+            "claim": "Plane cannot mutate authoritative state.",
+            "expected": "authoritative_state_unchanged",
+            "failure_state_if_violated": "FAILED_SCOPE",
+            "findings": [],
+            "id": "A2",
+            "method": "write_attempt_probe",
+            "note": "the projection reaches 8 read methods and none of 13 write names; a full pass published 20 objects to Plane and left the authoritative fingerprint unchanged, while the same fingerprint moved for a genuine write",
+            "status": "PASS"
+          },
+          {
+            "claim": "No holdout assertion, private fixture, or mutant source appears in Plane.",
+            "expected": "zero_protected_content",
+            "failure_state_if_violated": "PROTECTED_ASSET_ACCESS",
+            "findings": [],
+            "id": "A3",
+            "method": "projection_content_scan",
+            "note": "a 4-work-item payload and a 154-row projection both publish, while all 5 injected classes of protected content are refused -- the snapshot-level leak before any network call was made",
+            "status": "PASS"
+          },
+          {
+            "claim": "Worklog durations derive from system events, not agent estimates.",
+            "expected": "source == system_events",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A4",
+            "method": "worklog_source_assert",
+            "note": "TimingRecord carries 10 system-event timestamps and no estimate field the schema would accept; 6 durations recompute exactly from those timestamps, and a missing timestamp yields None rather than a number",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 4,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:756da788b963589d46614eb8872e651ae40890efeb32d256a8657a19286b1a6d",
+            "gate_id": "GATE-D2-11",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:aa72f7749548d11ef2091687b468a1ad4e860b17de8acfa676c7d59cdb33de48",
+            "gate_id": "GATE-D2-11",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:0c780c37a7108f80549fd2539627920bad7ffd6e095bf88fa138ec8976efbb75",
+            "gate_id": "GATE-D2-11",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D2-11",
+        "gate_source_hash": "sha256:1f00f713c2dd98134bfc3dde270da81a568582d7f7a46593acad2a131138a97a",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Plane projection completeness",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Two parallel work units hold distinct leases and distinct worktrees.",
+            "expected": "distinct_lease_ids and distinct_worktrees",
+            "failure_state_if_violated": "FAILED_IMPLEMENTATION",
+            "findings": [],
+            "id": "A1",
+            "method": "concurrent_assignment_probe",
+            "note": "two simultaneously live leases hold distinct lease ids, worktrees and branches, and a third claim on either owned identifier is refused",
+            "status": "PASS"
+          },
+          {
+            "claim": "A submission from an expired lease is rejected.",
+            "expected": "rejected_with STALE_ASSIGNMENT",
+            "failure_state_if_violated": "STALE_ASSIGNMENT",
+            "findings": [],
+            "id": "A2",
+            "method": "expire_lease_then_submit",
+            "note": "an expired lease's submission is rejected as STALE_ASSIGNMENT, with and without a successor, while the same submission one second earlier is accepted",
+            "status": "PASS"
+          },
+          {
+            "claim": "A submission from a superseded lease generation is rejected.",
+            "expected": "rejected_with STALE_ASSIGNMENT",
+            "failure_state_if_violated": "STALE_ASSIGNMENT",
+            "findings": [],
+            "id": "A3",
+            "method": "increment_generation_then_submit_old",
+            "note": "an unexpired but superseded generation is rejected as STALE_ASSIGNMENT, renewal does not resurrect it, and the current generation is still accepted",
+            "status": "PASS"
+          },
+          {
+            "claim": "A rejected stale submission does not corrupt the winning worker's branch.",
+            "expected": "winning_branch_unmodified",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A4",
+            "method": "branch_integrity_check",
+            "note": "the stale submission was rejected before any write path was reached and the winning branch state hash is unchanged, while the winner's own submission was applied",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 4,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:77ab0245546b3fdd3c616d9ff35cb2cc759fae12f7287033d87ac3c5815557aa",
+            "gate_id": "GATE-D2-12",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:932aadefe5abab7d5b60e166011f1fa734906bdd694b08a3c2b3dec3d4d289e0",
+            "gate_id": "GATE-D2-12",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:b30ebad80300ae4af32641b262811f8f387ee95fe21fa0a31d03447b5ba7d7c7",
+            "gate_id": "GATE-D2-12",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D2-12",
+        "gate_source_hash": "sha256:0e12dda60fcefa7687c9f72aadabf1f40c1fc6fbb5b0c62dd03ce2863ffd1562",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Leases, worktrees, and stale worker rejection",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "A selected dependency is reached only through an adapter.",
+            "expected": "zero_direct_dependency_imports_outside_adapters",
+            "failure_state_if_violated": "FAILED_SCOPE",
+            "findings": [],
+            "id": "A1",
+            "method": "adapter_boundary_check",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "A deliberately introduced custom duplicate of a selected dependency fails the scope gate.",
+            "expected": "rejected_with UNSUPPORTED_REIMPLEMENTATION",
+            "failure_state_if_violated": "UNSUPPORTED_REIMPLEMENTATION",
+            "findings": [],
+            "id": "A2",
+            "method": "negative_control_inject_custom_duplicate",
+            "note": "each of the 8 components dependency-policy.yaml prohibits is rejected as UNSUPPORTED_REIMPLEMENTATION when introduced without a BUILD_VS_INTEGRATE record, while the same task introducing nothing, introducing it with a recorded decision, and introducing a component that duplicates nothing all pass",
+            "status": "PASS"
+          },
+          {
+            "claim": "Every custom implementation carries a BUILD_VS_INTEGRATE record with all seven fields.",
+            "expected": "all_seven_fields_present",
+            "failure_state_if_violated": "FAILED_SCOPE",
+            "findings": [],
+            "id": "A3",
+            "method": "record_schema_assert",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "No prohibited component from dependency-policy.yaml appears in the dependency graph.",
+            "expected": "zero_matches",
+            "failure_state_if_violated": "FAILED_SCOPE",
+            "findings": [],
+            "id": "A4",
+            "method": "prohibited_component_scan",
+            "note": "all 8 prohibited components appear in the graph only as the owner's own exclusion records -- no integration edge touches any of them across 870 edges and 870 emitted efah.dependency objects -- and injected integration edges are caught",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 2,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:663a5ee9f96925760a13c63f2e0b1b93e7fcaacff6f79580b215a0b0fd941684",
+            "gate_id": "GATE-D2-13",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:14c722910292b134c46dec50f411ec1a0f51b162d9f808905d085850188703c4",
+            "gate_id": "GATE-D2-13",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:f3ac5d069374be14fe9be621398c3ffd5be781a54ce81befe30a1a0d7302e9d0",
+            "gate_id": "GATE-D2-13",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "PARTIALLY_EXECUTABLE",
+        "gate_id": "GATE-D2-13",
+        "gate_source_hash": "sha256:0c1e3360040aaeeb49b7ee86a484bb29385a8bdca90b68ca2d987183fcaa4715",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Build-vs-integrate enforcement",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "A research task with credible alternatives records at least two hypotheses.",
+            "expected": "count >= 2",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A1",
+            "method": "hypothesis_count_check",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Each hypothesis carries all eight required fields.",
+            "expected": "all_eight_fields_present",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A2",
+            "method": "hypothesis_schema_assert",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "A discriminating test exists that distinguishes the hypotheses.",
+            "expected": "test_present_and_executed",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A3",
+            "method": "discriminating_test_presence",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "The selected hypothesis is supported by the test outcome, not by discovery order.",
+            "expected": "selection_linked_to_test_result",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A4",
+            "method": "selection_provenance_check",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          }
+        ],
+        "assertions_executed": 0,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_produced": [],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "NOT_YET_EXECUTABLE",
+        "gate_id": "GATE-D2-14",
+        "gate_source_hash": "sha256:3e3eae1d5785978b84b9d6e3cfc785b77cabd917de3022ceb93c320dd153a06b",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Competing hypotheses and discriminating test",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Every snapshot records all eleven required fields.",
+            "expected": "all_eleven_fields_present",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A1",
+            "method": "snapshot_schema_assert",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Every snapshot is version- or branch-pinned.",
+            "expected": "library_version_or_branch_non_empty",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A2",
+            "method": "pin_presence_check",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Every load-bearing dependency decision links to at least one snapshot.",
+            "expected": "zero_unlinked_decisions",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A3",
+            "method": "decision_to_snapshot_link_check",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Two retrievals using the two credentials are not counted as independent corroboration.",
+            "expected": "credential_alias_does_not_increase_source_diversity",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A4",
+            "method": "corroboration_logic_check",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          }
+        ],
+        "assertions_executed": 0,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_produced": [],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "NOT_YET_EXECUTABLE",
+        "gate_id": "GATE-D2-15",
+        "gate_source_hash": "sha256:822d77c65a19cb41d9434519d4ce5e393adca28621ed5d6f9e01f718ea4a64cf",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Context7 snapshot hash and dependency link",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "A simulated dependency version bump produces an impact map.",
+            "expected": "impact_map_generated",
+            "failure_state_if_violated": "FAILED_IMPLEMENTATION",
+            "findings": [],
+            "id": "A1",
+            "method": "inject_version_change",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Affected evidence, decisions, requirements, tasks, tests, gold cases, and release candidates are marked stale.",
+            "expected": "all_affected_marked_stale_or_scheduled",
+            "failure_state_if_violated": "STALE_INPUT_ARTIFACT",
+            "findings": [],
+            "id": "A2",
+            "method": "staleness_propagation_check",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "A dependency-update task is created automatically.",
+            "expected": "update_task_present",
+            "failure_state_if_violated": "FAILED_IMPLEMENTATION",
+            "findings": [],
+            "id": "A3",
+            "method": "task_creation_check",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Affected gold cases are not promoted while stale.",
+            "expected": "zero_promotions_of_stale_gold",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A4",
+            "method": "promotion_block_check",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          }
+        ],
+        "assertions_executed": 0,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_produced": [],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "NOT_YET_EXECUTABLE",
+        "gate_id": "GATE-D2-16",
+        "gate_source_hash": "sha256:b487f7cffa400c1eb6e8a27a1272adc5297fa6ae95901991b11922a1eec772f0",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Dependency change impact and revalidation",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Every LanceDB row carries all eleven lineage fields.",
+            "expected": "all_eleven_fields_present",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A1",
+            "method": "row_schema_assert",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Every retrieval result resolves to a reachable TerminusDB commit.",
+            "expected": "all_results_resolve",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A2",
+            "method": "resolve_probe",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "The index rebuilds from authoritative documents alone.",
+            "expected": "rebuilt_index_matches",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A3",
+            "method": "rebuild_from_scratch_probe",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "A query with no supporting evidence returns INSUFFICIENT_EVIDENCE rather than a confident answer.",
+            "expected": "returns INSUFFICIENT_EVIDENCE",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A4",
+            "method": "negative_control_unanswerable_query",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "The implementer has no retrieval route into protected evaluation planes.",
+            "expected": "access_denied",
+            "failure_state_if_violated": "PROTECTED_ASSET_ACCESS",
+            "findings": [],
+            "id": "A5",
+            "method": "plane_access_probe_under_implementer_identity",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          }
+        ],
+        "assertions_executed": 0,
+        "assertions_total": 5,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_produced": [],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "NOT_YET_EXECUTABLE",
+        "gate_id": "GATE-D2-17",
+        "gate_source_hash": "sha256:75c32b9fcd5fc9c0d444e8ae3fea136e459e43bc89bdab360315e3a8ba501df1",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "RAG lineage resolves to a TerminusDB commit",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Agent-generated content enters at or below T2_HYPOTHESIS.",
+            "expected": "initial_tier <= T2_HYPOTHESIS",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A1",
+            "method": "tier_assignment_check",
+            "note": "agent output claiming T7 is admitted at T2 and is not trusted",
+            "status": "PASS"
+          },
+          {
+            "claim": "Promotion above T4 requires independent verification by a different family.",
+            "expected": "independent_verifier_family != producer_family",
+            "failure_state_if_violated": "ROLE_CONFLICT",
+            "findings": [],
+            "id": "A2",
+            "method": "promotion_path_assert",
+            "note": "promotion above T4 requires a different vendor family",
+            "status": "PASS"
+          },
+          {
+            "claim": "Hard-gold promotion requires quarantine, reproducibility, independent verification, mutant validation, and contamination review.",
+            "expected": "all_five_steps_recorded",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A3",
+            "method": "promotion_checklist_assert",
+            "note": "hard-gold promotion needs all five Section 15.6 steps",
+            "status": "PASS"
+          },
+          {
+            "claim": "A deliberately unverified item cannot be promoted to T6 or T7.",
+            "expected": "promotion_rejected",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A4",
+            "method": "negative_control_promote_unverified",
+            "note": "a deliberately unverified item cannot reach T6 or T7",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 4,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:74046bba56df2f63b3533479150c7aa2bc1977ad999e1f50dc25fe1405c33792",
+            "gate_id": "GATE-D2-18",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:c4a5fdce2904af4ae7d36d264b09b222446a5db04de2e8e4282ee620e37ae5da",
+            "gate_id": "GATE-D2-18",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:ee27adc9d7015bcc8d571ba086fb00ec8c9ccaa112daa1b52103c8d16a04a17c",
+            "gate_id": "GATE-D2-18",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D2-18",
+        "gate_source_hash": "sha256:3d50afe180c1cba5b0fd7079183deaaeb6dd526026c29c44bdb4b8acf70c5221",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Unverified knowledge is not promoted",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Visible, hidden, and mutant runs record the same candidate commit SHA.",
+            "expected": "all_three_equal",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [
+              "all lanes carry the same candidate commit, but the hidden lane could not run: no protected-verifier endpoint is configured on the build side, and none may be; the sealed side is reached only through injected configuration held by the verifier service identity"
+            ],
+            "id": "A1",
+            "method": "commit_sha_compare_across_lanes",
+            "note": "sealed holdout content and verifier endpoint are not available to the build side",
+            "status": "UNVERIFIABLE"
+          },
+          {
+            "claim": "The verifier receives only the commit identifier and permitted inputs.",
+            "expected": "permitted_submission_fields_only",
+            "failure_state_if_violated": "PROTECTED_ASSET_ACCESS",
+            "findings": [],
+            "id": "A2",
+            "method": "submission_field_assert",
+            "note": "only the four permitted submission fields can cross the seam",
+            "status": "PASS"
+          },
+          {
+            "claim": "A commit change between lanes invalidates the evaluation set.",
+            "expected": "evaluation_invalidated",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A3",
+            "method": "negative_control_change_commit_mid_run",
+            "note": "a commit change between lanes invalidates the evaluation set",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 3,
+        "assertions_total": 3,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:1fea2c151c989edb7229744fc908bcdbca5c59b459ebe65fd7077a9189c87622",
+            "gate_id": "GATE-D2-19",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:af0f00e657e460821f85f4439171ab40d62b5db5a841ebc0dc0f9356c12fcdc7",
+            "gate_id": "GATE-D2-19",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:95bd451112427bc2ca9f2111c1af3d1d295fa968aaff0e886ef4a10eee96071f",
+            "gate_id": "GATE-D2-19",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D2-19",
+        "gate_source_hash": "sha256:cf1b588a1fc47de1d1fc41b8f581556ba6f0a08f13793d2440af479e2516cd35",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Visible, hidden, and mutant suites run against the same candidate commit",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Every oracle result carries version, content hash, and health.",
+            "expected": "all_present",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A1",
+            "method": "oracle_result_schema_assert",
+            "note": "every oracle result carries version, content hash, and health",
+            "status": "PASS"
+          },
+          {
+            "claim": "No model call occurs inside a deterministic oracle's verdict path.",
+            "expected": "zero_model_calls_in_verdict_path",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A2",
+            "method": "call_graph_analysis",
+            "note": "zero model-call surfaces across 12 modules in the verdict paths",
+            "status": "PASS"
+          },
+          {
+            "claim": "Each oracle has known-good and known-bad fixtures and kills its declared mutants.",
+            "expected": "known_good_pass and known_bad_fail and mutants_killed",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A3",
+            "method": "fixture_and_mutant_run",
+            "note": "37 fixtures pass and 25/25 mutants are killed",
+            "status": "PASS"
+          },
+          {
+            "claim": "An oracle that cannot decide returns UNVERIFIABLE rather than guessing.",
+            "expected": "returns UNVERIFIABLE",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A4",
+            "method": "ambiguous_input_probe",
+            "note": "every oracle abstains honestly where its definition says it cannot decide",
+            "status": "PASS"
+          },
+          {
+            "claim": "An uncalibrated judge result cannot pass a gate.",
+            "expected": "result_is_advisory_only",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A5",
+            "method": "negative_control_uncalibrated_judge",
+            "note": "uncalibrated judge output is advisory and no gate admits one",
+            "status": "PASS"
+          },
+          {
+            "claim": "A higher deterministic oracle is not replaced by a lower subjective one where available.",
+            "expected": "route_selects_highest_available_level",
+            "failure_state_if_violated": "FAILED_ORACLE",
+            "findings": [],
+            "id": "A6",
+            "method": "oracle_route_audit",
+            "note": "routing selected hierarchy level 1",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 6,
+        "assertions_total": 6,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:b8d364cade0748b3ca3514ac8065a06f0893fd955e73a29c93849bc0d8a23a1a",
+            "gate_id": "GATE-D2-20",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:5968ae37ea4442f19014d434c4a7e0ac1f4b6b4b3f839e9f67c9360ecc1c6a21",
+            "gate_id": "GATE-D2-20",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:a8b3d8e15b37a7ce386255c37cf7c54a999f7a8d50bb6da0ca0db6e6a656df2c",
+            "gate_id": "GATE-D2-20",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D2-20",
+        "gate_source_hash": "sha256:b0d90649f5595dfdfdc09184919fb2f8f81a5d9ba6418e6b5663f3333a02b926",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Oracle health and no judge in the deterministic path",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "An injected unlinked task is detected as UNLINKED_TASK.",
+            "expected": "detected",
+            "failure_state_if_violated": "UNLINKED_TASK",
+            "findings": [],
+            "id": "A1",
+            "method": "negative_control_inject_unlinked_task",
+            "note": "an injected task with no requirement ids and an injected task citing 'REQ-PHANTOM-D2-21-NEGATIVE-CONTROL' are both reported UNLINKED_TASK against TSK-001 and nothing else, while all 57 compiled tasks scan clean",
+            "status": "PASS"
+          },
+          {
+            "claim": "An injected requirement weakening is detected and blocked.",
+            "expected": "detected_and_blocked",
+            "failure_state_if_violated": "REQUIREMENT_WEAKENING",
+            "findings": [],
+            "id": "A2",
+            "method": "negative_control_weaken_requirement",
+            "note": "GATE-D1-01 observed as non-blocking, with A4 removed, and absent altogether each produce a blocking REQUIREMENT_WEAKENING that drives the scan to FAILED_CONTRACT, while the unchanged gate set produces none",
+            "status": "PASS"
+          },
+          {
+            "claim": "A change outside allowed paths is rejected.",
+            "expected": "rejected",
+            "failure_state_if_violated": "OUTSIDE_ALLOWED_PATHS",
+            "findings": [],
+            "id": "A3",
+            "method": "negative_control_write_outside_allowed_paths",
+            "note": "3 paths ['.git/probe-d2-21.yaml', 'project-pack/acceptance/visible/probe-d2-21.yaml', '/etc/passwd'] are blocked as OUTSIDE_ALLOWED_PATHS against TSK-001 and drive the scan to FAILED_CONTRACT; the sealed paths among TSK-001's prohibitions are typed PROTECTED_ASSET_ACCESS instead, and a permitted change to src/probe-d2-21.yaml produces nothing",
+            "status": "PASS"
+          },
+          {
+            "claim": "A security finding not mapped to an approved requirement becomes OUT_OF_SCOPE_OBSERVATION.",
+            "expected": "classified_as_observation_and_does_not_block",
+            "failure_state_if_violated": "OUT_OF_SCOPE_SECURITY_EXPANSION",
+            "findings": [],
+            "id": "A4",
+            "method": "security_finding_classification_probe",
+            "note": "a security finding mapping to nothing, and one mapping to references the compiled contract does not contain, both become non-blocking OUT_OF_SCOPE_OBSERVATIONs that leave the project RUNNING, while the same finding mapped to an approved reference blocks and an observation proposing new work is refused as an expansion",
+            "status": "PASS"
+          },
+          {
+            "claim": "A blocking security finding carries evidence or an executable probe and the smallest compliant remediation.",
+            "expected": "all_three_present",
+            "failure_state_if_violated": "OUT_OF_SCOPE_SECURITY_EXPANSION",
+            "findings": [],
+            "id": "A5",
+            "method": "blocking_finding_schema_assert",
+            "note": "a finding mapped to an approved reference with evidence, an executable probe and a stated smallest remediation reports zero schema violations and is admitted to the blocking set; removing each of the 3 conditions in turn names exactly that condition and demotes the finding",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 5,
+        "assertions_total": 5,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:96781a82d221652c9fca0a5d5d6c9375c01a4462488c284173e55cf7b515190b",
+            "gate_id": "GATE-D2-21",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:1767186b38fddacc9a34505757a559c2b4f16c440ec501a714ac5e528aaf2863",
+            "gate_id": "GATE-D2-21",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:5c9bc2ba133439ee958ae2be9e3c3b49d750061bbcb6c4b47cc52ce22b303769",
+            "gate_id": "GATE-D2-21",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D2-21",
+        "gate_source_hash": "sha256:e05cdb54c3562262a1dc7ed350a736368d979440325ae6697b106f83c75a422f",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Scope drift and security expansion blocked",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "A review fires after contract_review_interval_phases material phases.",
+            "expected": "review_fired_at_interval",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A1",
+            "method": "phase_counter_probe",
+            "note": "a periodic review fires at material phases [3, 6] and at none of [1, 2, 4, 5, 7], on the interval of 3 the pack declares; non-material phases do not advance the counter, a pack declaring 5 moves the first fire to phase 5, and a scheduler that fires every phase is caught at phases [1, 2]",
+            "status": "PASS"
+          },
+          {
+            "claim": "A review fires at an event trigger such as after_walking_skeleton.",
+            "expected": "review_fired_on_event",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A2",
+            "method": "event_trigger_probe",
+            "note": "all 13 pack-declared event triggers fire a typed event trigger, 6 undeclared near-miss events fire nothing, and the 'after_walking_skeleton' trigger carries through to a real ContractReview",
+            "status": "PASS"
+          },
+          {
+            "claim": "An outcome other than CONTRACT_REAFFIRMED halts automatic advance.",
+            "expected": "advance_halted_and_typed_remediation_raised",
+            "failure_state_if_violated": "DRIFT_DETECTED",
+            "findings": [],
+            "id": "A3",
+            "method": "negative_control_inject_drift",
+            "note": "injected drift yields DRIFT_DETECTED with advances_automatically False and remediation route 'scope_drift_remediation'; all 5 non-advancing outcomes halt and name a typed route while CONTRACT_REAFFIRMED still advances, and the real revalidation graph writes STALE_CONTRACT_VERSION on drift and nothing on reaffirmation. Honest limit: the halt is state, not a stopped edge -- contract_revalidation -> planning is unconditional",
+            "status": "PASS"
+          },
+          {
+            "claim": "Review does not add optional improvements to scope.",
+            "expected": "zero_new_requirements_from_review",
+            "failure_state_if_violated": "UNAPPROVED_SCOPE_EXPANSION",
+            "findings": [],
+            "id": "A4",
+            "method": "review_output_scope_diff",
+            "note": "a conformance review over the project's 91 compiled requirements adds none and reaffirms, while appending one optional improvement forces DRIFT_DETECTED with UNAPPROVED_SCOPE_EXPANSION and no automatic advance",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 4,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 2,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:18a85561a6a5535dc369c36f2e7606e3985531ae1e1fa940cba043e394eba6f3",
+            "gate_id": "GATE-D2-22",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:d3f123205492a685b460e716df2d2f41cd8e940a6795b5a655b6b49e7e479706",
+            "gate_id": "GATE-D2-22",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:ea63939fcdfe5ade76add6d5106abd7369c36f0436f93785fa46804cf3f52157",
+            "gate_id": "GATE-D2-22",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D2-22",
+        "gate_source_hash": "sha256:c3375a100b942dfda0a202270aca750dece82276da930fff1001873fb92a1793",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Periodic and event-triggered contract review",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "Total owner question rounds after intake is at most one.",
+            "expected": "rounds <= 1",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A1",
+            "method": "question_round_counter",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "No question asks about repository structure, dependency versions, code behavior, CI state, or existing configuration.",
+            "expected": "zero_discoverable_fact_questions",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A2",
+            "method": "question_content_classification",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "Every question carries what it blocks, 2-4 options, consequences, evidence, and a recommendation.",
+            "expected": "all_five_fields_present",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A3",
+            "method": "question_schema_assert",
+            "note": "no executable check is registered for this assertion; its subject is not built yet or is owned by another workstream",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "No owner interrupt was raised for test, integration, or CI repair.",
+            "expected": "zero_interrupts_outside_human_interrupts_only",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A4",
+            "method": "interrupt_type_audit",
+            "note": "the interrupt type set is closed at the contract's 7 and matches autonomy-policy.yaml; one call site exists in src/; all 9 must_not_interrupt_for reasons are refused there, including one forged past pydantic; and all 7 recorded escalation conditions name a permitted type",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 1,
+        "assertions_total": 4,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 3,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:b2ebb7b1510231d4b2dcdfd3a2226c5375f19ceee2448b0ec52813b488a7a05b",
+            "gate_id": "GATE-D3-23",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:cd427d17b9d30451da6d4b220f55a78c6e0a43ed09792d6297dafa3c812f62f0",
+            "gate_id": "GATE-D3-23",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:8341942bf069c92f9cff3a737021f0c43105765bc601e79d8214fd29e58c91ec",
+            "gate_id": "GATE-D3-23",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "PARTIALLY_EXECUTABLE",
+        "gate_id": "GATE-D3-23",
+        "gate_source_hash": "sha256:ff04c7c231e83d90a5fad0f3ad0e3731918b8fe288ebf7bc79477342a1fd4341",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Question budget is bounded and batched",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "A seeded implementation mutant is killed.",
+            "expected": "mutant_killed",
+            "failure_state_if_violated": "FAILED_MUTATION",
+            "findings": [],
+            "id": "A1",
+            "method": "seed_and_run_implementation_mutant",
+            "note": "4 implementation mutant(s) seeded, all killed",
+            "status": "PASS"
+          },
+          {
+            "claim": "A seeded workflow/governance mutant is killed.",
+            "expected": "mutant_killed",
+            "failure_state_if_violated": "FAILED_MUTATION",
+            "findings": [],
+            "id": "A2",
+            "method": "seed_and_run_governance_mutant",
+            "note": "10 workflow/governance mutant(s) seeded, all killed",
+            "status": "PASS"
+          },
+          {
+            "claim": "A seeded test mutant that weakens an assertion is killed.",
+            "expected": "mutant_killed",
+            "failure_state_if_violated": "FAILED_MUTATION",
+            "findings": [],
+            "id": "A3",
+            "method": "seed_and_run_test_mutant",
+            "note": "2 test mutant(s) seeded, all killed",
+            "status": "PASS"
+          },
+          {
+            "claim": "Mutation kill rate meets the required threshold for trust-critical work units.",
+            "expected": "kill_rate >= required_kill_rate",
+            "failure_state_if_violated": "FAILED_MUTATION",
+            "findings": [],
+            "id": "A4",
+            "method": "kill_rate_compute",
+            "note": "kill rate 1.00 over 25 mutants",
+            "status": "PASS"
+          },
+          {
+            "claim": "Mutant implementation details are not revealed to the implementer.",
+            "expected": "mutant_source_not_accessible",
+            "failure_state_if_violated": "PROTECTED_ASSET_ACCESS",
+            "findings": [],
+            "id": "A5",
+            "method": "implementer_visibility_probe",
+            "note": "private mutants stay sealed; a response carrying mutant source is rejected",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 5,
+        "assertions_total": 5,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 3,
+        "evidence_missing": [],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:0adb4c560534460fde9e734f1329e2a061a64b14c87a72fd7bef93389a6ef977",
+            "gate_id": "GATE-D3-24",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:53c4b94fcfad07ebf160ff7df11924baf71bc1a60f68564ae5a6f75b92c80a0b",
+            "gate_id": "GATE-D3-24",
+            "name": "gate_execution_log",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:f94acbd2388c384d3eb2d6001cf0a27b322b50c11275a9039862ae7c425710a7",
+            "gate_id": "GATE-D3-24",
+            "name": "negative_control_transcript",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D3-24",
+        "gate_source_hash": "sha256:b9d5449a6d63688e1901ff18f50d999d6ceff96012d2f0fcfc2ffcfd8a726252",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Known-bad mutant is rejected",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "PASS"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "All thirteen auto_merge_requirements are evaluated and recorded per PR.",
+            "expected": "all_thirteen_recorded",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A1",
+            "method": "requirement_evaluation_record",
+            "note": "all 13 requirements recorded; 8 not yet evaluable",
+            "status": "PASS"
+          },
+          {
+            "claim": "A fully green PR merges without human interaction.",
+            "expected": "merged_without_human_message",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A2",
+            "method": "green_pr_probe",
+            "note": "requires a live pull request and a CI run.",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "A PR failing any single requirement does not merge.",
+            "expected": "merge_blocked",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A3",
+            "method": "negative_control_fail_one_requirement",
+            "note": "requires a live pull request and a CI run.",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "The merge is performed by CI or an approved service identity, not the implementing agent.",
+            "expected": "actor != implementing_agent",
+            "failure_state_if_violated": "ROLE_CONFLICT",
+            "findings": [],
+            "id": "A4",
+            "method": "merge_actor_check",
+            "note": "requires a live merge actor on a real pull request.",
+            "status": "NOT_IMPLEMENTED"
+          },
+          {
+            "claim": "CI actually ran on the agent-opened PR.",
+            "expected": "checks_present_on_pr",
+            "failure_state_if_violated": "FAILED_INFRASTRUCTURE",
+            "findings": [],
+            "id": "A5",
+            "method": "ci_trigger_check",
+            "note": "requires CI checks present on a real pull request.",
+            "status": "NOT_IMPLEMENTED"
+          }
+        ],
+        "assertions_executed": 1,
+        "assertions_total": 5,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 3,
+        "evidence_missing": [
+          "negative_control_transcript"
+        ],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:d2989371c6e8cf30be03c07f7043a1bf9bcbe4b8905c7ee1b9118f17b3f75539",
+            "gate_id": "GATE-D3-25",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:be1d7241fb39b4444e9b18a45f410c8b713f16e9cc82a4d089e809c45435519b",
+            "gate_id": "GATE-D3-25",
+            "name": "gate_execution_log",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "PARTIALLY_EXECUTABLE",
+        "gate_id": "GATE-D3-25",
+        "gate_source_hash": "sha256:e52054a5a3af2e8e05966b7c6230580906245ef2d1d6f23b1ffe8d9569832bfc",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "Green PR is auto-merged without a human message",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      },
+      {
+        "assertions": [
+          {
+            "claim": "All twenty-three Section 27 package fields are present and non-empty.",
+            "expected": "all_fields_present",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [
+              "20/22 \u00a727 fields are measured; ['visible_tests_result', 'auto_merged_pr_reference'] are not yet measurable \u2014 a completion-time field cannot exist before the merge this gate gates, and a stale field needs its source re-run, not a failure verdict. Both would record a defective package for a project that is simply not finished"
+            ],
+            "id": "A1",
+            "method": "package_schema_assert",
+            "note": "20/22 \u00a727 fields are measured; ['visible_tests_result', 'auto_merged_pr_reference'] are not yet measurable \u2014 a completion-time field cannot exist before the merge this gate gates, and a stale field needs its source re-run, not a failure verdict. Both would record a defective package for a project that is simply not finished",
+            "status": "UNVERIFIABLE"
+          },
+          {
+            "claim": "Every one of the contract's acceptance_checks has a named evidence artifact.",
+            "expected": "zero_checks_without_evidence",
+            "failure_state_if_violated": "FAILED_ASSURANCE",
+            "findings": [],
+            "id": "A2",
+            "method": "coverage_cross_reference",
+            "note": "all 27 acceptance checks map to a gate",
+            "status": "PASS"
+          },
+          {
+            "claim": "Honest debt and deliberately deferred non-goals are stated explicitly.",
+            "expected": "non_empty",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [],
+            "id": "A3",
+            "method": "debt_section_presence",
+            "note": "8 debt entries and 8 deferred non-goals, each sourced",
+            "status": "PASS"
+          },
+          {
+            "claim": "Project status is VERIFIED_COMPLETE, not a prose summary.",
+            "expected": "status == VERIFIED_COMPLETE",
+            "failure_state_if_violated": "FAILED_CONTRACT",
+            "findings": [
+              "the project has not claimed completion: the package reports 'RUNNING', measured from the gate run rather than asserted. This assertion becomes executable when the run reaches a terminal state; reporting FAIL now would record FAILED_ASSURANCE for a project that is running with a typed blocker"
+            ],
+            "id": "A4",
+            "method": "status_field_assert",
+            "note": "the project has not claimed completion: the package reports 'RUNNING', measured from the gate run rather than asserted. This assertion becomes executable when the run reaches a terminal state; reporting FAIL now would record FAILED_ASSURANCE for a project that is running with a typed blocker",
+            "status": "UNVERIFIABLE"
+          },
+          {
+            "claim": "Model aliases and protected audit references are present without exposing real identities.",
+            "expected": "aliases_present and real_identities_absent",
+            "failure_state_if_violated": "FAILED_PROVENANCE",
+            "findings": [],
+            "id": "A5",
+            "method": "alias_and_audit_ref_check",
+            "note": "15 blinded aliases, no real model identity present",
+            "status": "PASS"
+          }
+        ],
+        "assertions_executed": 5,
+        "assertions_total": 5,
+        "blocking": true,
+        "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+        "contract_version": "1.0",
+        "day": 3,
+        "evidence_missing": [
+          "gate_execution_log",
+          "negative_control_transcript"
+        ],
+        "evidence_produced": [
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:aa1282ccafdc30d5e516ef2060a9731ac7861e0392c83da561040a14101d0cd6",
+            "gate_id": "GATE-D3-26",
+            "name": "alias_and_audit_ref_check",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:b32929e67a785e60f4319cfbaadf3ef96f91cb34d1f5245b117dd4d99da12497",
+            "gate_id": "GATE-D3-26",
+            "name": "artifact_hashes_and_commit_binding",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:c42998f1264fabffb28f9080989049fbeda5e0c8073a5396236c12c99dcfb07a",
+            "gate_id": "GATE-D3-26",
+            "name": "coverage_cross_reference",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:e1e304cc949194489b77b4e09637b206f7b064eb4d00798f258f5d17212fcf20",
+            "gate_id": "GATE-D3-26",
+            "name": "debt_section_presence",
+            "path": null
+          },
+          {
+            "candidate_commit": "6972a408bf3b8e6e00633f0896f33e6e5cba4a04",
+            "content_hash": "sha256:9b1f859f2dfc5c29357cff42291ceea0f4b9eb71bc4222d1d96516eb64060787",
+            "gate_id": "GATE-D3-26",
+            "name": "status_field_assert",
+            "path": null
+          }
+        ],
+        "evidence_required": [
+          "gate_execution_log",
+          "negative_control_transcript",
+          "artifact_hashes_and_commit_binding"
+        ],
+        "evidence_tier": "DETERMINISTIC_ORACLE",
+        "executability": "EXECUTED",
+        "gate_id": "GATE-D3-26",
+        "gate_source_hash": "sha256:f3778732f015c85fad6bdca867b53151871bae83b3b17dc13feb6aefce6b2036",
+        "load_error": null,
+        "model_judge_in_verdict_path": false,
+        "name": "VERIFIED_COMPLETE evidence package",
+        "on_fail": {
+          "action": "rework",
+          "remediation_must_not_include": null,
+          "state": "FAILED_ASSURANCE"
+        },
+        "oracle_type": "deterministic_execution_or_state",
+        "verdict": "UNVERIFIABLE"
+      }
+    ],
+    "gates_expected": 27,
+    "gates_loaded": 27,
+    "gates_refused_to_load": {},
+    "no_judge_in_verdict_path": {
+      "check": "model_judge_in_verdict_path",
+      "expected": "false for every gate; enforced at load time",
+      "gates": {
+        "GATE-D1-01": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:fa377fea660aa1897670836f0d689c5da5feb243765e1f2d90b6506a603844eb"
+        },
+        "GATE-D1-02": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "static_ast_type_policy",
+          "source_hash": "sha256:f18654ed19c982df5e269014f8368cc5054cdab475dc83d0a6bbab5515d2572e"
+        },
+        "GATE-D1-03": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:bf1b2d276b4dedd84fde849ee5d7cc394c30098202780f1b3c7f88d2afdb43e0"
+        },
+        "GATE-D1-04": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:dde424a334d289a5eaba24de9b83c78c728e58c001c2f707d80a8dfca7efbe47"
+        },
+        "GATE-D1-05": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:80aec46ae79e0de1db329c387b3603a324e1ac3fea7e477a12f46867e8fff025"
+        },
+        "GATE-D1-06": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "static_ast_type_policy",
+          "source_hash": "sha256:a68c7dc7b99d811b092a67731b1a88f089fb997c3473c4dce7cb78ff0e3b202f"
+        },
+        "GATE-D1-07": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "static_ast_type_policy",
+          "source_hash": "sha256:d1f9717b9f9f07b8763f680eeec4384d1382e208c8a42d2c70b5d88cdedaa3e1"
+        },
+        "GATE-D1-08": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:7f3bd89785472a31b26ea7b073c0d4a58d8728bfe92b5322c6b67895994cedc8"
+        },
+        "GATE-D1-09": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:332b97d3cb9813e5661e5b3c5cfe9f016c016249a960e0c6d7e48385b0b88cf8"
+        },
+        "GATE-D1-10": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:78cf26b4c55a05aa101d94f875c309277215c204158d33dfcc7395dfce0b725b"
+        },
+        "GATE-D2-10": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:ea811e1a568030ff860542a1c76f868a5f0b8d318587e4f2604f9ff4509eeed2"
+        },
+        "GATE-D2-11": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:1f00f713c2dd98134bfc3dde270da81a568582d7f7a46593acad2a131138a97a"
+        },
+        "GATE-D2-12": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:0e12dda60fcefa7687c9f72aadabf1f40c1fc6fbb5b0c62dd03ce2863ffd1562"
+        },
+        "GATE-D2-13": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:0c1e3360040aaeeb49b7ee86a484bb29385a8bdca90b68ca2d987183fcaa4715"
+        },
+        "GATE-D2-14": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:3e3eae1d5785978b84b9d6e3cfc785b77cabd917de3022ceb93c320dd153a06b"
+        },
+        "GATE-D2-15": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:822d77c65a19cb41d9434519d4ce5e393adca28621ed5d6f9e01f718ea4a64cf"
+        },
+        "GATE-D2-16": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:b487f7cffa400c1eb6e8a27a1272adc5297fa6ae95901991b11922a1eec772f0"
+        },
+        "GATE-D2-17": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:75c32b9fcd5fc9c0d444e8ae3fea136e459e43bc89bdab360315e3a8ba501df1"
+        },
+        "GATE-D2-18": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:3d50afe180c1cba5b0fd7079183deaaeb6dd526026c29c44bdb4b8acf70c5221"
+        },
+        "GATE-D2-19": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:cf1b588a1fc47de1d1fc41b8f581556ba6f0a08f13793d2440af479e2516cd35"
+        },
+        "GATE-D2-20": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:b0d90649f5595dfdfdc09184919fb2f8f81a5d9ba6418e6b5663f3333a02b926"
+        },
+        "GATE-D2-21": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:e05cdb54c3562262a1dc7ed350a736368d979440325ae6697b106f83c75a422f"
+        },
+        "GATE-D2-22": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:c3375a100b942dfda0a202270aca750dece82276da930fff1001873fb92a1793"
+        },
+        "GATE-D3-23": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:ff04c7c231e83d90a5fad0f3ad0e3731918b8fe288ebf7bc79477342a1fd4341"
+        },
+        "GATE-D3-24": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:b9d5449a6d63688e1901ff18f50d999d6ceff96012d2f0fcfc2ffcfd8a726252"
+        },
+        "GATE-D3-25": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:e52054a5a3af2e8e05966b7c6230580906245ef2d1d6f23b1ffe8d9569832bfc"
+        },
+        "GATE-D3-26": {
+          "model_judge_in_verdict_path": false,
+          "oracle_type": "deterministic_execution_or_state",
+          "source_hash": "sha256:f3778732f015c85fad6bdca867b53151871bae83b3b17dc13feb6aefce6b2036"
+        }
+      },
+      "gates_loaded": 27
+    },
+    "project_state": "RUNNING",
+    "schema": "efah.gate_run_summary"
+  },
+  "envelope": {
+    "content_hash": "sha256:7a56f68b11fe3a325c51733f058c593872cc3996a052108d2c29bc90775bb432",
+    "contract_id": "EFAH-CONTRACT-001",
+    "contract_version": "1.1",
+    "created_at": "2026-08-03T00:02:08.419983+00:00",
+    "created_by_alias": "release-v04",
+    "methodology_version": "1.0.0",
+    "schema_id": "efah.gate_run_summary",
+    "schema_version": "1.0",
+    "terminus_branch": null,
+    "terminus_commit": null,
+    "terminus_database": null
+  }
+}

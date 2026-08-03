@@ -1,0 +1,94 @@
+==============================================================================
+EFAH — Contract §27 Final Evidence Package
+==============================================================================
+
+  Project status: RUNNING
+    tier=DETERMINISTIC_ORACLE  source=evaluation.gate_runner.GateRunSummary.project_state()
+    note: PASS=5 FAIL=0 UNVERIFIABLE=22. Not VERIFIED_COMPLETE: at least one gate is UNVERIFIABLE. §6.2 makes VERIFIED_COMPLETE the only success terminal, so this field reports the state rather than the goal.
+
+  Project ID and version: {"project_id": "UNAVAILABLE", "version": "1.0"}
+    tier=OWNER_VERIFIED  source=project-pack/project.yaml
+
+  Contract ID and version: {"contract_id": "EFAH-CONTRACT-001", "contract_version": "1.1", "amendments": ["AMENDMENT-001-owner-control-surface"]}
+    tier=OWNER_VERIFIED  source=project-pack/project.yaml + evidence/owner-documents/
+
+  TerminusDB database/branch/commit: {"url": "http://localhost:6363", "database": "efah", "branches": [], "commit": "UNAVAILABLE"}
+    tier=DETERMINISTIC_ORACLE  source=live GET /api/info and /api/db/admin/{db}/local/branch
+    note: graph commit id is not exposed by the branch endpoint on this version
+
+  Release repository and commit: {"repository": "git@github-efah:Pukujan/efah-harness.git", "branch": "feat/kernel-and-ci", "commit": "7f5e0e6875d52c9fce59dce81f73a1327a7c73ab", "working_tre...
+    tier=DETERMINISTIC_ORACLE  source=git rev-parse HEAD / git status --porcelain
+
+  Release artifact digest: {"artifact": "efah-0.1.0-py3-none-any.whl", "digest": "sha256:eb53ded7b7e265ced392be03f39eb08b8975953d80be8539198965e734456c99", "size_bytes": 423917, "built...
+    tier=DETERMINISTIC_ORACLE  source=sha256 over the built wheel + dist/BUILD-PROVENANCE.json
+    note: the artifact was not built from the current clean HEAD, so it does not identify this commit; rebuild before treating it as a release digest
+
+  Requirements satisfied / total: {"satisfied": "UNAVAILABLE", "total": "UNAVAILABLE"}
+    tier=NOT_MEASURED  source=requirements catalog is loadable; per-requirement satisfaction is not yet recorded
+    note: satisfaction requires every requirement bound to a passing gate; 18 gates are NOT_YET_EXECUTABLE, so the numerator would be a guess
+
+  Tasks completed / total: {"completed": 1, "total": 2}
+    tier=DETERMINISTIC_ORACLE  source=.data/owner_surface_ledger.jsonl work_unit projections
+
+! Visible tests result: UNAVAILABLE
+    tier=NOT_MEASURED  source=the recorded run exercised source tree 0f0d00952e10, the working tree is e1b025bbcace
+    note: a passing suite from different source is not evidence about this source
+
+  Integration/composition result: {"composition_findings": [], "composition_finding_count": 0, "modules_declared": 32}
+    tier=DETERMINISTIC_ORACLE  source=composition.registry live discovery + recorded walking-skeleton evidence
+
+  Hidden holdout result: {"lane": "hidden", "candidate_commit": "7f5e0e6875d52c9fce59dce81f73a1327a7c73ab", "verdict": "UNVERIFIABLE", "blocked_reason": "no protected-verifier endpoi...
+    tier=DETERMINISTIC_ORACLE  source=holdouts.suite.HoldoutLane submitted against HEAD
+    note: UNVERIFIABLE is not a soft pass. No sealed holdout content exists: FINDING-005 holds generation, and the generator enforces that refusal itself. auto_merge_requirements.hidden_holdout therefore cannot be PASS.
+
+  Mutants seeded/killed: {"seeded": 25, "killed": 25, "kill_rate": 1.0, "by_class": {"implementation_mutant": {"seeded": 4, "killed": 4}, "evaluator_or_oracle_mutant": {"seeded": 9, ...
+    tier=DETERMINISTIC_ORACLE  source=mutants.runner.run_mutation_gate against the live oracle set
+    note: a kill rate of 1.0 is only as strong as the mutants are hard. FINDING-003 and FINDING-005 both bear on this: the mutant author is labelled frontier and is not, and its transport is a resold pool. Read this number with that.
+
+  Oracle versions and health: {"ORACLE-001": {"oracle_version": "1.0.0", "hierarchy_level": 1, "declared_health_fields": ["oracle_version", "content_hash", "fixture_suite_result", "last_a...
+    tier=DETERMINISTIC_ORACLE  source=oracles.registry.build_oracles() with oracles.fixtures.run_fixture_suite executed
+
+  Scope-drift findings and resolution: {"open_findings": [], "resolved": [], "recorded_reports": []}
+    tier=DETERMINISTIC_ORACLE  source=drift.engine reports recorded under evidence/
+    note: findings raised this session are recorded as FINDING-003 through FINDING-006 in docs/decisions/
+
+  Dependency versions and verification status: {"context7_snapshots": ["C7-langgraph-1.2.10-296ef01c.json", "C7-langgraph-chat-ui-threads-b28a3847.json", "C7-librechat-custom-endpoints-03d45044.json", "C7...
+    tier=INDEPENDENTLY_REPRODUCED  source=project-pack/evidence/context7-snapshots/ (hashed at retrieval, §16.1)
+    note: the two Context7 credentials are capacity and failover, not independent sources; two agreeing retrievals from them are one source (environments.yaml)
+
+  Deployment/shadow/canary evidence where required: {"owner_control_surface": {"unit": "efah-owner-surface (systemd user unit, Restart=always, linger enabled)", "exposure": "tailnet only, via tailscale serve; ...
+    tier=DETERMINISTIC_ORACLE  source=systemd unit state + evidence/GATE-D1-10-result.json
+    note: §22 shadow/canary/pilot has no deployed production consumer to shadow, so no such evidence exists; recorded as absent rather than as satisfied
+
+  Knowledge promotions: {"promotions": [], "recorded": false}
+    tier=NOT_MEASURED  source=evidence/gates/GATE-D2-18/ (knowledge.tiers promotion records)
+    note: GATE-D2-18 passes on the promotion *rules*; no corpus has been promoted
+
+  Hard-gold candidates/promotions: {"candidates": [], "promotions": []}
+    tier=NOT_MEASURED  source=gold.promotion — no candidate has met the reproduction bar
+    note: §28 lists 'a large calibrated gold corpus for every domain' as an explicit non-goal for this build; an empty set here is deliberate, not missing work
+
+  Model aliases and protected audit references: {"aliases": {"researcher": "researcher-r17", "research_challenger": "challenger-x02", "planner": "planner-p04", "plan_challenger": "planchal-q06", "implement...
+    tier=DETERMINISTIC_ORACLE  source=model-policy.yaml alias map + models.separation.coverage_report()
+    note: real model identities are deliberately absent (§12.3). Family is a label: FINDING-005 measured three anthropic-labelled roles resolving to one resold account pool, so a cross-family edge may not hold at the transport.
+
+  Timing breakdown: {"package_build_seconds": 0.283, "stages": [{"stage": "terminusdb", "seconds": 0.089}, {"stage": "requirements", "seconds": 0.005}, {"stage": "tasks", "secon...
+    tier=DETERMINISTIC_ORACLE  source=measured during this package build
+    note: per-phase project timing lives in the task ledger; this is the package build itself
+
+! Auto-merged PR reference: UNAVAILABLE
+    tier=NOT_MEASURED  source=no pull request has been auto-merged
+    note: auto_merge_requirements.hidden_holdout cannot be PASS while sealed holdout content does not exist, and §21.2 forbids the implementing agent self-certifying. A merged PR here would mean a gate was bypassed.
+
+  Honest debt and deliberately deferred non-goals: {"honest_debt": [{"id": "DEBT-001", "title": "sealed verifier isolation is same-host and defeated by sudo", "detail": "DEC-006 option B separates the verifie...
+    tier=OWNER_VERIFIED  source=docs/decisions/ findings and DEC records, cross-referenced to measurements
+
+------------------------------------------------------------------------------
+project status : RUNNING
+fields present : 20/22
+missing        : visible_tests_result, auto_merged_pr_reference
+honest debt    : 8 entries
+
+A final prose summary without this package is not completion (§27).
+This package is not a claim of completion: project status above is measured,
+not asserted, and it is not VERIFIED_COMPLETE.

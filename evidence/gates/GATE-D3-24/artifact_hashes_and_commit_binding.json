@@ -1,0 +1,9 @@
+{
+  "artifact": "artifact_hashes_and_commit_binding",
+  "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+  "contents": {
+    "candidate_commit": "c0d654a32621afb2b16e7d2d881e50fdb04f2f7c",
+    "evidence_hash": "sha256:c1e269ae028d7e3728086010c43c136f0c73b937dbed59442098e420c5e99fd4"
+  },
+  "gate_id": "GATE-D3-24"
+}

@@ -1,0 +1,249 @@
+{
+  "check": "chat_facade_live_bench",
+  "oracle_type": "deterministic_structural_checks",
+  "model_judge_in_verdict_path": false,
+  "base_url": "http://127.0.0.1:8088",
+  "scenarios": 7,
+  "runs": 13,
+  "passed": 13,
+  "failed": 0,
+  "latency_p50": 14.83,
+  "latency_max": 133.0,
+  "usage_block_returned_by_facade": false,
+  "note": "Sample size is deliberately small: every run is a real generation and the account-wide throttle makes concurrency useless. Structural coverage lives in tests/contract/test_chat_facade_contract.py.",
+  "results": [
+    {
+      "scenario": "auto_short_answer",
+      "model": "efah-auto",
+      "stream": false,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 2.3960746600059792,
+      "chars": 2,
+      "usage_reported": false,
+      "checks": {
+        "echoes_mode_id": true,
+        "finish_reason_stop": true,
+        "meets_min_length": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "auto_short_answer",
+      "model": "efah-auto",
+      "stream": true,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 2.709455226082355,
+      "chars": 2,
+      "usage_reported": false,
+      "checks": {
+        "terminates_with_done": true,
+        "content_type_is_sse": true,
+        "meets_min_length": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "plan_decomposition",
+      "model": "efah-plan",
+      "stream": false,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 76.73846263997257,
+      "chars": 7626,
+      "usage_reported": false,
+      "checks": {
+        "echoes_mode_id": true,
+        "finish_reason_stop": true,
+        "meets_min_length": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "plan_decomposition",
+      "model": "efah-plan",
+      "stream": true,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 68.88684838602785,
+      "chars": 7598,
+      "usage_reported": false,
+      "checks": {
+        "terminates_with_done": true,
+        "content_type_is_sse": true,
+        "meets_min_length": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "research_evidence",
+      "model": "efah-research",
+      "stream": false,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 15.133499008021317,
+      "chars": 417,
+      "usage_reported": false,
+      "checks": {
+        "echoes_mode_id": true,
+        "finish_reason_stop": true,
+        "meets_min_length": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "research_evidence",
+      "model": "efah-research",
+      "stream": true,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 132.99518257996533,
+      "chars": 7040,
+      "usage_reported": false,
+      "checks": {
+        "terminates_with_done": true,
+        "content_type_is_sse": true,
+        "meets_min_length": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "review_refutation",
+      "model": "efah-review",
+      "stream": false,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 23.18308980402071,
+      "chars": 3196,
+      "usage_reported": false,
+      "checks": {
+        "echoes_mode_id": true,
+        "finish_reason_stop": true,
+        "meets_min_length": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "review_refutation",
+      "model": "efah-review",
+      "stream": true,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 23.356635326053947,
+      "chars": 3319,
+      "usage_reported": false,
+      "checks": {
+        "terminates_with_done": true,
+        "content_type_is_sse": true,
+        "meets_min_length": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "build_candidate",
+      "model": "efah-build",
+      "stream": false,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 14.829283410916105,
+      "chars": 328,
+      "usage_reported": false,
+      "checks": {
+        "echoes_mode_id": true,
+        "finish_reason_stop": true,
+        "meets_min_length": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "build_candidate",
+      "model": "efah-build",
+      "stream": true,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 8.921781608019955,
+      "chars": 246,
+      "usage_reported": false,
+      "checks": {
+        "terminates_with_done": true,
+        "content_type_is_sse": true,
+        "meets_min_length": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "multi_turn_continuity",
+      "model": "efah-auto",
+      "stream": false,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 3.8215398830361664,
+      "chars": 7,
+      "usage_reported": false,
+      "checks": {
+        "echoes_mode_id": true,
+        "finish_reason_stop": true,
+        "meets_min_length": true,
+        "carries_expected_substring": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "multi_turn_continuity",
+      "model": "efah-auto",
+      "stream": true,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 200,
+      "latency_seconds": 3.1462352159433067,
+      "chars": 7,
+      "usage_reported": false,
+      "checks": {
+        "terminates_with_done": true,
+        "content_type_is_sse": true,
+        "meets_min_length": true,
+        "carries_expected_substring": true,
+        "not_a_surfaced_failure": true
+      },
+      "error": null
+    },
+    {
+      "scenario": "foreign_model_refused",
+      "model": "gpt-4o",
+      "stream": false,
+      "attempt": 1,
+      "ok": true,
+      "http_status": 400,
+      "latency_seconds": 0.0011544500011950731,
+      "chars": 0,
+      "usage_reported": false,
+      "checks": {
+        "refused_as_specified": true
+      },
+      "error": null
+    }
+  ]
+}

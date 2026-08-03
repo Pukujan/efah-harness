@@ -1,0 +1,298 @@
+[
+  {
+    "claim_id": "C1",
+    "statement": "Open WebUI connects to a self-hosted OpenAI-compatible endpoint by URL",
+    "verdict": "SUPPORTED",
+    "load_bearing": true,
+    "affected_requirement": "BUILD_VS_INTEGRATE-001",
+    "confidence": "high",
+    "uncertainty": "",
+    "conflicts": [],
+    "max_knowledge_tier": "T4_REPRODUCIBLE",
+    "citations": [
+      {
+        "source_id": "C7-openwebui-connections-e92742a3",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/evidence/context7-snapshots/C7-openwebui-connections-e92742a3.json at llama.cpp connection example",
+        "recorded_hash": "sha256:186bdad3389f88b12194ef0f32705f7d48d6fe27449a44c3538b1eab9ab0a13b",
+        "observed_hash": "sha256:186bdad3389f88b12194ef0f32705f7d48d6fe27449a44c3538b1eab9ab0a13b",
+        "support_kind": "DIRECT",
+        "source_class": "VERSION_PINNED_SNAPSHOT"
+      }
+    ],
+    "citation_checks": [
+      {
+        "source_id": "C7-openwebui-connections-e92742a3",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/evidence/context7-snapshots/C7-openwebui-connections-e92742a3.json at llama.cpp connection example",
+        "recorded_hash": "sha256:186bdad3389f88b12194ef0f32705f7d48d6fe27449a44c3538b1eab9ab0a13b",
+        "observed_hash": "sha256:186bdad3389f88b12194ef0f32705f7d48d6fe27449a44c3538b1eab9ab0a13b",
+        "support_kind": "DIRECT",
+        "source_class": "VERSION_PINNED_SNAPSHOT"
+      }
+    ],
+    "findings": [],
+    "oracle_type": "exact_deterministic_execution_or_state",
+    "model_judge_in_verdict_path": false,
+    "validated_at": "2026-08-02T15:25:32.605798+00:00"
+  },
+  {
+    "claim_id": "C2",
+    "statement": "LibreChat configures self-hosted services as custom endpoints with a base URL in librechat.yaml",
+    "verdict": "SUPPORTED",
+    "load_bearing": true,
+    "affected_requirement": "BUILD_VS_INTEGRATE-001",
+    "confidence": "high",
+    "uncertainty": "",
+    "conflicts": [],
+    "max_knowledge_tier": "T4_REPRODUCIBLE",
+    "citations": [
+      {
+        "source_id": "C7-librechat-custom-endpoints-03d45044",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/evidence/context7-snapshots/C7-librechat-custom-endpoints-03d45044.json at Groq custom endpoint example",
+        "recorded_hash": "sha256:d19f61dace3faef76744d266ca024c241477d47d88e27d905eae4a309021425c",
+        "observed_hash": "sha256:d19f61dace3faef76744d266ca024c241477d47d88e27d905eae4a309021425c",
+        "support_kind": "DIRECT",
+        "source_class": "VERSION_PINNED_SNAPSHOT"
+      }
+    ],
+    "citation_checks": [
+      {
+        "source_id": "C7-librechat-custom-endpoints-03d45044",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/evidence/context7-snapshots/C7-librechat-custom-endpoints-03d45044.json at Groq custom endpoint example",
+        "recorded_hash": "sha256:d19f61dace3faef76744d266ca024c241477d47d88e27d905eae4a309021425c",
+        "observed_hash": "sha256:d19f61dace3faef76744d266ca024c241477d47d88e27d905eae4a309021425c",
+        "support_kind": "DIRECT",
+        "source_class": "VERSION_PINNED_SNAPSHOT"
+      }
+    ],
+    "findings": [],
+    "oracle_type": "exact_deterministic_execution_or_state",
+    "model_judge_in_verdict_path": false,
+    "validated_at": "2026-08-02T15:25:32.605829+00:00"
+  },
+  {
+    "claim_id": "C3",
+    "statement": "LangGraph's Agent Chat UI is a separate repository requiring a Node toolchain",
+    "verdict": "SUPPORTED",
+    "load_bearing": true,
+    "affected_requirement": "BUILD_VS_INTEGRATE-001",
+    "confidence": "high",
+    "uncertainty": "",
+    "conflicts": [],
+    "max_knowledge_tier": "T4_REPRODUCIBLE",
+    "citations": [
+      {
+        "source_id": "C7-langgraph-chat-ui-threads-b28a3847",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/evidence/context7-snapshots/C7-langgraph-chat-ui-threads-b28a3847.json at Clone Agent Chat UI Repository",
+        "recorded_hash": "sha256:39b9f16f1fe1a04aa6123353f6425b4771095eaf134cd1db833aa11f661b6797",
+        "observed_hash": "sha256:39b9f16f1fe1a04aa6123353f6425b4771095eaf134cd1db833aa11f661b6797",
+        "support_kind": "DIRECT",
+        "source_class": "VERSION_PINNED_SNAPSHOT"
+      }
+    ],
+    "citation_checks": [
+      {
+        "source_id": "C7-langgraph-chat-ui-threads-b28a3847",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/evidence/context7-snapshots/C7-langgraph-chat-ui-threads-b28a3847.json at Clone Agent Chat UI Repository",
+        "recorded_hash": "sha256:39b9f16f1fe1a04aa6123353f6425b4771095eaf134cd1db833aa11f661b6797",
+        "observed_hash": "sha256:39b9f16f1fe1a04aa6123353f6425b4771095eaf134cd1db833aa11f661b6797",
+        "support_kind": "DIRECT",
+        "source_class": "VERSION_PINNED_SNAPSHOT"
+      }
+    ],
+    "findings": [],
+    "oracle_type": "exact_deterministic_execution_or_state",
+    "model_judge_in_verdict_path": false,
+    "validated_at": "2026-08-02T15:25:32.605834+00:00"
+  },
+  {
+    "claim_id": "C4",
+    "statement": "the dependency policy integrates by default",
+    "verdict": "SUPPORTED",
+    "load_bearing": true,
+    "affected_requirement": "BUILD_VS_INTEGRATE-001",
+    "confidence": "high",
+    "uncertainty": "",
+    "conflicts": [],
+    "max_knowledge_tier": "T4_REPRODUCIBLE",
+    "citations": [
+      {
+        "source_id": "dependency-policy",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/dependency-policy.yaml at policy block",
+        "recorded_hash": "sha256:49a4e17a5d357b337cc518634b88bfd31f83b1f1bf4eecbb9738af4f1867eb09",
+        "observed_hash": "sha256:49a4e17a5d357b337cc518634b88bfd31f83b1f1bf4eecbb9738af4f1867eb09",
+        "support_kind": "DIRECT",
+        "source_class": "RECORDED_DECISION"
+      }
+    ],
+    "citation_checks": [
+      {
+        "source_id": "dependency-policy",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/dependency-policy.yaml at policy block",
+        "recorded_hash": "sha256:49a4e17a5d357b337cc518634b88bfd31f83b1f1bf4eecbb9738af4f1867eb09",
+        "observed_hash": "sha256:49a4e17a5d357b337cc518634b88bfd31f83b1f1bf4eecbb9738af4f1867eb09",
+        "support_kind": "DIRECT",
+        "source_class": "RECORDED_DECISION"
+      }
+    ],
+    "findings": [],
+    "oracle_type": "exact_deterministic_execution_or_state",
+    "model_judge_in_verdict_path": false,
+    "validated_at": "2026-08-02T15:25:32.605838+00:00"
+  },
+  {
+    "claim_id": "C5",
+    "statement": "a custom project-management UI is prohibited as duplicating Plane",
+    "verdict": "SUPPORTED",
+    "load_bearing": true,
+    "affected_requirement": "BUILD_VS_INTEGRATE-001",
+    "confidence": "high",
+    "uncertainty": "",
+    "conflicts": [],
+    "max_knowledge_tier": "T4_REPRODUCIBLE",
+    "citations": [
+      {
+        "source_id": "dependency-policy",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/dependency-policy.yaml at prohibited list",
+        "recorded_hash": "sha256:49a4e17a5d357b337cc518634b88bfd31f83b1f1bf4eecbb9738af4f1867eb09",
+        "observed_hash": "sha256:49a4e17a5d357b337cc518634b88bfd31f83b1f1bf4eecbb9738af4f1867eb09",
+        "support_kind": "DIRECT",
+        "source_class": "RECORDED_DECISION"
+      }
+    ],
+    "citation_checks": [
+      {
+        "source_id": "dependency-policy",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/dependency-policy.yaml at prohibited list",
+        "recorded_hash": "sha256:49a4e17a5d357b337cc518634b88bfd31f83b1f1bf4eecbb9738af4f1867eb09",
+        "observed_hash": "sha256:49a4e17a5d357b337cc518634b88bfd31f83b1f1bf4eecbb9738af4f1867eb09",
+        "support_kind": "DIRECT",
+        "source_class": "RECORDED_DECISION"
+      }
+    ],
+    "findings": [],
+    "oracle_type": "exact_deterministic_execution_or_state",
+    "model_judge_in_verdict_path": false,
+    "validated_at": "2026-08-02T15:25:32.605842+00:00"
+  },
+  {
+    "claim_id": "C6",
+    "statement": "the contract requires a BUILD_VS_INTEGRATE record before custom implementation",
+    "verdict": "SUPPORTED",
+    "load_bearing": true,
+    "affected_requirement": "BUILD_VS_INTEGRATE-001",
+    "confidence": "high",
+    "uncertainty": "",
+    "conflicts": [],
+    "max_knowledge_tier": "T4_REPRODUCIBLE",
+    "citations": [
+      {
+        "source_id": "contract",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/contract.md at §14.2",
+        "recorded_hash": "sha256:8839f95b90ef5ff624f30918c8a85d5d958ff64b20107cf05bbb0b5660c956d6",
+        "observed_hash": "sha256:8839f95b90ef5ff624f30918c8a85d5d958ff64b20107cf05bbb0b5660c956d6",
+        "support_kind": "DIRECT",
+        "source_class": "RECORDED_DECISION"
+      }
+    ],
+    "citation_checks": [
+      {
+        "source_id": "contract",
+        "status": "VERIFIED",
+        "detail": "quote found in project-pack/contract.md at §14.2",
+        "recorded_hash": "sha256:8839f95b90ef5ff624f30918c8a85d5d958ff64b20107cf05bbb0b5660c956d6",
+        "observed_hash": "sha256:8839f95b90ef5ff624f30918c8a85d5d958ff64b20107cf05bbb0b5660c956d6",
+        "support_kind": "DIRECT",
+        "source_class": "RECORDED_DECISION"
+      }
+    ],
+    "findings": [],
+    "oracle_type": "exact_deterministic_execution_or_state",
+    "model_judge_in_verdict_path": false,
+    "validated_at": "2026-08-02T15:25:32.605846+00:00"
+  },
+  {
+    "claim_id": "C7",
+    "statement": "Open WebUI's /v1/models discovery is optional because models can be allowlisted",
+    "verdict": "SUPPORTED",
+    "load_bearing": true,
+    "affected_requirement": "BUILD_VS_INTEGRATE-001",
+    "confidence": "medium",
+    "uncertainty": "",
+    "conflicts": [],
+    "max_knowledge_tier": "T4_REPRODUCIBLE",
+    "citations": [
+      {
+        "source_id": "C7-openwebui-openai-compatible-a61d143d",
+        "status": "VERIFIED",
+        "detail": "quote found in evidence/context7-mcp-retrievals/C7-openwebui-openai-compatible-a61d143d.json at Required API Endpoints",
+        "recorded_hash": "sha256:a00d9c75487ade0c1c17391fc9d83f611280947ec351711b3e367653a938eed8",
+        "observed_hash": "sha256:a00d9c75487ade0c1c17391fc9d83f611280947ec351711b3e367653a938eed8",
+        "support_kind": "DIRECT",
+        "source_class": "SECONDARY_COMMENTARY"
+      }
+    ],
+    "citation_checks": [
+      {
+        "source_id": "C7-openwebui-openai-compatible-a61d143d",
+        "status": "VERIFIED",
+        "detail": "quote found in evidence/context7-mcp-retrievals/C7-openwebui-openai-compatible-a61d143d.json at Required API Endpoints",
+        "recorded_hash": "sha256:a00d9c75487ade0c1c17391fc9d83f611280947ec351711b3e367653a938eed8",
+        "observed_hash": "sha256:a00d9c75487ade0c1c17391fc9d83f611280947ec351711b3e367653a938eed8",
+        "support_kind": "DIRECT",
+        "source_class": "SECONDARY_COMMENTARY"
+      }
+    ],
+    "findings": [],
+    "oracle_type": "exact_deterministic_execution_or_state",
+    "model_judge_in_verdict_path": false,
+    "validated_at": "2026-08-02T15:25:32.605849+00:00"
+  },
+  {
+    "claim_id": "C8",
+    "statement": "Agent Chat UI surfaces interrupted threads natively",
+    "verdict": "SUPPORTED",
+    "load_bearing": true,
+    "affected_requirement": "BUILD_VS_INTEGRATE-001",
+    "confidence": "medium",
+    "uncertainty": "",
+    "conflicts": [],
+    "max_knowledge_tier": "T4_REPRODUCIBLE",
+    "citations": [
+      {
+        "source_id": "C7-langgraph-agent-chat-ui-087f6f72",
+        "status": "VERIFIED",
+        "detail": "quote found in evidence/context7-mcp-retrievals/C7-langgraph-agent-chat-ui-087f6f72.json at Connect to your agent",
+        "recorded_hash": "sha256:cae53a71ca264886ab8e298b86fb4373686bc4cb27beb314a9701d63fc592636",
+        "observed_hash": "sha256:cae53a71ca264886ab8e298b86fb4373686bc4cb27beb314a9701d63fc592636",
+        "support_kind": "DIRECT",
+        "source_class": "SECONDARY_COMMENTARY"
+      }
+    ],
+    "citation_checks": [
+      {
+        "source_id": "C7-langgraph-agent-chat-ui-087f6f72",
+        "status": "VERIFIED",
+        "detail": "quote found in evidence/context7-mcp-retrievals/C7-langgraph-agent-chat-ui-087f6f72.json at Connect to your agent",
+        "recorded_hash": "sha256:cae53a71ca264886ab8e298b86fb4373686bc4cb27beb314a9701d63fc592636",
+        "observed_hash": "sha256:cae53a71ca264886ab8e298b86fb4373686bc4cb27beb314a9701d63fc592636",
+        "support_kind": "DIRECT",
+        "source_class": "SECONDARY_COMMENTARY"
+      }
+    ],
+    "findings": [],
+    "oracle_type": "exact_deterministic_execution_or_state",
+    "model_judge_in_verdict_path": false,
+    "validated_at": "2026-08-02T15:25:32.605853+00:00"
+  }
+]

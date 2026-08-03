@@ -1,0 +1,50 @@
+{
+  "affected_decisions": [
+    "DEC-001",
+    "DEC-201"
+  ],
+  "affected_dependencies": [
+    "langgraph",
+    "langgraph-checkpoint",
+    "langgraph-checkpoint-sqlite",
+    "aiosqlite",
+    "ormsgpack"
+  ],
+  "contract_id": "EFAH-CONTRACT-001",
+  "contract_version": "1.1",
+  "credential_alias": "primary",
+  "independent_corroboration": {
+    "api_facts_confirmed_against_installed_package": [
+      "AsyncSqliteSaver(conn, serde=...) and AsyncSqliteSaver.from_conn_string(conn_string)",
+      "JsonPlusSerializer(pickle_fallback=False, allowed_json_modules=None, allowed_msgpack_modules=None) selects the strict allowlist; the constructor default is permissive unless LANGGRAPH_STRICT_MSGPACK=true",
+      "BaseCheckpointSaver.aput(config, checkpoint, metadata, new_versions) is the write seam overridden for Section 10.4 enforcement",
+      "adelete_thread(thread_id) exists on AsyncSqliteSaver 3.1.1"
+    ],
+    "installed_source": "/home/yoav/efah/.venv/lib/python3.12/site-packages/langgraph/checkpoint/sqlite/aio.py",
+    "live_probe": "Ran a two-branch StateGraph on AsyncSqliteSaver, SIGKILLed the process mid-superstep, resumed with ainvoke(None, config); the completed branch node did not re-execute. Reproduced by tests/integration/test_langgraph_resume.py.",
+    "note": "Contract Section 16: the two Context7 credentials are failover capacity, not independent evidence. Corroboration here comes from a genuinely different origin -- the installed package source and a live probe."
+  },
+  "installed_versions_probed": {
+    "aiosqlite": "0.22.1",
+    "langgraph": "1.2.10",
+    "langgraph-checkpoint": "4.1.1",
+    "langgraph-checkpoint-sqlite": "3.1.1",
+    "ormsgpack": "1.12.2"
+  },
+  "library_id": "/websites/langchain_oss_python_langgraph",
+  "library_version_or_branch": "langgraph==1.2.10 / langgraph-checkpoint-sqlite==3.1.1 (installed, pinned by probe). The Context7 entry itself exposes no version axis, so the pin is the resolved package version the snapshot was verified against, not an unpinned 'latest'.",
+  "normalization_rule": "strip-trailing-whitespace; drop-blank-lines; join-with-lf",
+  "normalized_response_hash": "sha256:b14b45c34074a082ae1ed6929344ae397be67752340383f22d924f4419a57e93",
+  "query": "AsyncSqliteSaver checkpointer setup, custom serializer JsonPlusSerializer pickle_fallback allowed modules, resume from checkpoint without re-running completed nodes",
+  "raw_response": "### Implementing `aput` for Checkpoint Storage\n\nSource: https://docs.langchain.com/oss/python/langgraph/checkpointers\n\nThis method stores a single checkpoint row and returns an updated configuration with the stored `checkpoint_id`. It requires serializing the checkpoint using `self.serde.dumps_typed` and storing all metadata.\n\n```python\nasync def aput(self, config, checkpoint, metadata, new_versions):\n    thread_id = config[\"configurable\"][\"thread_id\"]\n    checkpoint_ns = config[\"configurable\"][\"checkpoint_ns\"]\n    checkpoint_id = checkpoint[\"id\"]\n    parent_id = config[\"configurable\"].get(\"checkpoint_id\")\n\n    type_, blob = self.serde.dumps_typed(checkpoint)\n    serialized_metadata = self.serde.dumps_typed(metadata)\n\n    await self.db.execute(\n        \"INSERT INTO checkpoints (...) VALUES (...)\",\n        thread_id, checkpoint_ns, checkpoint_id, parent_id,\n        type_, blob, *serialized_metadata,\n    )\n    return {\n        \"configurable\": {\n            \"thread_id\": thread_id,\n            \"checkpoint_ns\": checkpoint_ns,\n            \"checkpoint_id\": checkpoint_id,\n        }\n    }\n```\n\n--------------------------------\n\n### Implement Async Redis Checkpointer for LangGraph\n\nSource: https://docs.langchain.com/oss/python/langgraph/add-memory\n\nThis snippet illustrates how to set up and use `AsyncRedisSaver` for asynchronous state persistence in a LangGraph application. It includes graph compilation with the checkpointer and asynchronous streaming of events.\n\n```python\nfrom langchain.chat_models import init_chat_model\nfrom langgraph.graph import StateGraph, MessagesState, START\nfrom langgraph.checkpoint.redis.aio import AsyncRedisSaver\n\nmodel = init_chat_model(model=\"claude-haiku-4-5-20251001\")\n\nDB_URI = \"redis://localhost:6379\"\nasync with AsyncRedisSaver.from_conn_string(DB_URI) as checkpointer:\n    # await checkpointer.asetup()\n\n    async def call_model(state: MessagesState):\n        response = await model.ainvoke(state[\"messages\"])\n        return {\"messages\": response}\n\n    builder = StateGraph(MessagesState)\n    builder.add_node(call_model)\n    builder.add_edge(START, \"call_model\")\n\n    graph = builder.compile(checkpointer=checkpointer)\n\n    config = {\n        \"configurable\": {\n            \"thread_id\": \"1\"\n        }\n    }\n\n    stream = await graph.astream_events(\n        {\"messages\": [{\"role\": \"user\", \"content\": \"hi! I'm bob\"}]},\n        config,\n        version=\"v3\",\n    )\n    async for message in stream.messages:\n        async for token in message.text:\n            print(token, end=\"\", flush=True)\n\n    stream = await graph.astream_events(\n        {\"messages\": [{\"role\": \"user\", \"content\": \"what's my name?\"}]},\n        config,\n        version=\"v3\",\n    )\n    async for message in stream.messages:\n        async for token in message.text:\n            print(token, end=\"\", flush=True)\n```\n\n--------------------------------\n\n### Replay Graph Execution from a Checkpoint\n\nSource: https://docs.langchain.com/oss/python/langgraph/use-time-travel\n\nInvoke the graph with a prior checkpoint's config to replay from that point. Nodes before the checkpoint are not re-executed, but nodes after it re-execute, including LLM calls and API requests.\n\n```python\nfrom langgraph.graph import StateGraph, START\nfrom langgraph.checkpoint.memory import InMemorySaver\nfrom typing_extensions import TypedDict, NotRequired\nfrom langchain_core.utils.uuid import uuid7\n\nclass State(TypedDict):\n    topic: NotRequired[str]\n    joke: NotRequired[str]\n\n\ndef generate_topic(state: State):\n    return {\"topic\": \"socks in the dryer\"}\n\ndef write_joke(state: State):\n    return {\"joke\": f\"Why do {state['topic']} disappear? They elope!\"}\n\n\ncheckpointer = InMemorySaver()\ngraph = (\n    StateGraph(State)\n    .add_node(\"generate_topic\", generate_topic)\n    .add_node(\"write_joke\", write_joke)\n    .add_edge(START, \"generate_topic\")\n    .add_edge(\"generate_topic\", \"write_joke\")\n    .compile(checkpointer=checkpointer)\n)\n\n# Step 1: Run the graph\nconfig = {\"configurable\": {\"thread_id\": str(uuid7())}}\nresult = graph.invoke({}, config)\n\n# Step 2: Find a checkpoint to replay from\nhistory = list(graph.get_state_history(config))\n# History is in reverse chronological order\nfor state in history:\n    print(f\"next={state.next}, checkpoint_id={state.config['configurable']['checkpoint_id']}\")\n\n# Step 3: Replay from a specific checkpoint\n# Find the checkpoint before write_joke\nbefore_joke = next(s for s in history if s.next == (\"write_joke\",))\nreplay_result = graph.invoke(None, before_joke.config)\n# write_joke re-executes (runs again), generate_topic does not\n```\n\n### Serialization\n\nSource: https://docs.langchain.com/oss/python/langgraph/checkpointers\n\nFor checkpoints, writes, and metadata, always use `self.serde`, which defaults to `JsonPlusSerializer` inherited from `BaseCheckpointSaver`. `JsonPlusSerializer` is preferred over `pickle` because it produces human-readable output, handles versioning better, and automatically supports LangGraph-native types like `_DeltaSnapshot`, Pydantic v2 models, dataclasses, numpy arrays, datetimes, and enums.\n\n--------------------------------\n\n### Checkpointers > Why use checkpointers\n\nSource: https://docs.langchain.com/oss/python/langgraph/checkpointers\n\nIf a graph node fails mid-execution, LangGraph stores pending checkpoint writes from other successfully completed nodes at that super-step. This ensures that upon resuming graph execution, successful nodes are not re-run.\n",
+  "raw_response_hash": "sha256:296ef01c7a62ebbe5aa4579edab1e719dde6cc469a4dfd152c6f21301a98228f",
+  "retrieved_at": "2026-08-02T00:00:00Z",
+  "schema_id": "efah.context7_snapshot",
+  "schema_version": "1.0",
+  "snapshot_id": "C7-langgraph-1.2.10-296ef01c",
+  "source_locations": [
+    "https://docs.langchain.com/oss/python/langgraph/checkpointers",
+    "https://docs.langchain.com/oss/python/langgraph/add-memory",
+    "https://docs.langchain.com/oss/python/langgraph/use-time-travel"
+  ]
+}

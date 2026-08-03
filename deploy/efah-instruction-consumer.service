@@ -1,0 +1,51 @@
+# Owner instruction consumer — the loop between the chat surface and the runtime.
+#
+# The owner control surface accepts an INSTRUCT command, validates it, and
+# records it. This service is what makes something happen next: it reads the
+# queue, leases each instruction as a work unit, dispatches it through a worker
+# adapter, and writes the outcome back into the same ledger the surface reads —
+# so the owner sees the result where they issued the instruction.
+#
+# Install as a user service, alongside efah-owner-surface:
+#   mkdir -p ~/.config/systemd/user
+#   cp deploy/efah-instruction-consumer.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now efah-instruction-consumer
+#   loginctl enable-linger $USER
+#
+# GATE-D1-07: like the surface, this unit UNSETS every Anthropic credential. The
+# consumer must run with no Claude access at all — it selects its worker from
+# the registry, which prefers the LiteLLM adapter and treats Claude Code as
+# optional. Unsetting the credentials here means the vendor-neutrality property
+# is re-proved on every restart rather than assumed from the ambient shell.
+
+[Unit]
+Description=EFAH owner instruction consumer (contract v1.1 §11.7 / §9.5)
+After=network-online.target efah-owner-surface.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/yoav/efah/efah-harness
+Environment=PYTHONPATH=/home/yoav/efah/efah-harness/src
+Environment=EFAH_TERMINUSDB_URL=http://localhost:6363
+Environment=EFAH_TERMINUSDB_DB=efah
+Environment=EFAH_OWNER_LEDGER=/home/yoav/efah/efah-harness/.data/owner_surface_ledger.jsonl
+# How often the queue is polled. Instructions are typed by a human, so seconds
+# of latency cost nothing and a tighter loop would only burn the account-wide
+# request budget the throttle exists to protect.
+Environment=EFAH_CONSUMER_INTERVAL=10
+UnsetEnvironment=ANTHROPIC_API_KEY ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN CLAUDE_API_KEY
+EnvironmentFile=/home/yoav/.efah/env
+ExecStart=/home/yoav/efah/.venv/bin/python -m orchestration.consumer
+Restart=always
+RestartSec=10
+
+# The consumer writes candidates and reads the pack. It has no reason to reach
+# the sealed store, and the verifier identity's 0700 directory refuses it
+# anyway — this is belt and braces, not the boundary (DEC-006 honest debt).
+NoNewPrivileges=true
+PrivateTmp=false
+
+[Install]
+WantedBy=default.target

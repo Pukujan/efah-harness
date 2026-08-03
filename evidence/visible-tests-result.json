@@ -1,0 +1,23 @@
+{
+  "command": "/home/yoav/efah/.venv/bin/python -m pytest tests/ -q --tb=no",
+  "exit_status": 0,
+  "result": "PASS",
+  "summary": "1064 passed, 11 skipped, 1 warning in 140.12s (0:02:20)",
+  "started_at": "2026-08-02T17:13:06Z",
+  "duration_seconds": 141.2,
+  "candidate_commit": "d4073be068259a9c4ab6d1c57c45d1f714b39b8f",
+  "source_tree_hash": "sha256:0f0d00952e10e0c995af1cc23d10925a3d7c95f0b17684adbc61c9e1cf9d4982",
+  "raw_result_artifact": "evidence/visible-tests-raw.txt",
+  "raw_result_sha256": "sha256:8d322e93fd5c831e6264dd94a671fee173441ff0e18fd8e10afea17fe2d9b09b",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.39",
+    "credential_names_present": [
+      "LITELLM_EVAL_MASTER_KEY",
+      "LITELLM_MASTER_KEY",
+      "PLANE_API_KEY",
+      "TERMINUSDB_ADMIN_PASS",
+      "TERMINUSDB_PROTECTED_PASS"
+    ]
+  }
+}

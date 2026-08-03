@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://efah.invalid/verifier-interface/v1/submission.schema.json",
+  "title": "Protected verifier submission",
+  "description": "Contract EFAH-CONTRACT-001 v1.1 section 17.2. The candidate system may submit ONLY these four fields. additionalProperties is false so a fifth field is a validation error on both sides of the seam, not something the verifier silently ignores.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "artifact_or_commit_identifier",
+    "evaluation_request_id",
+    "required_contract_or_oracle_version"
+  ],
+  "properties": {
+    "artifact_or_commit_identifier": {
+      "type": "string",
+      "minLength": 7,
+      "maxLength": 256,
+      "description": "Exact candidate commit SHA or artifact digest. GATE-D2-19 requires the visible, hidden, and mutant lanes to carry the same value."
+    },
+    "allowed_runtime_inputs": {
+      "type": "object",
+      "additionalProperties": {"type": "string", "maxLength": 4096},
+      "default": {},
+      "description": "Inputs the evaluation may use at runtime. Never fixtures, expectations, or oracle configuration."
+    },
+    "evaluation_request_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Correlation identifier. Echoed back in the result."
+    },
+    "required_contract_or_oracle_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The contract or oracle version the candidate believes it is judged against. A verifier running a different version returns UNVERIFIABLE rather than judging against the wrong one."
+    }
+  }
+}

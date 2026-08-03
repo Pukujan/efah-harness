@@ -1,0 +1,44 @@
+{
+  "open_before": [],
+  "answer_outcome": null,
+  "open_after": [],
+  "state": {
+    "project_id": "EFAH-001",
+    "project_state": "RUNNING",
+    "contract_id": "EFAH-CONTRACT-001",
+    "contract_version": "1.1",
+    "terminus_database": "efah",
+    "terminus_branch": null,
+    "terminus_commit": null,
+    "tasks_total": 2,
+    "tasks_passed": 1,
+    "tasks_blocked": 0,
+    "open_blockers": [],
+    "work_units": [
+      {
+        "work_unit_id": "WU-REP-001",
+        "task_id": "T-002",
+        "objective": "carry the contract-compilation path end to end",
+        "state": "RUNNING",
+        "assigned_alias": "implementer-i12",
+        "lease_generation": 1,
+        "pending_gates": [
+          "GATE-D1-01",
+          "GATE-D1-03"
+        ],
+        "updated_at": "2026-08-02T05:35:31.937017+00:00"
+      },
+      {
+        "work_unit_id": "WU-SURFACE-001",
+        "task_id": "T-053",
+        "objective": "owner control surface (contract v1.1 \u00a711.7)",
+        "state": "PASSED",
+        "assigned_alias": "implementer-i12",
+        "lease_generation": 1,
+        "pending_gates": [],
+        "updated_at": "2026-08-02T05:35:31.937095+00:00"
+      }
+    ],
+    "generated_at": "2026-08-02T13:11:18.580389+00:00"
+  }
+}

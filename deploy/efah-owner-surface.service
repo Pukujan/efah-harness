@@ -1,0 +1,35 @@
+# Owner control surface — contract EFAH-CONTRACT-001 v1.1 Section 11.7
+#
+# Install as a user service so it survives a reboot without root:
+#   mkdir -p ~/.config/systemd/user
+#   cp deploy/efah-owner-surface.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now efah-owner-surface
+#   loginctl enable-linger $USER        # keep it up when logged out
+#
+# GATE-D1-07/D1-10: this unit deliberately UNSETS every Anthropic credential.
+# The surface must work without them, so the service proves it on every start
+# rather than relying on the ambient environment happening to lack them.
+[Unit]
+Description=EFAH owner control surface (contract v1.1 §11.7)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/yoav/efah/efah-harness
+Environment=PYTHONPATH=/home/yoav/efah/efah-harness/src
+Environment=EFAH_TERMINUSDB_URL=http://localhost:6363
+Environment=EFAH_TERMINUSDB_DB=efah
+Environment=EFAH_OWNER_LEDGER=/home/yoav/efah/efah-harness/.data/owner_surface_ledger.jsonl
+UnsetEnvironment=ANTHROPIC_API_KEY ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN CLAUDE_API_KEY
+EnvironmentFile=-/home/yoav/.efah/surface.env
+ExecStart=/home/yoav/efah/.venv/bin/uvicorn owner_surface.app:app --host 127.0.0.1 --port 8088
+Restart=always
+RestartSec=5
+# The surface reads the graph and writes command records. It needs nothing else.
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

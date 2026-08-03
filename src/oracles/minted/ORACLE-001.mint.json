@@ -1,0 +1,232 @@
+{
+  "body": {
+    "candidate_commit": "efa14d10edb56dbf65f83e3d988f29342c082e2a",
+    "checker_test_suite_result": "NOT_RUN_IN_THIS_PROCESS",
+    "content_hash": "sha256:a36b0896ba302788d7f6c35eb27a855bd71d89ef81e7e16e4ec42a9f0a1b937c",
+    "definition_path": "project-pack/acceptance/oracle-definitions/ORACLE-001-composition-reachability.yaml",
+    "fixture_suite": {
+      "failed": 0,
+      "oracle_id": "ORACLE-001",
+      "outcomes": [
+        {
+          "detail": "all 4 in-scope modules registered and reachable",
+          "expected": "PASS",
+          "fixture_id": "KG-001",
+          "kind": "known_good",
+          "observed": "PASS",
+          "ok": true
+        },
+        {
+          "detail": "module absent from the composition root: evaluation",
+          "expected": "FAIL/FAILED_WIRING",
+          "fixture_id": "KB-001",
+          "kind": "known_bad",
+          "observed": "FAIL/FAILED_WIRING",
+          "ok": true
+        },
+        {
+          "detail": "module unreachable from an approved user-to-result path: evaluation",
+          "expected": "FAIL/FAILED_WIRING",
+          "fixture_id": "KB-002",
+          "kind": "known_bad",
+          "observed": "FAIL/FAILED_WIRING",
+          "ok": true
+        },
+        {
+          "detail": "tasks imports projects's infrastructure implementation",
+          "expected": "FAIL/FAILED_SCOPE",
+          "fixture_id": "KB-003",
+          "kind": "known_bad",
+          "observed": "FAIL/FAILED_SCOPE",
+          "ok": true
+        },
+        {
+          "detail": "circular dependency: projects -> tasks -> evaluation -> projects",
+          "expected": "FAIL/FAILED_SCOPE",
+          "fixture_id": "KB-004",
+          "kind": "known_bad",
+          "observed": "FAIL/FAILED_SCOPE",
+          "ok": true
+        },
+        {
+          "detail": "module unreachable from an approved user-to-result path: evaluation",
+          "expected": "FAIL/FAILED_WIRING",
+          "fixture_id": "GP-001",
+          "kind": "gaming_probe",
+          "observed": "FAIL/FAILED_WIRING",
+          "ok": true
+        },
+        {
+          "detail": "module unreachable from an approved user-to-result path: evaluation",
+          "expected": "FAIL/FAILED_WIRING",
+          "fixture_id": "GP-002",
+          "kind": "gaming_probe",
+          "observed": "FAIL/FAILED_WIRING",
+          "ok": true
+        },
+        {
+          "detail": "evaluation.health_check is empty or a placeholder ('TODO'); evaluation.e2e_path is empty or a placeholder ('')",
+          "expected": "FAIL/FAILED_WIRING",
+          "fixture_id": "GP-003",
+          "kind": "gaming_probe",
+          "observed": "FAIL/FAILED_WIRING",
+          "ok": true
+        },
+        {
+          "detail": "module excluded from reachability without an owner decision: evaluation",
+          "expected": "FAIL/FAILED_SCOPE",
+          "fixture_id": "GP-004",
+          "kind": "gaming_probe",
+          "observed": "FAIL/FAILED_SCOPE",
+          "ok": true
+        },
+        {
+          "detail": "composition_root_not_parseable",
+          "expected": "UNVERIFIABLE",
+          "fixture_id": "UP-composition_root_not_parseable",
+          "kind": "unverifiable_probe",
+          "observed": "UNVERIFIABLE",
+          "ok": true
+        },
+        {
+          "detail": "entry_points_undeclared",
+          "expected": "UNVERIFIABLE",
+          "fixture_id": "UP-entry_points_undeclared",
+          "kind": "unverifiable_probe",
+          "observed": "UNVERIFIABLE",
+          "ok": true
+        },
+        {
+          "detail": "wiring_manifest_absent_for_one_or_more_modules: ['evaluation']",
+          "expected": "UNVERIFIABLE",
+          "fixture_id": "UP-wiring_manifest_absent_for_one_or_more_modules",
+          "kind": "unverifiable_probe",
+          "observed": "UNVERIFIABLE",
+          "ok": true
+        }
+      ],
+      "result": "PASS",
+      "total": 12
+    },
+    "fixture_suite_result": "PASS",
+    "last_audit_date": "2026-08-02",
+    "minted": true,
+    "mutants_killed": [
+      "remove_module_from_composition_root",
+      "replace_health_check_with_constant_true",
+      "point_e2e_path_at_a_stub",
+      "break_entry_point_edge_while_keeping_registration"
+    ],
+    "mutants_surviving": [],
+    "no_judge_proof": {
+      "check": "call_graph_analysis",
+      "entry_module": "oracles.oracle_001_composition",
+      "expected": "zero_model_calls_in_verdict_path",
+      "first_party_model_roots_forbidden": [
+        "models",
+        "research",
+        "workers"
+      ],
+      "holds": true,
+      "modules_analysed": [
+        "governance.envelope",
+        "governance.states",
+        "oracles.base",
+        "oracles.oracle_001_composition"
+      ],
+      "network_roots_forbidden": [
+        "aiohttp",
+        "anthropic",
+        "boto3",
+        "google",
+        "grpc",
+        "http",
+        "httpx",
+        "langchain",
+        "langchain_core",
+        "langgraph",
+        "litellm",
+        "openai",
+        "requests",
+        "socket",
+        "urllib",
+        "urllib3",
+        "websockets"
+      ],
+      "violations": []
+    },
+    "oracle_id": "ORACLE-001",
+    "oracle_version": "1.0.0",
+    "requirements": [
+      {
+        "detail": "definition declares deterministic_verdict_path=True, model_call_in_verdict_path=False",
+        "requirement": "deterministic_verdict_path_with_no_hidden_model_call",
+        "satisfied": true
+      },
+      {
+        "detail": "import closure of oracles.oracle_001_composition covers 4 modules; violations=[]",
+        "requirement": "structural_proof_no_judge_participates",
+        "satisfied": true
+      },
+      {
+        "detail": "second checker: architecture_test_suite_computed_independently_from_import_graph",
+        "requirement": "independent_second_checker_comparison_where_feasible",
+        "satisfied": true
+      },
+      {
+        "detail": "fixture kinds present: ['gaming_probe', 'known_bad', 'known_good', 'unverifiable_probe']; definition IDs with no fixture: []",
+        "requirement": "known_good_fixtures",
+        "satisfied": true
+      },
+      {
+        "detail": "known-bad fixtures implemented; missing declared IDs: []",
+        "requirement": "known_bad_fixtures",
+        "satisfied": true
+      },
+      {
+        "detail": "4 probes",
+        "requirement": "gaming_probes",
+        "satisfied": true
+      },
+      {
+        "detail": "declared=['remove_module_from_composition_root', 'replace_health_check_with_constant_true', 'point_e2e_path_at_a_stub', 'break_entry_point_edge_while_keeping_registration']; killed=['remove_module_from_composition_root', 'replace_health_check_with_constant_true', 'point_e2e_path_at_a_stub', 'break_entry_point_edge_while_keeping_registration']; survived=[]; declared-but-never-killed=[]",
+        "requirement": "mutants_that_it_kills",
+        "satisfied": true
+      },
+      {
+        "detail": "unverifiable_when=['composition_root_not_parseable', 'entry_points_undeclared', 'wiring_manifest_absent_for_one_or_more_modules']; probes exercised and matched=True",
+        "requirement": "honest_unverifiable_output",
+        "satisfied": true
+      },
+      {
+        "detail": "tests/architecture/test_oracle_001_composition.py exists",
+        "requirement": "pinned_checker_test_suite",
+        "satisfied": true
+      },
+      {
+        "detail": "version=1.0.0, content_hash=sha256:a36b0896ba302788d7f6c35eb27a855bd71d89ef81e7e16e4ec42a9f0a1b937c",
+        "requirement": "version_and_content_hash",
+        "satisfied": true
+      },
+      {
+        "detail": "last_audit_date=2026-08-02; health fields declared=['oracle_version', 'content_hash', 'fixture_suite_result', 'last_audit_date', 'checker_test_suite_result']",
+        "requirement": "last_audit_date_and_health_emitted_with_every_result",
+        "satisfied": true
+      }
+    ],
+    "unsatisfied_requirements": []
+  },
+  "envelope": {
+    "content_hash": "sha256:fee93e73a006b208bc9610ae07692ffb22145ad9f59ee12d146c9270719b74af",
+    "contract_id": "EFAH-CONTRACT-001",
+    "contract_version": "1.1",
+    "created_at": "2026-08-02T06:10:04.404148+00:00",
+    "created_by_alias": "oracle-o02",
+    "methodology_version": "1.0.0",
+    "schema_id": "efah.oracle_mint_record",
+    "schema_version": "1.0",
+    "terminus_branch": null,
+    "terminus_commit": null,
+    "terminus_database": null
+  }
+}
