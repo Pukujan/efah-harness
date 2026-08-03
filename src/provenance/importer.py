@@ -27,12 +27,15 @@ from __future__ import annotations
 
 import re
 import tomllib
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from functools import lru_cache
+from importlib import metadata
 from pathlib import Path
 from typing import Any
 
+from composition.inventory import third_party_import_sites
 from governance.envelope import (
     CONTRACT_ID,
     CONTRACT_VERSION,
@@ -66,12 +69,16 @@ from provenance.writer import ProvenanceWriter, WriteReceipt
 __all__ = [
     "EFAH_DATABASE",
     "LOCKFILE_NAME",
+    "NO_IMPORT_SITE",
     "UNRESOLVED_VERSION",
     "PackImportResult",
+    "compatibility_constraints_for",
+    "component_import_prefixes",
     "find_lockfile",
     "import_project_pack",
     "load_lockfile_versions",
     "make_import_branch_name",
+    "modules_importing",
 ]
 
 EFAH_DATABASE = "efah"
@@ -86,6 +93,11 @@ LOCKFILE_NAME = "uv.lock"
 #: silently presented as pinned (contract Section 8.1: no silent defaults).
 UNRESOLVED_VERSION = "TODO_builder_probe"
 
+#: Recorded in ``modules_using`` when the import scan ran and found nothing, so
+#: a measured zero is distinguishable from a field nobody populated. Same
+#: reasoning as :data:`UNRESOLVED_VERSION`: absence has to be visible.
+NO_IMPORT_SITE = "no-first-party-import-site"
+
 #: ``selected_stack`` keys are component nicknames, not PyPI distribution names.
 #: Only the aliases that differ need an entry; the rest normalise cleanly.
 _COMPONENT_DISTRIBUTIONS = {
@@ -94,8 +106,33 @@ _COMPONENT_DISTRIBUTIONS = {
     "llamaindex": "llama-index",
 }
 
+#: Component -> the dotted import prefixes it publishes, for the components
+#: whose name is not itself the import root.
+#:
+#: Distribution name and import root are different namespaces, and the gap is
+#: load-bearing here. Three distributions publish into ``langgraph``:
+#: ``langgraph`` owns ``langgraph.graph`` and ``langgraph.pregel``,
+#: ``langgraph-checkpoint`` owns ``langgraph.checkpoint``, and
+#: ``langgraph-checkpoint-sqlite`` owns ``langgraph.checkpoint.sqlite``. The
+#: pack registers the first and the third as separate components, so the third
+#: is scoped to the subtree it actually publishes. Giving it the whole root
+#: would record every LangGraph importer as a user of the SQLite saver, which
+#: is the over-claim this map exists to prevent.
+#:
+#: An empty tuple means the component publishes no Python import surface at
+#: all: ``python`` is the language every module runs on rather than a package
+#: any module can import, and ``context7`` is a documentation service reached
+#: over HTTP with no client library in this tree.
+_COMPONENT_IMPORT_PREFIXES: dict[str, tuple[str, ...]] = {
+    "langgraph_async_sqlite_saver": ("langgraph.checkpoint.sqlite",),
+    "llamaindex": ("llama_index",),
+    "context7": (),
+    "python": (),
+}
+
 _ID_SAFE = re.compile(r"[^A-Za-z0-9._-]+")
 _NAME_SEPARATORS = re.compile(r"[-_.]+")
+_SPECIFIER = re.compile(r"[<>=!~]")
 
 
 def _safe_id(value: str) -> str:
@@ -106,6 +143,116 @@ def _safe_id(value: str) -> str:
 def _normalise_distribution(name: str) -> str:
     """PEP 503 normalisation, so ``inspect_ai`` matches ``inspect-ai``."""
     return _NAME_SEPARATORS.sub("-", name.strip().lower())
+
+
+def component_import_prefixes(component: str) -> tuple[str, ...]:
+    """The dotted import prefixes a ``selected_stack`` component publishes.
+
+    Defaults to the component name in module form -- ``fastapi``, ``pydantic``,
+    ``opentelemetry`` and ``inspect_ai`` all normalise cleanly -- and consults
+    :data:`_COMPONENT_IMPORT_PREFIXES` only for the names that do not.
+    """
+    if component in _COMPONENT_IMPORT_PREFIXES:
+        return _COMPONENT_IMPORT_PREFIXES[component]
+    return (_normalise_distribution(component).replace("-", "_"),)
+
+
+def modules_importing(component: str, sites: Mapping[str, Sequence[str]]) -> list[str]:
+    """First-party modules with a static import of *component*, by dotted name.
+
+    This is the whole of what contract Section 16.3's *modules and contracts
+    using it* is answered with here, and the boundary is deliberate.
+
+    * An entry means an ``import`` statement somewhere in ``src/`` names a
+      module under one of the component's import prefixes. It is a fact an AST
+      sweep proved and any reader can re-derive.
+    * :data:`NO_IMPORT_SITE` means the sweep ran and found none. Three
+      different situations produce it and this field does not distinguish
+      them, because nothing in the source distinguishes them: the component is
+      reached over HTTP rather than linked into the process (``litellm``,
+      ``terminusdb``, ``plane``, ``phoenix``); it is declared and installed but
+      not yet used (``docling``, ``lancedb``, ``inspect_ai``, ``promptfoo``,
+      ``llamaindex``); or it is not an importable package at all (``python``,
+      ``context7``).
+
+    The HTTP-reached components do have real integration seams --
+    ``models/gateway.py``, ``models/router.py``, ``integrations/terminusdb.py``,
+    ``integrations/plane.py``, ``integrations/otel.py`` -- and they are
+    **deliberately not listed here**. Naming them would answer a different
+    question ("which module talks to this service?") with the same field, and
+    the list could only be hand-maintained: no import binds those modules to
+    those services, so nothing would catch it going stale. A hand-maintained
+    list presented as a measurement is precisely the defect this function
+    replaces -- ``modules_using`` was the component's own ``selected_stack``
+    key, which had the ``langgraph`` entry reporting that it was used by
+    ``workflow_runtime``. Those seams are wired in
+    :func:`composition.root.build_registry`, whose edges ORACLE-001 checks
+    against real imports; that is where a reader should go for them.
+
+    Scope is ``src/`` only. Tests and tools import these packages too, but the
+    registry describes the delivered system.
+    """
+    prefixes = component_import_prefixes(component)
+    modules: set[str] = set()
+    for imported, importers in sites.items():
+        if any(imported == prefix or imported.startswith(f"{prefix}.") for prefix in prefixes):
+            modules.update(importers)
+    return sorted(modules) or [NO_IMPORT_SITE]
+
+
+def compatibility_constraints_for(distribution: str, exact_version: str) -> list[str]:
+    """Version constraints declared by *distribution*'s own installed metadata.
+
+    Section 16.3 wants *known compatibility constraints*. A distribution's
+    ``Requires-Python`` and its specifier-bearing ``Requires-Dist`` lines are
+    exactly that, and they are the constraints that actually bite: it is
+    ``inspect-ai``'s ``click!=8.2.0,<8.2.2,>=8.1.3`` that decides which click
+    this closure can hold, and nothing in the pack records it.
+
+    ``uv.lock`` cannot supply them. It lists each resolved package's
+    dependencies by name with the specifiers stripped -- the resolution is
+    already done, so the lock has no reason to keep them -- which leaves the
+    installed distribution's ``METADATA`` as the only source in the tree.
+
+    Two refusals, both returning ``[]`` rather than a guess:
+
+    * The distribution is not installed. ``litellm``, ``terminusdb``,
+      ``plane``, ``phoenix``, ``promptfoo`` and ``llamaindex`` are not Python
+      packages in this environment and have no metadata to read.
+    * The installed version is not the version this registry entry pins.
+      Constraints are version-specific, so attaching one version's
+      requirements to another version's pin would be a fabrication of the same
+      shape as the lockfile source this module used to claim.
+
+    Requirements gated behind an ``extra`` marker are excluded: an extra that
+    was not requested is not in the delivered closure, so its ceilings do not
+    bind this build.
+    """
+    try:
+        installed = metadata.metadata(distribution)
+    except metadata.PackageNotFoundError:
+        return []
+    if (installed["Version"] or "") != exact_version:
+        return []
+
+    constraints: list[str] = []
+    requires_python = installed.get("Requires-Python")
+    if requires_python:
+        constraints.append(f"Requires-Python: {requires_python}")
+    for requirement in installed.get_all("Requires-Dist") or ():
+        text = str(requirement).strip()
+        name, _, marker = text.partition(";")
+        if "extra" in marker and "==" in marker:
+            continue
+        if _SPECIFIER.search(name):
+            constraints.append(text)
+    return constraints
+
+
+@lru_cache(maxsize=1)
+def _import_sites() -> dict[str, tuple[str, ...]]:
+    """Cached AST sweep of ``src/`` -- one parse of the tree per process."""
+    return {imported: tuple(mods) for imported, mods in third_party_import_sites().items()}
 
 
 def find_lockfile(start: Path) -> Path | None:
@@ -236,16 +383,23 @@ class PackImportResult:
 
 
 def build_pack_entities(
-    pack: PackFiles, *, author_alias: str, lock_path: Path | None = None
+    pack: PackFiles,
+    *,
+    author_alias: str,
+    lock_path: Path | None = None,
+    import_sites: Mapping[str, Sequence[str]] | None = None,
 ) -> list[ControlPlaneEntity]:
     """Turn a validated pack into control-plane entities.
 
-    Pure: no network, no clock beyond ``imported_at``. That makes the entity set
-    unit-testable without a live database, which is why the import path and the
-    entity construction are separate functions.
+    No network and no clock beyond ``imported_at``. It does read two things off
+    disk that the pack does not contain -- the resolver lockfile and the import
+    graph of ``src/`` -- because Section 16.3 asks for facts the pack cannot
+    state about itself. Both are injectable, so a test pins its own inputs
+    rather than depending on the checkout layout.
 
-    ``lock_path`` overrides lockfile discovery; passing it explicitly is how a
-    test pins the resolution input instead of depending on the checkout layout.
+    ``lock_path`` overrides lockfile discovery; ``import_sites`` overrides the
+    AST sweep and takes the shape
+    :func:`composition.inventory.third_party_import_sites` returns.
     """
     contract_yaml = pack.yaml("contract.yaml")
     project_yaml = pack.yaml("project.yaml")
@@ -356,9 +510,18 @@ def build_pack_entities(
     # one that is not in the declared closure -- the entity keeps the pack's
     # unresolved marker and points back at the pack, which is where the only
     # record actually lives.
+    #
+    # `modules_using` recorded `[str(component)]` -- the selected_stack *key* --
+    # so the langgraph entry claimed it was used by "workflow_runtime". That is
+    # the dependency's own name spelled a second way, and it answered a
+    # different question from the one Section 16.3 asks. It now comes from an
+    # AST sweep of src/; `modules_importing` documents what an entry means and
+    # what it deliberately omits. `compatibility_constraints` was `[]` on all
+    # sixteen and is now read from the pinned distribution's own metadata.
     lockfile = lock_path if lock_path is not None else find_lockfile(pack.root)
     locked_versions = load_lockfile_versions(lockfile) if lockfile is not None else {}
     lockfile_label = lockfile.name if lockfile is not None else None
+    sites = _import_sites() if import_sites is None else import_sites
     for component, block in (dependency_policy.get("selected_stack") or {}).items():
         if not isinstance(block, dict):
             continue
@@ -384,7 +547,12 @@ def build_pack_entities(
                         "auto_merge_dependency_updates", "none"
                     )
                 ),
-                modules_using=[str(component)],
+                modules_using=modules_importing(component_name, sites),
+                compatibility_constraints=(
+                    compatibility_constraints_for(distribution, locked_version)
+                    if locked_version is not None
+                    else []
+                ),
             )
         )
 

@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 
+from composition.inventory import first_party_modules
 from governance.envelope import CONTRACT_ID, Envelope
 from governance.states import GATE_ONLY_STATES, WORKER_SUBMITTABLE_STATES, ProjectState, TaskState
 from integrations.pack import load_pack
@@ -28,11 +29,15 @@ from provenance.binding import (
 )
 from provenance.importer import (
     LOCKFILE_NAME,
+    NO_IMPORT_SITE,
     UNRESOLVED_VERSION,
     build_pack_entities,
+    compatibility_constraints_for,
+    component_import_prefixes,
     find_lockfile,
     load_lockfile_versions,
     make_import_branch_name,
+    modules_importing,
 )
 from tasks.ledger import Actor, ActorKind, LedgerAuthorityViolation, TaskLedger
 
@@ -395,3 +400,159 @@ def test_append_has_no_timestamp_parameter():
 
     params = set(inspect.signature(TaskLedger.append).parameters)
     assert not params & {"recorded_at", "timestamp", "at", "duration", "elapsed"}
+
+
+# -- Section 16.3 modules_and_contracts_using_it ----------------------------
+#
+# The field was `[str(component)]`: the dependency's own selected_stack key.
+# `langgraph` reported that it was used by "workflow_runtime", which is the
+# dependency's name spelled a second way rather than an answer to the question.
+# Every assertion below would pass trivially against that implementation unless
+# it names real modules, so each one does.
+
+#: Measured 2026-08-03 by AST sweep of src/. Recorded here rather than derived
+#: so that a *change* in the coupling is a test failure a human reads, not a
+#: silently updated number.
+LANGGRAPH_IMPORTERS = [
+    "owner_surface.graph",
+    "workflows.checkpoint",
+    "workflows.graphs",
+    "workflows.graphs.assurance",
+    "workflows.graphs.build",
+    "workflows.graphs.contract",
+    "workflows.graphs.dependencies",
+    "workflows.graphs.intake",
+    "workflows.graphs.planning",
+    "workflows.graphs.project",
+    "workflows.interrupts",
+]
+
+
+def test_modules_using_names_modules_not_the_component_itself():
+    """The regression guard: an echo of the component key must fail here.
+
+    ``langgraph`` sits under the ``workflow_runtime`` key. Neither string is a
+    module, and the previous implementation could produce nothing else.
+    """
+    deps = _dependency_versions(load_pack(PACK_ROOT))
+    real = set(first_party_modules())
+
+    for component, dep in deps.items():
+        assert component not in dep.modules_using, f"{component}: echoes its own name"
+        for entry in dep.modules_using:
+            if entry == NO_IMPORT_SITE:
+                continue
+            assert entry in real, f"{component}: {entry!r} is not a module in src/"
+            assert "." in entry or entry in real
+
+    assert "workflow_runtime" not in deps["langgraph"].modules_using
+    assert "langgraph" not in deps["langgraph"].modules_using
+
+
+def test_langgraph_records_its_eleven_real_importers():
+    deps = _dependency_versions(load_pack(PACK_ROOT))
+    assert deps["langgraph"].modules_using == LANGGRAPH_IMPORTERS
+
+
+def test_measured_import_counts_match_the_source_tree():
+    deps = _dependency_versions(load_pack(PACK_ROOT))
+    assert len(deps["fastapi"].modules_using) == 8
+    assert len(deps["pydantic"].modules_using) == 21
+    assert len(deps["opentelemetry"].modules_using) == 3
+    assert deps["opentelemetry"].modules_using == [
+        "evaluation.checks_audit_followup",
+        "integrations.otel",
+        "observability.spans",
+    ]
+
+
+def test_the_sqlite_saver_is_scoped_to_the_subtree_it_publishes():
+    """Three distributions publish into ``langgraph``; they are not one component.
+
+    ``langgraph-checkpoint-sqlite`` owns ``langgraph.checkpoint.sqlite`` and
+    nothing else. Attributing the whole root to it would record all eleven
+    LangGraph importers as users of the SQLite saver -- a claim as wrong as the
+    one this field replaced, and harder to spot because it looks measured.
+    """
+    deps = _dependency_versions(load_pack(PACK_ROOT))
+    assert deps["langgraph_async_sqlite_saver"].modules_using == ["workflows.checkpoint"]
+    assert "workflows.graphs.build" not in deps["langgraph_async_sqlite_saver"].modules_using
+    # The one module that uses both is recorded under both, correctly.
+    assert "workflows.checkpoint" in deps["langgraph"].modules_using
+
+
+def test_a_component_reached_over_http_says_so_rather_than_guessing():
+    """litellm, terminusdb, plane and phoenix have zero Python import sites.
+
+    They are reached over HTTP. ``NO_IMPORT_SITE`` records that the sweep ran
+    and found none, which is a different statement from an empty list nobody
+    populated -- the same distinction ``UNRESOLVED_VERSION`` draws for pins.
+    Naming ``models/gateway.py`` here instead would answer a question the scan
+    cannot verify.
+    """
+    deps = _dependency_versions(load_pack(PACK_ROOT))
+    for component in ("litellm", "terminusdb", "plane", "phoenix"):
+        assert deps[component].modules_using == [NO_IMPORT_SITE]
+    # Declared and installed, but nothing imports them yet.
+    for component in ("docling", "lancedb", "inspect_ai", "promptfoo", "llamaindex"):
+        assert deps[component].modules_using == [NO_IMPORT_SITE]
+    # Not importable packages at all.
+    for component in ("python", "context7"):
+        assert component_import_prefixes(component) == ()
+        assert deps[component].modules_using == [NO_IMPORT_SITE]
+
+
+def test_modules_using_is_read_from_the_scan_and_not_from_the_pack():
+    """The lockfile test's trick, applied to imports: inject an impossible fact.
+
+    A pass-through of the pack's declaration could not produce ``made.up.module``
+    for a component the pack never mentions in those terms.
+    """
+    deps = _dependency_versions(
+        load_pack(PACK_ROOT),
+        import_sites={"fastapi.routing": ["made.up.module"], "pydantic": []},
+    )
+    assert deps["fastapi"].modules_using == ["made.up.module"]
+    assert deps["pydantic"].modules_using == [NO_IMPORT_SITE]
+
+
+def test_prefix_matching_does_not_run_past_a_name_boundary():
+    """``fastapi_extras`` is a different distribution from ``fastapi``."""
+    sites = {"fastapi_extras": ["a.b"], "fastapi.routing": ["c.d"], "fastapi": ["e.f"]}
+    assert modules_importing("fastapi", sites) == ["c.d", "e.f"]
+
+
+# -- Section 16.3 known_compatibility_constraints ---------------------------
+
+
+def test_constraints_come_from_the_pinned_distribution_s_own_metadata():
+    """``[]`` on all sixteen was not "no constraints", it was "not asked"."""
+    deps = _dependency_versions(load_pack(PACK_ROOT))
+
+    otel = deps["opentelemetry"].compatibility_constraints
+    assert "opentelemetry-api==1.44.0" in otel, "the exact pin the SDK imposes"
+    assert "Requires-Python: >=3.10" in otel
+
+    # The ceiling that broke this environment before the lock existed.
+    assert "click!=8.2.0,<8.2.2,>=8.1.3" in deps["inspect_ai"].compatibility_constraints
+
+
+def test_constraints_exclude_requirements_behind_an_unrequested_extra():
+    """``httpx`` is a fastapi requirement only under ``fastapi[standard]``."""
+    constraints = _dependency_versions(load_pack(PACK_ROOT))["fastapi"].compatibility_constraints
+    assert "starlette>=0.46.0" in constraints
+    assert not [c for c in constraints if "extra" in c]
+
+
+def test_constraints_are_refused_when_the_installed_version_is_not_the_pin():
+    """Constraints are version-specific; a mismatch is not a near-enough answer."""
+    assert compatibility_constraints_for("fastapi", "0.0.0-not-installed") == []
+    assert compatibility_constraints_for("no-such-distribution-anywhere", "1.0") == []
+
+
+def test_an_unpinned_component_claims_no_constraints():
+    """No lockfile pin means no version whose metadata could be trusted."""
+    deps = _dependency_versions(load_pack(PACK_ROOT))
+    for component in ("terminusdb", "plane", "promptfoo", "litellm"):
+        assert deps[component].exact_version == UNRESOLVED_VERSION
+        assert deps[component].compatibility_constraints == []
