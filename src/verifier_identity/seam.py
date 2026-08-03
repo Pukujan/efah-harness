@@ -49,8 +49,28 @@ author and an absent pytest alike, and on 2026-08-03 they did. So the generator
 reports its own reason **inside the receipt**, as
 :class:`GeneratorFailureReason` — a closed vocabulary validated by membership,
 not a message validated by pattern. The distinction is the whole point: a
-pattern admits every string that matches it, an enumeration admits twenty
+pattern admits every string that matches it, an enumeration admits twenty-four
 strings that are written down in this file. Holdout text cannot be one of them.
+
+Minting is not grading, and the receipt has to say which
+--------------------------------------------------------
+A receipt used to carry no record of what the generator had been asked to do,
+because there was only one thing it could do: author an exercise and score it
+in the same breath. That made ``exit_status == 0`` mean "a set was minted" while
+every caller read it as "the candidate passed". Measured on 2026-08-03: 25 runs
+on one commit produced 25 different exercises and passed roughly 45% of the
+time, because the generator sent ``temperature: 0`` and no seed, never put the
+request id in a prompt, and built the mutant prompt out of the previous call's
+output. The variance was in the exam, not in the candidate.
+
+So the generator has two verbs and the receipt names the one that produced it,
+as :class:`GenerationRunMode` — a second closed vocabulary, two members, the
+same membership discipline as the first. :attr:`GenerationReceipt.gate_eligible`
+is true only for a ``GRADE`` receipt, and :meth:`GenerationSeam.generate`
+refuses a receipt whose mode is not the mode that was requested, the same way it
+already refuses a receipt for a different request id. A gate that acts on
+``mint_accepted`` is acting on "an exam exists", which is a claim about the
+exam and not about the code.
 
 Rejections are a channel too
 -----------------------------
@@ -96,7 +116,13 @@ from verifier_identity.identity import VerifierIdentity, default_identity
 #: ``tools/gate_dec_006.py`` compares the installed copy against the source and
 #: fails loudly rather than leaving a stale generator to produce receipts this
 #: side refuses for reasons the receipt cannot explain.
-SEAM_VERSION = "1.1.0"
+#:
+#: 1.2.0 adds ``run_mode`` and requires it on every receipt, for the same
+#: reason and at the same cost: a receipt that does not say whether it minted an
+#: exam or graded a candidate is one a gate has to guess about, and it guessed
+#: wrong for 25 runs. The same re-provisioning obligation applies, and check F
+#: says so by name.
+SEAM_VERSION = "1.2.0"
 
 #: The only keys a receipt may carry. Compare with
 #: ``evaluation.verifier_client.PERMITTED_RESPONSE_FIELDS`` — same discipline,
@@ -112,9 +138,27 @@ PERMITTED_RECEIPT_FIELDS: tuple[str, ...] = (
     "generator_version",
     "oracle_version",
     "generated_at",
+    "run_mode",
     "failure_class",
     "failure_reason",
 )
+
+
+class GenerationRunMode(StrEnum):
+    """Which verb produced this receipt. Two members, and no third.
+
+    ``MINT`` authors an exam and validates it to a kill rate of 1.0 before
+    freezing it; its receipt is a claim about the *exam*. ``GRADE`` loads a
+    frozen exam by its content hash and runs a candidate against it, with no
+    model call anywhere in the path; its receipt is a claim about the
+    *candidate*, and it is the only one a gate may act on.
+
+    Held twice for the reason the failure vocabulary is — the generator cannot
+    import this module — and compared by ``tools/gate_dec_006.py`` check F.
+    """
+
+    MINT = "MINT"
+    GRADE = "GRADE"
 
 
 class GeneratorFailureReason(StrEnum):
@@ -128,8 +172,8 @@ class GeneratorFailureReason(StrEnum):
     **Closed by construction.** Validation is set membership against these
     members — not a regex, not a length bound. A regex over a "short
     identifier" would still admit an unbounded number of distinct strings and
-    therefore an unbounded number of bits; twenty names admit fewer than five.
-    That is what makes this a diagnosis and not a channel.
+    therefore an unbounded number of bits; twenty-four names admit fewer than
+    five. That is what makes this a diagnosis and not a channel.
 
     The generator holds the same list as ``FAILURE_REASONS`` because it cannot
     import this module (DEC-006: a generator that imported the builder's tree
@@ -144,6 +188,11 @@ class GeneratorFailureReason(StrEnum):
     CREDENTIAL_ABSENT = "CREDENTIAL_ABSENT"
     TARGET_COUNT_NOT_POSITIVE = "TARGET_COUNT_NOT_POSITIVE"
     THROTTLE_STATE_ABSENT = "THROTTLE_STATE_ABSENT"
+    # the exam pin — a grade run that does not name a frozen exam is the
+    # 2026-08-03 behaviour, and it is now a refusal rather than a default
+    EXAM_NOT_PINNED = "EXAM_NOT_PINNED"
+    EXAM_NOT_FOUND = "EXAM_NOT_FOUND"
+    EXAM_CONTENT_HASH_MISMATCH = "EXAM_CONTENT_HASH_MISMATCH"
     # the holdout author
     HOLDOUT_AUTHOR_EMPTY_GENERATION = "HOLDOUT_AUTHOR_EMPTY_GENERATION"
     HOLDOUT_AUTHOR_TRUNCATED = "HOLDOUT_AUTHOR_TRUNCATED"
@@ -162,6 +211,10 @@ class GeneratorFailureReason(StrEnum):
     BASELINE_HOLDOUTS_FAILED = "BASELINE_HOLDOUTS_FAILED"
     MUTANT_RUN_NOT_A_VERDICT = "MUTANT_RUN_NOT_A_VERDICT"
     KILL_RATE_BELOW_THRESHOLD = "KILL_RATE_BELOW_THRESHOLD"
+    # the graded candidate. Distinct from BASELINE_HOLDOUTS_FAILED on purpose:
+    # "the exam is broken" and "the candidate failed the exam" were one token
+    # while one command did both jobs.
+    CANDIDATE_FAILED_HOLDOUTS = "CANDIDATE_FAILED_HOLDOUTS"
     # the honest bucket, never a free string
     UNCLASSIFIED_EXCEPTION = "UNCLASSIFIED_EXCEPTION"
 
@@ -194,28 +247,58 @@ class GenerationRequest:
     Deliberately thin. The builder says which candidate commit and which contract
     version the set is for, and nothing about what the holdouts should contain —
     a builder that could shape the holdouts would be writing its own exam.
+
+    ``mode`` has **no default**. A default is how one command came to mean both
+    verbs, and how a caller came to grade a candidate against an exercise
+    invented for that call. Choosing is now the caller's obligation, and
+    choosing ``GRADE`` without an ``exam_id`` is refused by the generator rather
+    than by this class — the refusal belongs on the sealed side, where the
+    builder cannot relax it.
     """
 
     generation_request_id: str
     candidate_commit: str
     contract_version: str
-    #: How many cases to mint. A number, not a topic list.
+    #: Which verb. Required — the field carries no default precisely so that
+    #: every existing call site had to be reopened and made to say which one it
+    #: meant, rather than inheriting the behaviour that was being removed.
+    mode: GenerationRunMode
+    #: How many cases to mint. A number, not a topic list. Ignored when grading.
     target_count: int = 0
+    #: ``GRADE`` only: the frozen exam to grade against, by content hash.
+    exam_id: str | None = None
+    #: ``GRADE`` only: a directory holding the candidate's ``subject.py``.
+    #: Absent, the exam's own reference is graded — which measures that the exam
+    #: still behaves rather than that any particular code does.
+    candidate_path: str | None = None
 
     def as_argv(self) -> list[str]:
-        return [
+        argv = [
             "--request-id", self.generation_request_id,
             "--candidate-commit", self.candidate_commit,
             "--contract-version", self.contract_version,
             "--target-count", str(self.target_count),
+            "--mode", self.mode.value,
         ]
+        # Shape-checked here as well as on the far side, because this value
+        # becomes a path component inside the one process on the host that can
+        # read the sealed store. An id that is not a content hash is not passed
+        # along to be rejected there; it is simply not sent, and the generator
+        # then refuses the run as unpinned.
+        if self.exam_id and _HASH_PATTERN.match(self.exam_id):
+            argv += ["--exam-id", self.exam_id]
+        if self.candidate_path:
+            argv += ["--candidate-path", self.candidate_path]
+        return argv
 
     def as_body(self) -> dict[str, Any]:
         return {
             "generation_request_id": self.generation_request_id,
             "candidate_commit": self.candidate_commit,
             "contract_version": self.contract_version,
+            "mode": self.mode.value,
             "target_count": self.target_count,
+            "exam_id": self.exam_id,
         }
 
 
@@ -233,10 +316,21 @@ class GenerationReceipt:
     generator_version: str
     oracle_version: str
     generated_at: str
+    #: Which verb produced this. Required on every receipt since 1.2.0.
+    run_mode: GenerationRunMode = GenerationRunMode.MINT
     failure_class: FailureClass | None = None
     #: Present exactly when ``failure_class`` is. Never on a success — a run
     #: that minted a set has nothing to explain.
     failure_reason: GeneratorFailureReason | None = None
+
+    @property
+    def _scored_clean(self) -> bool:
+        return (
+            self.exit_status == 0
+            and self.holdout_count > 0
+            and self.mutant_count > 0
+            and self.kill_rate >= 1.0
+        )
 
     @property
     def mint_accepted(self) -> bool:
@@ -245,13 +339,30 @@ class GenerationReceipt:
         "A holdout that fails to kill any known-bad mutant tests nothing, and one
         that 'passes' a mutant is worse than absent because it manufactures
         confidence."
+
+        Scoped to ``MINT`` since 1.2.0. It was never a statement about a
+        candidate and it was read as one, so it is now false on a grade receipt
+        by construction rather than by the reader's care.
         """
-        return (
-            self.exit_status == 0
-            and self.holdout_count > 0
-            and self.mutant_count > 0
-            and self.kill_rate >= 1.0
-        )
+        return self.run_mode is GenerationRunMode.MINT and self._scored_clean
+
+    @property
+    def gate_eligible(self) -> bool:
+        """The only property a release gate may act on.
+
+        True for a ``GRADE`` receipt that scored clean against a frozen exam.
+        False for every mint receipt, however good its kill rate — a mint says
+        an exam exists and says nothing about any candidate. That distinction is
+        the whole of this change: for 25 runs the gate read "an exam was minted
+        and it happened to validate" as "the candidate passed", and since a new
+        exam was minted every time, the verdict tracked the exam's luck.
+        """
+        return self.run_mode is GenerationRunMode.GRADE and self._scored_clean
+
+    @property
+    def exam_id(self) -> str:
+        """The frozen exam this receipt is about. Its identity, not its content."""
+        return self.store_content_hash
 
     def as_body(self) -> dict[str, Any]:
         return {
@@ -265,9 +376,11 @@ class GenerationReceipt:
             "generator_version": self.generator_version,
             "oracle_version": self.oracle_version,
             "generated_at": self.generated_at,
+            "run_mode": self.run_mode.value,
             "failure_class": self.failure_class.value if self.failure_class else None,
             "failure_reason": self.failure_reason.value if self.failure_reason else None,
             "mint_accepted": self.mint_accepted,
+            "gate_eligible": self.gate_eligible,
         }
 
 
@@ -348,6 +461,20 @@ def validate_receipt(payload: Any) -> tuple[GenerationReceipt | None, list[str]]
         else:
             failure_class = FailureClass(raw_class)
 
+    # Required, and enumerated for the same reason the failure vocabulary is: a
+    # receipt that does not say which verb produced it is one the reader has to
+    # guess about, and the guess was wrong for 25 runs.
+    raw_mode = payload.get("run_mode")
+    run_mode: GenerationRunMode | None = None
+    if not isinstance(raw_mode, str) or raw_mode not in {m.value for m in GenerationRunMode}:
+        findings.append(
+            "run_mode: not a member of the closed vocabulary; a receipt must say "
+            "whether it minted an exam or graded a candidate, because those are "
+            "different claims and only one of them is about the code"
+        )
+    else:
+        run_mode = GenerationRunMode(raw_mode)
+
     raw_reason = payload.get("failure_reason")
     failure_reason: GeneratorFailureReason | None = None
     if raw_reason is not None:
@@ -414,7 +541,7 @@ def validate_receipt(payload: Any) -> tuple[GenerationReceipt | None, list[str]]
         return None, findings
 
     assert request_id and store_hash and generator_version and oracle_version and generated_at
-    assert exit_status is not None and holdout_count is not None
+    assert exit_status is not None and holdout_count is not None and run_mode is not None
     return (
         GenerationReceipt(
             generation_request_id=request_id,
@@ -427,6 +554,7 @@ def validate_receipt(payload: Any) -> tuple[GenerationReceipt | None, list[str]]
             generator_version=generator_version,
             oracle_version=oracle_version,
             generated_at=generated_at,
+            run_mode=run_mode,
             failure_class=failure_class,
             failure_reason=failure_reason,
         ),
@@ -460,6 +588,10 @@ class SeamOutcome:
             "invoked_as": self.invoked_as,
             "permitted_receipt_fields": list(PERMITTED_RECEIPT_FIELDS),
             "receipt": self.receipt.as_body() if self.receipt else None,
+            # Stated in the evidence rather than inferred from it: a package
+            # that carries a receipt should say whether that receipt was a
+            # verdict about a candidate or a note that an exam now exists.
+            "gate_eligible": bool(self.receipt and self.receipt.gate_eligible),
             "rejected_because": self.rejected_because,
             "stdout_bytes_discarded": self.stdout_bytes_discarded,
             "stderr_read_by_builder": False,
@@ -596,9 +728,29 @@ class GenerationSeam:
                 stdout_bytes_discarded=discarded,
             )
 
+        # The same echo discipline, on the field that decides whether this
+        # receipt is a verdict. Asking to grade and being handed a mint receipt
+        # is the 2026-08-03 behaviour arriving under a new name, and it must be
+        # a provenance failure rather than something the caller has to notice.
+        if receipt.run_mode is not request.mode:
+            return SeamOutcome(
+                generation_request_id=request.generation_request_id,
+                state=TaskState.FAILED_PROVENANCE,
+                rejected_because=[
+                    f"a {request.mode.value} run returned a {receipt.run_mode.value} "
+                    "receipt; the verb that produced a receipt is not negotiable"
+                ],
+                invoked_as=self._identity.user,
+                stdout_bytes_discarded=discarded,
+            )
+
+        # PASSED only for a graded candidate. A mint that validated is a
+        # completed piece of work and not a passing verdict, so it stays in
+        # VERIFYING — the exam now exists and nothing has yet been graded
+        # against it.
         return SeamOutcome(
             generation_request_id=request.generation_request_id,
-            state=TaskState.PASSED if receipt.mint_accepted else TaskState.VERIFYING,
+            state=TaskState.PASSED if receipt.gate_eligible else TaskState.VERIFYING,
             receipt=receipt,
             invoked_as=self._identity.user,
             stdout_bytes_discarded=discarded,

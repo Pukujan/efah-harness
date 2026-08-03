@@ -98,7 +98,13 @@ install -d -m 0700 -o "${VERIFIER_USER}" -g "${VERIFIER_USER}" "${VERIFIER_HOME}
 install -d -m 0700 -o "${VERIFIER_USER}" -g "${VERIFIER_USER}" "${SEALED_STORE}"
 install -d -m 0700 -o "${VERIFIER_USER}" -g "${VERIFIER_USER}" "${VERIFIER_ETC}"
 install -d -m 0700 -o "${VERIFIER_USER}" -g "${VERIFIER_USER}" "${VERIFIER_LOG}"
-echo "store: ${SEALED_STORE} (0700, ${VERIFIER_USER})"
+# Frozen exams, one directory per exam named for its own content hash. Created
+# here so re-provisioning never has to remove it: a mint writes a new exam and
+# never rewrites an old one, and a pin recorded in evidence/sealed-exam-pin.json
+# must keep resolving across provisioning runs or every recorded verdict loses
+# the thing it was bound to.
+install -d -m 0700 -o "${VERIFIER_USER}" -g "${VERIFIER_USER}" "${SEALED_STORE}/exams"
+echo "store: ${SEALED_STORE} (0700, ${VERIFIER_USER}); exams preserved"
 
 # -- 3. the generator --------------------------------------------------------
 # Root-owned and not writable by the verifier identity. The account that runs

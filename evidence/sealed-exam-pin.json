@@ -1,0 +1,13 @@
+{
+  "exam_id": "sha256:c0ae8a3500e1e65120ba6f04fb23b82bc7372fd9d3545558ea23efe751bc4db1",
+  "minted_at": "2026-08-03T16:43:12Z",
+  "minted_by_request": "mint-attempt-1",
+  "candidate_commit": "5a8eedb5c8afa784052e9544f5774d3da1520c8c",
+  "holdout_count": 1,
+  "mutant_count": 3,
+  "kill_rate": 1.0,
+  "generator_version": "1.1.0",
+  "oracle_version": "holdout-exam-1.1.0",
+  "note": "A content hash, not content. The exam itself is inside the verifier identity's 0700 store and the builder cannot read it; this file only says which exam a verdict is bound to.",
+  "minted_how": "deploy/verifier/generator.py --mode MINT, run under sudo -u efah-verifier directly from a staged copy of the source rather than through tools/mint_sealed_exam.py. The seam invokes /opt/efah-verifier/bin/generate-holdouts, and that installed copy predates SEAM_VERSION 1.2.0; installing to /opt is blocked in this environment. Re-run deploy/verifier/provision.sh under the owner's authority and the normal path works. The exam itself is not affected by which copy of the identical source authored it."
+}

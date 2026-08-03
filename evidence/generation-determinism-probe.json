@@ -1,0 +1,160 @@
+{
+  "probe": "generation_determinism",
+  "question": "does sending `seed` with temperature 0 make this eval transport produce byte-identical completions for byte-identical prompts?",
+  "why": "the sealed holdout generator has no seed anywhere and 25 runs on one commit produced 25 different exercises; a working seed would be a cheaper fix than freezing the exam, so it is measured first",
+  "prompt_entropy_note": "the prompt asks for an invented name, so identical answers are a real result rather than an artefact of a question with one answer",
+  "measured_at": "2026-08-03T16:28:25Z",
+  "base_url": "https://litellm-eval-production.up.railway.app",
+  "seed": 20260803,
+  "verdict": "SEED_DOES_NOT_MAKE_THIS_TRANSPORT_REPRODUCIBLE",
+  "arms": [
+    {
+      "model": "claude-opus-4-8",
+      "arm": "seeded",
+      "repeats": 3,
+      "distinct_outputs": 3,
+      "reproducible": false,
+      "system_fingerprint_present": false,
+      "calls": [
+        {
+          "status": "ok",
+          "seed_sent": 20260803,
+          "chars": 149,
+          "sha256": "e4a72dca1473df96",
+          "system_fingerprint": null,
+          "elapsed_s": 2.46,
+          "first_60": "Aetherwake \u2014 decommissioned deep-survey vessel that vanished"
+        },
+        {
+          "status": "ok",
+          "seed_sent": 20260803,
+          "chars": 177,
+          "sha256": "c24356cb30feb3c1",
+          "system_fingerprint": null,
+          "elapsed_s": 2.78,
+          "first_60": "The Vesper's Lament \u2014 assembled from the salvaged hulls of t"
+        },
+        {
+          "status": "ok",
+          "seed_sent": 20260803,
+          "chars": 173,
+          "sha256": "0e8864d2ef978e65",
+          "system_fingerprint": null,
+          "elapsed_s": 3.6,
+          "first_60": "Aurelian Drift \u2014 Salvaged from a derelict mining fleet and r"
+        }
+      ]
+    },
+    {
+      "model": "claude-opus-4-8",
+      "arm": "unseeded",
+      "repeats": 3,
+      "distinct_outputs": 3,
+      "reproducible": false,
+      "system_fingerprint_present": false,
+      "calls": [
+        {
+          "status": "ok",
+          "seed_sent": null,
+          "chars": 158,
+          "sha256": "c293fffebcd54c4b",
+          "system_fingerprint": null,
+          "elapsed_s": 2.22,
+          "first_60": "The *Meridian Drift* was salvaged from a decommissioned mini"
+        },
+        {
+          "status": "ok",
+          "seed_sent": null,
+          "chars": 154,
+          "sha256": "3a42800dc9e40adf",
+          "system_fingerprint": null,
+          "elapsed_s": 3.39,
+          "first_60": "The Vespertine Requiem was salvaged from a derelict fleet dr"
+        },
+        {
+          "status": "ok",
+          "seed_sent": null,
+          "chars": 173,
+          "sha256": "39b5f597342c5be4",
+          "system_fingerprint": null,
+          "elapsed_s": 2.71,
+          "first_60": "The Vespertine Drift \u2014 decommissioned survey vessel that van"
+        }
+      ]
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "arm": "seeded",
+      "repeats": 3,
+      "distinct_outputs": 3,
+      "reproducible": false,
+      "system_fingerprint_present": false,
+      "calls": [
+        {
+          "status": "ok",
+          "seed_sent": 20260803,
+          "chars": 166,
+          "sha256": "5c2567cceb24ccf5",
+          "system_fingerprint": null,
+          "elapsed_s": 3.95,
+          "first_60": "The *Crooked Canticle* was the only prison ship ever repurpo"
+        },
+        {
+          "status": "ok",
+          "seed_sent": 20260803,
+          "chars": 195,
+          "sha256": "633f0932c3b233ea",
+          "system_fingerprint": null,
+          "elapsed_s": 5.12,
+          "first_60": "**The Vagrant Meridian**\n\nOriginally a lunar ore hauler, the"
+        },
+        {
+          "status": "ok",
+          "seed_sent": 20260803,
+          "chars": 171,
+          "sha256": "f8719a2f0815f02b",
+          "system_fingerprint": null,
+          "elapsed_s": 10.05,
+          "first_60": "**ISV Hollow Reliquary** \u2014 Originally a mining vessel, she b"
+        }
+      ]
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "arm": "unseeded",
+      "repeats": 3,
+      "distinct_outputs": 3,
+      "reproducible": false,
+      "system_fingerprint_present": false,
+      "calls": [
+        {
+          "status": "ok",
+          "seed_sent": null,
+          "chars": 55,
+          "sha256": "48d42fdbef0e044e",
+          "system_fingerprint": null,
+          "elapsed_s": 9.96,
+          "first_60": "**The *Barnacle Philosophies*** \u2014 A patchwork freighter"
+        },
+        {
+          "status": "ok",
+          "seed_sent": null,
+          "chars": 38,
+          "sha256": "f90a72888db64001",
+          "system_fingerprint": null,
+          "elapsed_s": 9.78,
+          "first_60": "**The Cartographer's Regret** \u2014 a salv"
+        },
+        {
+          "status": "ok",
+          "seed_sent": null,
+          "chars": 161,
+          "sha256": "6edd42edf35eff95",
+          "system_fingerprint": null,
+          "elapsed_s": 9.92,
+          "first_60": "**The Audacity of Dusk** \u2014 It earned its name when it limped"
+        }
+      ]
+    }
+  ]
+}

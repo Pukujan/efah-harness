@@ -33,6 +33,7 @@ from verifier_identity.seam import (
     MAX_STDOUT_BYTES,
     PERMITTED_RECEIPT_FIELDS,
     GenerationRequest,
+    GenerationRunMode,
     GenerationSeam,
     GeneratorFailureReason,
     validate_receipt,
@@ -49,9 +50,14 @@ GOOD = {
     "generator_version": "1.0.0",
     "oracle_version": "holdout-mint-1.0.0",
     "generated_at": "2026-08-02T13:49:19Z",
+    "run_mode": "MINT",
     "failure_class": None,
     "failure_reason": None,
 }
+
+#: A clean grade verdict against a frozen exam. The only receipt shape a release
+#: gate may act on, and the reason ``GOOD`` alone is no longer sufficient here.
+GRADED = {**GOOD, "run_mode": "GRADE"}
 
 #: A failed receipt. Both enumerated fields are set, because the seam requires
 #: a failure to say why.
@@ -314,6 +320,29 @@ def _load_generator():
     return module
 
 
+class _NullLog:
+    """The sealed log writes inside a 0700 directory this process cannot enter.
+
+    Discarding it here is the same discipline the seam applies in production —
+    the log is not a channel — and it keeps these tests from depending on the
+    verifier identity being provisioned on the machine running them.
+    """
+
+    def write(self, message: str) -> None:
+        pass
+
+
+class _Args:
+    """The parsed argv the generator's mode functions read, without argparse."""
+
+    def __init__(self, **fields) -> None:
+        for name in (
+            "mode", "exam_id", "candidate_path", "request_id",
+            "candidate_commit", "contract_version", "target_count",
+        ):
+            setattr(self, name, fields.get(name))
+
+
 def test_the_generator_refuses_to_emit_a_reason_it_does_not_recognise():
     """Belt and braces, on the side that writes the field.
 
@@ -454,6 +483,226 @@ def test_the_mint_refuses_a_set_with_no_mutants_to_kill():
     assert receipt.mint_accepted is False
 
 
+# -- minting is not grading ------------------------------------------------
+#
+# Measured 2026-08-03: 25 runs on one commit, 25 different reference
+# implementations, PASS about 45% of the time. One command minted an exercise
+# and scored against it in the same breath, so `exit_status == 0` meant "an exam
+# was authored and it happened to validate" and every caller read it as "the
+# candidate passed". The variance being gated on was in the exam.
+def test_a_receipt_must_say_which_verb_produced_it():
+    for bad in (None, "mint", "GRADE ", "", "MINT_AND_GRADE", 1, ["MINT"]):
+        receipt, findings = validate_receipt({**GOOD, "run_mode": bad})
+        assert receipt is None, f"run_mode={bad!r} was accepted"
+        assert any("run_mode" in f for f in findings)
+
+    # Absent is the same as wrong; a generator cannot opt out by omission.
+    receipt, findings = validate_receipt({k: v for k, v in GOOD.items() if k != "run_mode"})
+    assert receipt is None
+    assert any("run_mode" in f for f in findings)
+
+
+def test_a_rejected_run_mode_is_not_quoted_back_to_the_builder():
+    """Same discipline as the other two enumerated fields."""
+    receipt, findings = validate_receipt({**GOOD, "run_mode": HOLDOUT_FRAGMENT})
+    assert receipt is None
+    assert HOLDOUT_FRAGMENT not in json.dumps(findings)
+
+
+def test_only_a_grade_receipt_is_something_a_gate_may_act_on():
+    """The whole change, as one assertion.
+
+    A perfect mint and a perfect grade are numerically identical receipts. They
+    are not the same claim: the first says an exam now exists, the second says a
+    candidate passed one. A gate that cannot tell them apart gates on the exam.
+    """
+    minted, _ = validate_receipt(dict(GOOD))
+    graded, _ = validate_receipt(dict(GRADED))
+    assert minted is not None and graded is not None
+
+    assert minted.kill_rate == graded.kill_rate == 1.0
+    assert minted.exit_status == graded.exit_status == 0
+
+    assert minted.mint_accepted is True
+    assert minted.gate_eligible is False
+
+    assert graded.mint_accepted is False
+    assert graded.gate_eligible is True
+
+
+def test_a_grade_that_did_not_score_clean_is_not_gate_eligible():
+    for broken in (
+        {"killed_count": 24, "kill_rate": 0.96},
+        {"holdout_count": 0},
+        {"mutant_count": 0, "killed_count": 0, "kill_rate": 0.0},
+        {
+            "exit_status": 7,
+            "failure_class": FailureClass.HOLDOUT_FAILURE.value,
+            "failure_reason": GeneratorFailureReason.CANDIDATE_FAILED_HOLDOUTS.value,
+        },
+    ):
+        receipt, findings = validate_receipt({**GRADED, **broken})
+        assert findings == [], findings
+        assert receipt is not None and receipt.gate_eligible is False
+
+
+def test_the_evidence_record_says_whether_the_receipt_was_a_verdict():
+    minted, _ = validate_receipt(dict(GOOD))
+    assert minted is not None
+    body = minted.as_body()
+    assert body["run_mode"] == "MINT"
+    assert body["gate_eligible"] is False
+    assert body["mint_accepted"] is True
+
+
+def test_asking_to_grade_and_being_handed_a_mint_receipt_is_a_provenance_failure(
+    monkeypatch, tmp_path
+):
+    """The 2026-08-03 behaviour arriving under a new name.
+
+    A generator that answered a grade request by minting a fresh exercise would
+    produce a receipt that validates, scores 1.0 and looks like a pass. The mode
+    is echo-checked for exactly the reason the request id is.
+    """
+    generator = tmp_path / "gen"
+    generator.write_text("#!/bin/sh\n")
+    seam = GenerationSeam(VerifierIdentity(generator=generator))
+
+    class _Proc:
+        returncode = 0
+        stdout = json.dumps({**GOOD, "generation_request_id": "GEN-6"}).encode()
+
+    monkeypatch.setattr("verifier_identity.seam.subprocess.run", lambda *a, **k: _Proc())
+    monkeypatch.setattr("verifier_identity.seam.shutil.which", lambda _: "/usr/bin/sudo")
+
+    outcome = seam.generate(
+        GenerationRequest(
+            "GEN-6", "deadbeef", "1.1", GenerationRunMode.GRADE,
+            exam_id="sha256:" + "a" * 64,
+        )
+    )
+    assert outcome.state is TaskState.FAILED_PROVENANCE
+    assert outcome.receipt is None
+    assert any("returned a MINT receipt" in r for r in outcome.rejected_because)
+
+
+def test_a_validated_mint_does_not_reach_the_passed_state(monkeypatch, tmp_path):
+    """A mint is completed work, not a passing verdict."""
+    generator = tmp_path / "gen"
+    generator.write_text("#!/bin/sh\n")
+    seam = GenerationSeam(VerifierIdentity(generator=generator))
+
+    class _Proc:
+        returncode = 0
+        stdout = json.dumps({**GOOD, "generation_request_id": "GEN-7"}).encode()
+
+    monkeypatch.setattr("verifier_identity.seam.subprocess.run", lambda *a, **k: _Proc())
+    monkeypatch.setattr("verifier_identity.seam.shutil.which", lambda _: "/usr/bin/sudo")
+
+    outcome = seam.generate(
+        GenerationRequest("GEN-7", "deadbeef", "1.1", GenerationRunMode.MINT, 1)
+    )
+    assert outcome.receipt is not None
+    assert outcome.state is TaskState.VERIFYING
+    assert outcome.as_evidence()["gate_eligible"] is False
+
+
+def test_the_generator_holds_the_same_run_modes():
+    """The second duplicated vocabulary, compared the same way as the first."""
+    generator = _load_generator()
+    assert set(generator.RUN_MODES) == {m.value for m in GenerationRunMode}
+    assert isinstance(generator.RUN_MODES, tuple)
+
+
+def test_the_generator_refuses_to_emit_a_run_mode_it_does_not_recognise():
+    """No honest bucket here, and the coercion is the conservative one.
+
+    ``UNCLASSIFIED_EXCEPTION`` has no analogue for a verb: a generator that does
+    not know what it did is not reporting an unusual run, it is reporting a
+    program that has been edited into nonsense. It degrades to ``MINT``, which
+    is never gate-eligible, so a confused generator cannot produce a pass.
+    """
+    generator = _load_generator()
+    assert generator.emit_run_mode("GRADE") == "GRADE"
+    assert generator.emit_run_mode("MINT") == "MINT"
+    for smuggled in (HOLDOUT_FRAGMENT, "grade", "", "MINT_AND_GRADE"):
+        assert generator.emit_run_mode(smuggled) == "MINT"
+
+    receipt, findings = validate_receipt(
+        {**GRADED, "run_mode": generator.emit_run_mode(HOLDOUT_FRAGMENT)}
+    )
+    assert findings == []
+    assert receipt is not None and receipt.gate_eligible is False
+
+
+def test_an_unpinned_grade_is_refused_by_the_generator_not_answered(capsys):
+    """Requirement, asserted against the generator's own argument handling.
+
+    ``--mode GRADE`` with no ``--exam-id`` used to be the only behaviour there
+    was: generate an exercise, score against it, report. It is now a typed
+    refusal that a gate can act on.
+    """
+    generator = _load_generator()
+    exit_status = generator._grade(
+        _Args(mode="GRADE", exam_id=None),
+        "GEN-0001",
+        "sha256:" + "b" * 64,
+        _NullLog(),
+    )
+    assert exit_status == 8
+
+    emitted = json.loads(capsys.readouterr().out.strip())
+    receipt, findings = validate_receipt(emitted)
+    assert findings == []
+    assert receipt is not None
+    assert receipt.run_mode is GenerationRunMode.GRADE
+    assert receipt.failure_reason is GeneratorFailureReason.EXAM_NOT_PINNED
+    assert receipt.gate_eligible is False
+    assert receipt.mint_accepted is False
+
+
+def test_a_pinned_exam_id_is_never_used_as_a_path_before_it_is_checked():
+    """The traversal guard on the sealed side, where it actually matters."""
+    generator = _load_generator()
+    for bad in ("../../etc/passwd", "sha256:" + "A" * 64, "sha256:zz", "", None):
+        with pytest.raises(generator.GeneratorFailure) as caught:
+            generator.exam_dir_for(bad)
+        assert caught.value.reason == "EXAM_NOT_FOUND"
+
+    good = "sha256:" + "c" * 64
+    assert generator.exam_dir_for(good).name == "c" * 64
+    assert generator.exam_dir_for(good).parent == generator.SEALED_EXAMS
+
+
+def test_an_exam_that_no_longer_hashes_to_its_own_name_is_refused(tmp_path):
+    """The frozen files are owned by the account that runs the generator.
+
+    Read-only modes are a guard rail, not a boundary — ``efah-verifier`` can
+    chmod its own files back. So a rewritten exam is not prevented, it is
+    detected, and no verdict is allowed to rest on it.
+    """
+    generator = _load_generator()
+    exam = tmp_path / "exam"
+    (exam / "reference").mkdir(parents=True)
+    (exam / "reference" / "subject.py").write_text("VALUE = 1\n")
+    (exam / "holdouts").mkdir()
+    (exam / "holdouts" / "test_holdout.py").write_text("def test_x(): assert True\n")
+    (exam / "mutants").mkdir()
+    (exam / "mutants" / "mutant_1.py").write_text("VALUE = 2\n")
+
+    first = generator.exam_content_hash(exam)
+    assert first.startswith("sha256:") and len(first) == 71
+
+    # The manifest is deliberately outside the hash: an identity that moved when
+    # a timestamp was written would not be an identity.
+    (exam / "manifest.json").write_text('{"minted_at": "2026-08-03T00:00:00Z"}')
+    assert generator.exam_content_hash(exam) == first
+
+    # Anything else moves it, which is what makes the rewrite detectable.
+    (exam / "holdouts" / "test_holdout.py").write_text("def test_x(): assert False\n")
+    assert generator.exam_content_hash(exam) != first
+
+
 # -- the request direction -------------------------------------------------
 def test_the_builder_cannot_describe_what_the_holdouts_should_contain():
     """A builder that could shape the holdouts would be writing its own exam."""
@@ -461,6 +710,7 @@ def test_the_builder_cannot_describe_what_the_holdouts_should_contain():
         generation_request_id="GEN-1",
         candidate_commit="deadbeef",
         contract_version="1.1",
+        mode=GenerationRunMode.MINT,
         target_count=5,
     )
     argv = request.as_argv()
@@ -469,7 +719,37 @@ def test_the_builder_cannot_describe_what_the_holdouts_should_contain():
         "--candidate-commit",
         "--contract-version",
         "--target-count",
+        "--mode",
     }
+
+
+def test_a_pinned_exam_id_that_is_not_a_content_hash_is_never_sent_inward():
+    """The pin becomes a path component inside the sealed store's own process.
+
+    A grade run resolves the id to a directory, so ``../../etc`` would be a
+    traversal handed to the one process on the host that can read the holdouts.
+    It is shape-checked here and again on the far side; an id that fails is not
+    forwarded to be rejected there, it is simply not sent — and the generator
+    then refuses the run as unpinned, which is the safe outcome.
+    """
+    for bad in ("../../etc", "sha256:" + "a" * 63, "sha256:" + "A" * 64, "; rm -rf /", ""):
+        argv = GenerationRequest(
+            generation_request_id="GEN-1",
+            candidate_commit="deadbeef",
+            contract_version="1.1",
+            mode=GenerationRunMode.GRADE,
+            exam_id=bad,
+        ).as_argv()
+        assert "--exam-id" not in argv, f"exam_id={bad!r} was forwarded"
+
+    argv = GenerationRequest(
+        generation_request_id="GEN-1",
+        candidate_commit="deadbeef",
+        contract_version="1.1",
+        mode=GenerationRunMode.GRADE,
+        exam_id="sha256:" + "a" * 64,
+    ).as_argv()
+    assert argv[argv.index("--exam-id") + 1] == "sha256:" + "a" * 64
 
 
 # -- the seam's own refusals -----------------------------------------------
@@ -477,7 +757,7 @@ def test_an_uninstalled_generator_is_a_typed_blocker_not_a_fallback(tmp_path):
     """No local fallback. A locally-generated holdout is a circular one."""
     identity = VerifierIdentity(generator=tmp_path / "absent")
     outcome = GenerationSeam(identity).generate(
-        GenerationRequest("GEN-2", "deadbeef", "1.1", 1)
+        GenerationRequest("GEN-2", "deadbeef", "1.1", GenerationRunMode.MINT, 1)
     )
     assert outcome.state is ProjectState.BLOCKED_EXTERNAL_ACCESS
     assert outcome.receipt is None
@@ -497,7 +777,7 @@ def test_a_receipt_for_another_request_is_refused(monkeypatch, tmp_path):
     monkeypatch.setattr("verifier_identity.seam.subprocess.run", lambda *a, **k: _Proc())
     monkeypatch.setattr("verifier_identity.seam.shutil.which", lambda _: "/usr/bin/sudo")
 
-    outcome = seam.generate(GenerationRequest("GEN-3", "deadbeef", "1.1", 1))
+    outcome = seam.generate(GenerationRequest("GEN-3", "deadbeef", "1.1", GenerationRunMode.MINT, 1))
     assert outcome.state is TaskState.FAILED_PROVENANCE
     assert any("not the submitted request" in r for r in outcome.rejected_because)
 
@@ -517,7 +797,7 @@ def test_oversized_stdout_is_discarded_and_counted(monkeypatch, tmp_path):
     monkeypatch.setattr("verifier_identity.seam.subprocess.run", lambda *a, **k: _Proc())
     monkeypatch.setattr("verifier_identity.seam.shutil.which", lambda _: "/usr/bin/sudo")
 
-    outcome = seam.generate(GenerationRequest("GEN-4", "deadbeef", "1.1", 1))
+    outcome = seam.generate(GenerationRequest("GEN-4", "deadbeef", "1.1", GenerationRunMode.MINT, 1))
     assert outcome.state is TaskState.FAILED_PROVENANCE
     assert outcome.stdout_bytes_discarded > 0
     assert len(flood.encode()) > MAX_STDOUT_BYTES
@@ -527,7 +807,7 @@ def test_oversized_stdout_is_discarded_and_counted(monkeypatch, tmp_path):
 
 def test_the_evidence_record_states_what_it_did_not_read():
     outcome = GenerationSeam(VerifierIdentity(generator=Path("/nonexistent"))).generate(
-        GenerationRequest("GEN-5", "deadbeef", "1.1", 1)
+        GenerationRequest("GEN-5", "deadbeef", "1.1", GenerationRunMode.MINT, 1)
     )
     evidence = outcome.as_evidence()
     assert evidence["stderr_read_by_builder"] is False
