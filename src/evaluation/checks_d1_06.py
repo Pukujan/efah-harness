@@ -49,7 +49,6 @@ literal would trip the architecture scan that keeps that boundary honest.
 from __future__ import annotations
 
 import ast
-import asyncio
 import dataclasses
 import os
 from datetime import UTC, datetime
@@ -65,6 +64,7 @@ from api.context import (
     set_context,
 )
 from api.middleware.audit import REDACTED_HEADERS, AuditMiddleware
+from evaluation.async_bridge import run_sync
 from governance.envelope import Envelope, content_hash
 from integrations.protected_identity import (
     PROTECTED_DATABASE,
@@ -597,7 +597,7 @@ def _audit_record(alias: str) -> dict[str, Any]:
         records = middleware.sink.records()
         return records[-1] if records else {}
 
-    return asyncio.run(drive())
+    return run_sync(drive())
 
 
 def d1_06_a2(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOutcome:
@@ -879,7 +879,7 @@ def d1_06_a3(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOut
     main_password = os.environ.get("TERMINUSDB_ADMIN_PASS")
     if main_password:
         try:
-            probe = asyncio.run(
+            probe = run_sync(
                 probe_credential_against_protected(main_password, actor="builder/main-admin")
             )
         except Exception as exc:
@@ -983,14 +983,14 @@ def _offline_reveal_arms(policy: ModelPolicy, alias: str) -> tuple[dict[str, Any
     refusals: dict[str, Any] = {}
     for caller in ("researcher-r17", "implementer-i12", "judge-j03", "anonymous"):
         try:
-            asyncio.run(pack_store.resolve_alias(alias, caller=caller))
+            run_sync(pack_store.resolve_alias(alias, caller=caller))
             refusals[caller] = {"refused": False}
             findings.append(
                 f"caller {caller!r} resolved {alias!r} to a real identity without owner authority"
             )
         except ProtectedAccessError as exc:
             refusals[caller] = {"refused": True, "raised": type(exc).__name__, "detail": str(exc)}
-    owner_view = asyncio.run(pack_store.resolve_alias(alias, caller="owner_audit"))
+    owner_view = run_sync(pack_store.resolve_alias(alias, caller="owner_audit"))
     owner_hash = content_hash({"provider": owner_view.family, "model_id": owner_view.litellm_model})
     if owner_hash != expected_hash:
         findings.append(
@@ -1025,7 +1025,7 @@ def _offline_reveal_arms(policy: ModelPolicy, alias: str) -> tuple[dict[str, Any
 
     offline_store = ProtectedIdentityStore(password="unused", endpoint="http://127.0.0.1:1")
     try:
-        asyncio.run(offline_store.reveal_for_owner_audit(alias, _NotAnAuditRequest()))  # type: ignore[arg-type]
+        run_sync(offline_store.reveal_for_owner_audit(alias, _NotAnAuditRequest()))  # type: ignore[arg-type]
         request_arms["duck_typed_request"] = {"refused": False}
         findings.append(
             "a duck-typed audit context was accepted; the reveal guard can be bypassed by any "
@@ -1034,7 +1034,7 @@ def _offline_reveal_arms(policy: ModelPolicy, alias: str) -> tuple[dict[str, Any
     except ProtectedIdentityAccessError as exc:
         request_arms["duck_typed_request"] = {"refused": True, "detail": str(exc)}
     finally:
-        asyncio.run(offline_store.aclose())
+        run_sync(offline_store.aclose())
     arms["audit_context_required"] = request_arms
 
     # 3. With no credential the store refuses to exist rather than falling back
@@ -1141,7 +1141,7 @@ def _live_reveal(alias: str, expected_hash: str, reason: str) -> dict[str, Any]:
             }
 
     try:
-        return asyncio.run(run())
+        return run_sync(run())
     except TerminusAuthError as exc:
         return {"state": "unauthenticated", "detail": str(exc)}
     except TerminusError as exc:

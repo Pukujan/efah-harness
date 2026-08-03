@@ -72,6 +72,7 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any
 
 from assignments.leases import InMemoryLeaseLedger
+from evaluation.async_bridge import run_sync
 from evaluation.gate_spec import AssertionSpec, GateSpec
 from governance.envelope import content_hash
 from governance.states import FailureClass
@@ -523,13 +524,13 @@ def d1_04_a2(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOut
     """
     module = _probe_module(ctx.repo_root)
     with _workspace("gate-d1-04-a2-") as workroot:
-        killed = asyncio.run(_kill_and_resume_counts(module, ctx.repo_root, workroot / "kill"))
-        resumed = asyncio.run(
+        killed = run_sync(_kill_and_resume_counts(module, ctx.repo_root, workroot / "kill"))
+        resumed = run_sync(
             _observer_rerun_probe(
                 ctx.repo_root, workroot / "resume", restart_instead_of_resume=False
             )
         )
-        restarted = asyncio.run(
+        restarted = run_sync(
             _observer_rerun_probe(
                 ctx.repo_root, workroot / "restart", restart_instead_of_resume=True
             )
@@ -761,7 +762,7 @@ def d1_04_a3(ctx: GateContext, gate: GateSpec, a: AssertionSpec) -> AssertionOut
     model_fields = sorted(CheckpointReference.model_fields)
 
     with _workspace("gate-d1-04-a3-") as workroot:
-        probe = asyncio.run(_checkpoint_field_probe(ctx.repo_root, workroot))
+        probe = run_sync(_checkpoint_field_probe(ctx.repo_root, workroot))
 
     state_carrying = [r for r in probe["records"] if r["carries_graph_state"]]
     incomplete = [r for r in state_carrying if r["missing_required_fields"]]
