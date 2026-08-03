@@ -26,7 +26,14 @@ from provenance.binding import (
     seal_entity,
     verify_entity,
 )
-from provenance.importer import build_pack_entities, make_import_branch_name
+from provenance.importer import (
+    LOCKFILE_NAME,
+    UNRESOLVED_VERSION,
+    build_pack_entities,
+    find_lockfile,
+    load_lockfile_versions,
+    make_import_branch_name,
+)
 from tasks.ledger import Actor, ActorKind, LedgerAuthorityViolation, TaskLedger
 
 PACK_ROOT = Path(__file__).resolve().parents[2] / "project-pack"
@@ -158,6 +165,93 @@ def test_pack_import_never_writes_a_real_model_identity_into_the_main_graph():
     serialised = repr([e.model_dump() for e in build_pack_entities(pack, author_alias="ws-b")])
     leaked = sorted(s for s in secrets if s in serialised)
     assert not leaked, f"real model identity leaked into the main graph: {leaked}"
+
+
+# -- Section 16.3 exact_version_and_lockfile_source -------------------------
+
+
+def _dependency_versions(pack, **kwargs) -> dict[str, object]:
+    return {
+        e.component: e
+        for e in build_pack_entities(pack, author_alias="ws-b", **kwargs)
+        if type(e).__name__ == "DependencyVersion"
+    }
+
+
+def test_dependency_versions_are_read_from_the_lockfile_not_the_pack(tmp_path):
+    """Section 16.3 wants an exact version *and* the file it was pinned in.
+
+    Every ``selected_stack`` entry in the pack reads ``version:
+    TODO_builder_probe``, so a DependencyVersion naming the pack as its
+    lockfile source was asserting a pin that no file contained. The version
+    must come from the resolver output, which this proves by locking a
+    deliberately impossible version: a pass-through of the pack's declaration
+    could not produce it.
+    """
+    lock = tmp_path / LOCKFILE_NAME
+    lock.write_text(
+        'version = 1\n\n[[package]]\nname = "fastapi"\nversion = "9.9.9"\n\n'
+        '[[package]]\nname = "inspect-ai"\nversion = "0.3.251"\n'
+    )
+    deps = _dependency_versions(load_pack(PACK_ROOT), lock_path=lock)
+
+    assert deps["fastapi"].exact_version == "9.9.9"
+    assert deps["fastapi"].lockfile_source == LOCKFILE_NAME
+    # `inspect_ai` is the pack's nickname; `inspect-ai` is the distribution.
+    # PEP 503 normalisation is what bridges them, not a hand-maintained alias.
+    assert deps["inspect_ai"].exact_version == "0.3.251"
+
+
+def test_components_absent_from_the_lockfile_stay_visibly_unresolved(tmp_path):
+    """A Python lockfile cannot pin terminusdb, plane or promptfoo.
+
+    The failure mode worth guarding is not the missing version -- it is
+    claiming a lockfile source for it anyway, which would read downstream as a
+    pin that can be verified. Unresolved must stay legible as unresolved.
+    """
+    lock = tmp_path / LOCKFILE_NAME
+    lock.write_text('version = 1\n\n[[package]]\nname = "fastapi"\nversion = "9.9.9"\n')
+    deps = _dependency_versions(load_pack(PACK_ROOT), lock_path=lock)
+
+    for component in ("terminusdb", "plane", "promptfoo"):
+        assert deps[component].exact_version == UNRESOLVED_VERSION
+        assert deps[component].lockfile_source == "project-pack/dependency-policy.yaml"
+        assert LOCKFILE_NAME not in deps[component].lockfile_source
+
+
+def test_no_lockfile_anywhere_fabricates_no_versions(tmp_path):
+    """A checkout that has not been locked must not silently gain pins."""
+    assert find_lockfile(tmp_path) is None
+
+
+def test_lockfile_is_found_by_walking_up_from_the_pack():
+    """The pack lives at ``<repo>/project-pack``; the lock lives at ``<repo>``."""
+    found = find_lockfile(PACK_ROOT)
+    assert found is not None, "run `uv lock` -- the repository lockfile is missing"
+    assert found == PACK_ROOT.parent / LOCKFILE_NAME
+
+
+def test_real_lockfile_pins_every_python_component_in_the_selected_stack():
+    """Regression for the state this replaced: all sixteen read TODO_builder_probe."""
+    deps = _dependency_versions(load_pack(PACK_ROOT))
+    locked = {c: d for c, d in deps.items() if d.lockfile_source == LOCKFILE_NAME}
+
+    assert {"fastapi", "pydantic", "langgraph", "docling", "lancedb", "inspect_ai"} <= set(locked)
+    for component, dep in locked.items():
+        assert dep.exact_version != UNRESOLVED_VERSION, component
+        assert dep.exact_version[0].isdigit(), f"{component}: {dep.exact_version} is not a version"
+
+
+def test_lockfile_parser_normalises_distribution_names(tmp_path):
+    lock = tmp_path / LOCKFILE_NAME
+    lock.write_text(
+        'version = 1\n\n[[package]]\nname = "Inspect_AI"\nversion = "0.3.251"\n\n'
+        '[[package]]\nname = "opentelemetry.sdk"\nversion = "1.44.0"\n'
+    )
+    assert load_lockfile_versions(lock) == {
+        "inspect-ai": "0.3.251",
+        "opentelemetry-sdk": "1.44.0",
+    }
 
 
 def test_import_branch_name_is_terminusdb_safe():

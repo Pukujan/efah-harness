@@ -26,9 +26,11 @@ into ``efah`` would defeat GATE-D1-06 in the very first write of the run.
 from __future__ import annotations
 
 import re
+import tomllib
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 from governance.envelope import (
@@ -63,19 +65,82 @@ from provenance.writer import ProvenanceWriter, WriteReceipt
 
 __all__ = [
     "EFAH_DATABASE",
+    "LOCKFILE_NAME",
+    "UNRESOLVED_VERSION",
     "PackImportResult",
+    "find_lockfile",
     "import_project_pack",
+    "load_lockfile_versions",
     "make_import_branch_name",
 ]
 
 EFAH_DATABASE = "efah"
 
+#: The resolver output that actually pins versions. ``dependency-policy.yaml``
+#: declares *which* components are selected; it does not and cannot pin them --
+#: every ``selected_stack`` entry carries ``version: TODO_builder_probe``.
+LOCKFILE_NAME = "uv.lock"
+
+#: Carried through verbatim from the pack when no lockfile covers a component,
+#: so an unpinned dependency is visibly unpinned in the graph rather than
+#: silently presented as pinned (contract Section 8.1: no silent defaults).
+UNRESOLVED_VERSION = "TODO_builder_probe"
+
+#: ``selected_stack`` keys are component nicknames, not PyPI distribution names.
+#: Only the aliases that differ need an entry; the rest normalise cleanly.
+_COMPONENT_DISTRIBUTIONS = {
+    "langgraph_async_sqlite_saver": "langgraph-checkpoint-sqlite",
+    "opentelemetry": "opentelemetry-sdk",
+    "llamaindex": "llama-index",
+}
+
 _ID_SAFE = re.compile(r"[^A-Za-z0-9._-]+")
+_NAME_SEPARATORS = re.compile(r"[-_.]+")
 
 
 def _safe_id(value: str) -> str:
     cleaned = _ID_SAFE.sub("-", value).strip("-")
     return cleaned or "unnamed"
+
+
+def _normalise_distribution(name: str) -> str:
+    """PEP 503 normalisation, so ``inspect_ai`` matches ``inspect-ai``."""
+    return _NAME_SEPARATORS.sub("-", name.strip().lower())
+
+
+def find_lockfile(start: Path) -> Path | None:
+    """Walk up from ``start`` looking for the resolver lockfile.
+
+    The pack sits at ``<repo>/project-pack`` and the lockfile at ``<repo>``, so
+    the search is upward rather than inside the pack. Returns ``None`` when no
+    lockfile exists -- the honest answer for a checkout that has not been
+    locked, and the reason the caller must not assume a source.
+    """
+    for directory in (start, *start.parents):
+        candidate = directory / LOCKFILE_NAME
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def load_lockfile_versions(lock_path: Path) -> dict[str, str]:
+    """Map normalised distribution name -> exact locked version.
+
+    ``uv.lock`` is TOML with one ``[[package]]`` table per resolved
+    distribution. Reading it is the only way to answer Section 16.3's
+    ``exact_version_and_lockfile_source`` for a Python component: the pack
+    declares intent, the lock records the resolution.
+    """
+    data = tomllib.loads(lock_path.read_text(encoding="utf-8"))
+    versions: dict[str, str] = {}
+    for package in data.get("package") or ():
+        if not isinstance(package, dict):
+            continue
+        name = package.get("name")
+        version = package.get("version")
+        if name and version:
+            versions[_normalise_distribution(str(name))] = str(version)
+    return versions
 
 
 def make_import_branch_name(manifest_hash: str, *, now: datetime | None = None) -> str:
@@ -170,12 +235,17 @@ class PackImportResult:
         return payload
 
 
-def build_pack_entities(pack: PackFiles, *, author_alias: str) -> list[ControlPlaneEntity]:
+def build_pack_entities(
+    pack: PackFiles, *, author_alias: str, lock_path: Path | None = None
+) -> list[ControlPlaneEntity]:
     """Turn a validated pack into control-plane entities.
 
     Pure: no network, no clock beyond ``imported_at``. That makes the entity set
     unit-testable without a live database, which is why the import path and the
     entity construction are separate functions.
+
+    ``lock_path`` overrides lockfile discovery; passing it explicitly is how a
+    test pins the resolution input instead of depending on the checkout layout.
     """
     contract_yaml = pack.yaml("contract.yaml")
     project_yaml = pack.yaml("project.yaml")
@@ -277,16 +347,38 @@ def build_pack_entities(pack: PackFiles, *, author_alias: str) -> list[ControlPl
             )
         )
 
+    # Section 16.3 wants `exact_version_and_lockfile_source`. The pack cannot
+    # supply either: every `selected_stack` entry is `version:
+    # TODO_builder_probe`, so naming dependency-policy.yaml as the lockfile
+    # source asserted a pin that file does not contain. Versions come from the
+    # resolver lockfile when one covers the component; when none does -- a
+    # non-Python component such as terminusdb, plane or promptfoo, or a Python
+    # one that is not in the declared closure -- the entity keeps the pack's
+    # unresolved marker and points back at the pack, which is where the only
+    # record actually lives.
+    lockfile = lock_path if lock_path is not None else find_lockfile(pack.root)
+    locked_versions = load_lockfile_versions(lockfile) if lockfile is not None else {}
+    lockfile_label = lockfile.name if lockfile is not None else None
     for component, block in (dependency_policy.get("selected_stack") or {}).items():
         if not isinstance(block, dict):
             continue
+        component_name = str(block.get("component", component))
+        declared_version = str(block.get("version", UNRESOLVED_VERSION))
+        distribution = _COMPONENT_DISTRIBUTIONS.get(
+            component_name, _normalise_distribution(component_name)
+        )
+        locked_version = locked_versions.get(distribution)
         entities.append(
             DependencyVersion(
-                entity_id=_safe_id(f"DEP-{block.get('component', component)}"),
+                entity_id=_safe_id(f"DEP-{component_name}"),
                 envelope=_envelope("efah.dependency_version", author_alias),
-                component=str(block.get("component", component)),
-                exact_version=str(block.get("version", "TODO_builder_probe")),
-                lockfile_source="project-pack/dependency-policy.yaml",
+                component=component_name,
+                exact_version=locked_version or declared_version,
+                lockfile_source=(
+                    lockfile_label
+                    if locked_version is not None
+                    else "project-pack/dependency-policy.yaml"
+                ),
                 update_and_rollback_policy=str(
                     (dependency_policy.get("risk_policy") or {}).get(
                         "auto_merge_dependency_updates", "none"
@@ -469,6 +561,7 @@ async def import_project_pack(
     author_alias: str,
     database: str = EFAH_DATABASE,
     branch: str | None = None,
+    lock_path: Path | None = None,
 ) -> PackImportResult:
     """Create ``efah`` if absent and import *pack* onto a fresh isolated branch.
 
@@ -498,7 +591,7 @@ async def import_project_pack(
         message=f"control-plane ontology for {CONTRACT_ID} v{CONTRACT_VERSION}",
     )
 
-    entities = build_pack_entities(pack, author_alias=author_alias)
+    entities = build_pack_entities(pack, author_alias=author_alias, lock_path=lock_path)
     receipt = await writer.write(
         entities,
         message=f"import project pack {pack.manifest_hash} for {pack.project_id}",

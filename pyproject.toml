@@ -7,17 +7,55 @@ dependencies = [
   "fastapi>=0.115",
   "uvicorn[standard]>=0.32",
   "pydantic>=2.9",
-  "pydantic-settings>=2.6",
   "pyyaml>=6.0",
   "httpx>=0.27",
+  # Imported directly, not merely transitively via fastapi: every module under
+  # src/api/middleware/ and src/evaluation/checks_d1_06.py import `starlette`
+  # by name. A direct import is a direct dependency -- relying on fastapi to
+  # keep supplying it is an undeclared coupling, not a transitive one.
+  "starlette>=0.41",
   "langgraph>=0.2.50",
   "langgraph-checkpoint-sqlite>=2.0",
+  # src/workflows/checkpoint.py imports langchain_core.runnables directly.
+  "langchain-core>=0.3",
   "aiosqlite>=0.20",
   "opentelemetry-api>=1.28",
   "opentelemetry-sdk>=1.28",
   "opentelemetry-exporter-otlp-proto-grpc>=1.28",
+  # ---------------------------------------------------------------------
+  # ZERO IMPORT SITES as of 2026-08-03. `pydantic-settings`, `PyJWT` and
+  # `cryptography` are declared here but no module in src/, tests/ or tools/
+  # imports them. They are retained deliberately rather than deleted: dropping
+  # a declared dependency changes the delivered closure and is an owner scope
+  # decision (contract Section 8.1 forbids silent defaults for material
+  # fields), not a janitorial one. Either wire them up or record a decision to
+  # remove them; do not let them rot here unexamined.
+  # ---------------------------------------------------------------------
+  "pydantic-settings>=2.6",
   "PyJWT>=2.7",
   "cryptography>=41",
+]
+
+[project.optional-dependencies]
+# GATE-D1-07 / dependency-policy.yaml:130-137
+# `essential_runtime_may_depend_on_claude: false`. The Anthropic SDK is reached
+# only through src/workers/adapters/claude_code.py, behind a guarded import and
+# the EFAH_ENABLE_CLAUDE_ADAPTER opt-in flag. It MUST stay an extra: promoting
+# it to a base dependency would put the SDK in the essential runtime closure and
+# fail vendor neutrality by construction, regardless of whether it is imported.
+claude = ["anthropic>=0.40"]
+eval = ["inspect-ai"]
+ingest = ["docling"]
+retrieval = ["lancedb"]
+
+[dependency-groups]
+# Not shipped in the wheel; needed to run the gates. Previously installed in the
+# venv and declared nowhere, which is exactly the state a lock cannot capture.
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.24",
+  "ruff>=0.6",
+  "build>=1.2",
 ]
 
 [project.scripts]
